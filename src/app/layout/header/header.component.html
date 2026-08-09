@@ -1,0 +1,32 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="icon-btn" (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
+      <i class="pi pi-bars"></i>
+    </button>
+  </div>
+
+  <div class="topbar-right">
+    <button class="icon-btn" (click)="toggleDarkMode()"
+      [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
+      <i [class]="isDark() ? 'pi pi-sun' : 'pi pi-moon'"></i>
+    </button>
+
+    <button class="icon-btn" routerLink="/console/approvals" aria-label="Pending approvals">
+      @if (pendingApprovals() > 0) {
+      <i class="pi pi-bell" pBadge [value]="pendingApprovals()" severity="danger"></i>
+      } @else {
+      <i class="pi pi-bell"></i>
+      }
+    </button>
+
+    <button class="user-btn" (click)="userMenu.toggle($event)">
+      <p-avatar [label]="initials()" shape="circle" styleClass="user-avatar" />
+      <div class="user-info">
+        <span class="user-name">{{ currentUser()?.fullName }}</span>
+        <span class="user-role">{{ currentUser()?.role }}</span>
+      </div>
+      <i class="pi pi-chevron-down"></i>
+    </button>
+    <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
+  </div>
+</header>

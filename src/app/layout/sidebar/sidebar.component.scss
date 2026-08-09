@@ -1,0 +1,128 @@
+.sidebar {
+  width: var(--ath-sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--p-surface-0);
+  border-inline-end: 1px solid var(--p-surface-200);
+  transition: width 0.2s ease;
+  flex-shrink: 0;
+
+  &.collapsed {
+    width: var(--ath-sidebar-collapsed-width);
+  }
+}
+
+.brand {
+  height: var(--ath-header-height);
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-inline: 1.25rem;
+  border-block-end: 1px solid var(--p-surface-200);
+}
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.brand-name {
+  font-weight: 700;
+  color: var(--p-primary-700);
+}
+.brand-sub {
+  font-size: 0.7rem;
+  color: var(--p-surface-500);
+}
+
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+.nav-group {
+  margin-block-end: 0.5rem;
+}
+.nav-group-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p-surface-400);
+  padding: 0.75rem 0.75rem 0.25rem;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--ath-radius);
+  color: var(--p-surface-600);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  i {
+    font-size: 1rem;
+    width: 1rem;
+    text-align: center;
+  }
+
+  &:hover {
+    background: var(--p-surface-100);
+    color: var(--p-surface-900);
+  }
+  &.active {
+    background: var(--p-highlight-background);
+    color: var(--p-highlight-color);
+  }
+}
+
+.sidebar-footer {
+  padding: 0.75rem;
+  border-block-start: 1px solid var(--p-surface-200);
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--p-primary-500);
+  color: var(--p-primary-contrast-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.user-chip-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  overflow: hidden;
+
+  .name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--p-surface-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .role {
+    font-size: 0.7rem;
+    color: var(--p-surface-500);
+  }
+}

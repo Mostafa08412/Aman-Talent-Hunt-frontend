@@ -1,0 +1,47 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <div class="brand">
+    <img src="/assets/logo.svg" alt="" class="brand-logo" />
+    @if (!collapsed()) {
+      <div class="brand-text">
+        <span class="brand-name">Aman</span>
+        <span class="brand-sub">Talent Hunt</span>
+      </div>
+    }
+  </div>
+
+  <nav class="nav">
+    @for (group of visibleGroups(); track group.label) {
+      <div class="nav-group">
+        @if (group.label && !collapsed()) {
+          <span class="nav-group-label">{{ group.label }}</span>
+        }
+        @for (item of group.items; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [pTooltip]="collapsed() ? item.label : ''"
+            tooltipPosition="right"
+          >
+            <i [class]="item.icon"></i>
+            @if (!collapsed()) {
+              <span>{{ item.label }}</span>
+            }
+          </a>
+        }
+      </div>
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar">{{ initials() }}</div>
+      @if (!collapsed()) {
+        <div class="user-chip-text">
+          <span class="name">{{ currentUser()?.fullName }}</span>
+          <span class="role">{{ currentUser()?.role }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</aside>
