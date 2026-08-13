@@ -18,6 +18,18 @@ export const routes: Routes = [
         canActivate: [guestRedirectGuard],
         loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent),
       },
+      {
+        path: 'signup',
+        canActivate: [guestRedirectGuard],
+        loadComponent: () => import('./features/auth/signup/signup.component').then((m) => m.SignupComponent),
+      },
+      {
+        path: 'verify-email',
+        loadComponent: () =>
+          import('./features/auth/otp-verification/otp-verification.component').then(
+            (m) => m.OtpVerificationComponent,
+          ),
+      },
     ],
   },
 
