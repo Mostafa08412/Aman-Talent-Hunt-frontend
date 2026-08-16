@@ -101,7 +101,13 @@ if (this.selectedFile) {
 
 
 this.auth.register(formData).subscribe({
-  next: () => this.router.navigate(['/login']),
+  next: () => {
+    this.loading.set(false);
+
+    this.router.navigate(['/verify-email'], {
+      queryParams: { email: formData.get('Email') },
+    });
+  },
   error: () => {
     this.error.set(
       'Unable to complete registration. Please verify your details and try again.'

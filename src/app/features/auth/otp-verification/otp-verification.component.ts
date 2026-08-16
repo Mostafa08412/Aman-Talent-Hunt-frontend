@@ -162,7 +162,9 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
 
     this.auth.confirmEmail({ email: this.email(), otp }).subscribe({
       next: () => {
+       
         this.loading.set(false);
+        this.error.set(null);
         this.navigateToJobBoard();
       },
       error: (error) => {

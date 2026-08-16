@@ -24,6 +24,23 @@ export const routes: Routes = [
         loadComponent: () => import('./features/auth/signup/signup.component').then((m) => m.SignupComponent),
       },
       {
+  path: 'forgot-password',
+  canActivate: [guestRedirectGuard],
+  loadComponent: () =>
+    import('./features/auth/forgot-password/forgot-password.component').then(
+      (m) => m.ForgotPasswordComponent
+    ),
+},
+
+{
+  path: 'reset-password',
+  canActivate: [guestRedirectGuard],
+  loadComponent: () =>
+    import('./features/auth/reset-password/reset-password.component').then(
+      (m) => m.ResetPasswordComponent
+    ),
+},
+      {
         path: 'verify-email',
         loadComponent: () =>
           import('./features/auth/otp-verification/otp-verification.component').then(

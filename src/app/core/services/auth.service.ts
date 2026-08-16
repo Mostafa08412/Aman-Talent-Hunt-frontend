@@ -23,7 +23,11 @@ interface AuthResponse {
     refreshTokenExpirationDate: string;
   };
 }
-
+interface ConfirmEmailResponse {
+  isCompletedSuccessfully: boolean;
+  message: string;
+  code: number;
+}
 const TOKEN_KEY = 'ath_token';
 const USER_KEY = 'ath_user';
 
@@ -78,25 +82,32 @@ export class AuthService {
     data);
 }
 
-  confirmEmail(request: { email: string; otp: string }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(
-      `${this.base}/api/Authentication/confirm-email`,
-      request
-    ).pipe(
-      tap((res) => {
-        const user: CurrentUser = {
-          id: res.data.userId,
-          fullName: `${res.data.firstName} ${res.data.lastName}`,
-          email: res.data.email,
-          role: res.data.roles[0] as Role
-        };
+requestResetPassword(email: string): Observable<unknown> {
+  return this.http.post(
+    `${this.base}/api/Authentication/request-reset-password`,
+    { email }
+  );
+}
 
-        localStorage.setItem(TOKEN_KEY, res.data.accessToken);
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
-        this._currentUser.set(user);
-      })
+  resetPassword(request: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }): Observable<unknown> {
+    return this.http.post(
+      `${this.base}/api/Authentication/reset-password`,
+      request
     );
   }
+
+  confirmEmail(
+  request: { email: string; otp: string }
+): Observable<ConfirmEmailResponse> {
+  return this.http.post<ConfirmEmailResponse>(
+    `${this.base}/api/Authentication/confirm-email`,
+    request
+  );
+}
 
   resendConfirmationEmail(request: { email: string }): Observable<unknown> {
     return this.http.post(
