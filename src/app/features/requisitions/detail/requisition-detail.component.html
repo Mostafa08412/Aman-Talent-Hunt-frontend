@@ -137,6 +137,9 @@
       </p-card>
 
       <div class="control-actions">
+        @if (req.stage === RequisitionStage.Sourcing && req.holdState === RequisitionHoldState.None) {
+          <a pButton type="button" severity="success" [routerLink]="['/console/requisitions', req.id, 'select']" icon="pi pi-user-plus" label="Select Finalist" class="select-finalist-link"></a>
+        }
         <button
           pButton
           type="button"

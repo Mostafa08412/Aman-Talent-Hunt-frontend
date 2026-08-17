@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -30,6 +30,7 @@ import {
   selector: 'app-requisition-detail',
   standalone: true,
   imports: [
+    RouterLink,
     DatePipe,
     FormsModule,
     CardModule,

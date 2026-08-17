@@ -83,6 +83,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'requisitions/:id/select',
+        canActivate: [roleGuard([Role.HiringManager])],
+        loadComponent: () =>
+          import('./features/requisitions/finalist-selection/finalist-selection.component').then(
+            (m) => m.FinalistSelectionComponent,
+          ),
+      },
+      {
         path: 'approvals',
         canActivate: [roleGuard([Role.DepartmentHead, Role.FinanceApprover, Role.HRManager])],
         loadComponent: () =>
