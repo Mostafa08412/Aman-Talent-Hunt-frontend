@@ -1,0 +1,110 @@
+<p-confirmDialog />
+
+<div class="page">
+  <div class="page-header">
+    <h1>Approvals Inbox</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else {
+    <p-card>
+      <p-table [value]="approvals()" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th></th>
+            <th>Req #</th>
+            <th>Title</th>
+            <th>Dept</th>
+            <th>Headcount</th>
+            <th>Submitted</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-req>
+          <tr class="selectable-row" [class.selected-row]="selectedId() === req.id" (click)="selectedId.set(req.id)">
+            <td>
+              <p-radioButton
+                name="approval"
+                [value]="req.id"
+                [ngModel]="selectedId()"
+                (ngModelChange)="selectedId.set($event)"
+                (click)="$event.stopPropagation()"
+              />
+            </td>
+            <td>{{ req.reqNumber }}</td>
+            <td>{{ req.title }}</td>
+            <td>{{ req.department }}</td>
+            <td>{{ req.headcount }}</td>
+            <td>{{ req.submittedAtUTC | date: 'mediumDate' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="empty-state">Nothing waiting on your approval right now.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="approval-actions">
+        <button
+          pButton
+          type="button"
+          severity="success"
+          label="Approve"
+          icon="pi pi-check"
+          [disabled]="!hasSelection() || actionPending()"
+          (click)="confirmApprove()"
+        ></button>
+        <button
+          pButton
+          type="button"
+          severity="danger"
+          label="Reject"
+          icon="pi pi-times"
+          [disabled]="!hasSelection() || actionPending()"
+          (click)="openReasonDialog(ApprovalDecision.Rejected)"
+        ></button>
+        <button
+          pButton
+          type="button"
+          severity="warn"
+          label="Request Changes"
+          icon="pi pi-pencil"
+          [disabled]="!hasSelection() || actionPending()"
+          (click)="openReasonDialog(ApprovalDecision.ChangesRequested)"
+        ></button>
+      </div>
+    </p-card>
+  }
+</div>
+
+<p-dialog
+  [header]="reasonDialogMode() === ApprovalDecision.Rejected ? 'Reject Requisition' : 'Request Changes'"
+  [visible]="reasonDialogOpen()"
+  (visibleChange)="reasonDialogOpen.set($event)"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <div class="field">
+    <label for="reason-text">Note for the requester</label>
+    <textarea
+      pTextarea
+      id="reason-text"
+      rows="4"
+      placeholder="Explain what's needed..."
+      [ngModel]="reasonText()"
+      (ngModelChange)="reasonText.set($event)"
+    ></textarea>
+  </div>
+  @if (reasonError()) {
+    <p-message severity="error" [text]="reasonError()!" styleClass="w-full" />
+  }
+  <ng-template pTemplate="footer">
+    <button pButton type="button" severity="secondary" label="Cancel" (click)="closeReasonDialog()"></button>
+    <button pButton type="button" label="Submit" (click)="confirmReasonDialog()"></button>
+  </ng-template>
+</p-dialog>

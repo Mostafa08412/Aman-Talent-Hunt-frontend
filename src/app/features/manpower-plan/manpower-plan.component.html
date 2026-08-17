@@ -1,0 +1,121 @@
+<p-confirmDialog />
+
+<div class="page">
+  <div class="page-header">
+    <h1>Manpower Plan Manager</h1>
+  </div>
+
+  <div class="filter-bar">
+    <div class="field">
+      <label for="mp-year">Fiscal Year</label>
+      <p-select
+        inputId="mp-year"
+        [options]="fiscalYears"
+        [ngModel]="fiscalYear()"
+        (ngModelChange)="fiscalYear.set($event); onFilterChange()"
+      />
+    </div>
+    <div class="field">
+      <label for="mp-dept">Department</label>
+      <p-select
+        inputId="mp-dept"
+        [options]="departmentOptions()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="departmentFilter()"
+        (ngModelChange)="departmentFilter.set($event); onFilterChange()"
+      />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else {
+    <p-card>
+      <p-table [value]="entries()" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Title</th>
+            <th>Q1</th>
+            <th>Q2</th>
+            <th>Hired</th>
+            <th>Remaining</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-entry>
+          <tr>
+            <td>{{ entry.title }}</td>
+            <td>{{ entry.q1Planned }}</td>
+            <td>{{ entry.q2Planned }}</td>
+            <td>{{ entry.hired }}</td>
+            <td>{{ remaining(entry) }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="empty-state">No plan entries yet for this fiscal year and department.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (submitted()) {
+        <p-message severity="success" text="Plan submitted for Finance approval." styleClass="w-full" />
+      }
+
+      <div class="plan-actions">
+        <button pButton type="button" severity="secondary" label="+ Add Plan Entry" icon="pi pi-plus" (click)="openAddDialog()"></button>
+        <button
+          pButton
+          type="button"
+          label="Submit for Finance Approval"
+          icon="pi pi-send"
+          [disabled]="entries().length === 0 || submitPending()"
+          [loading]="submitPending()"
+          (click)="confirmSubmitForFinance()"
+        ></button>
+      </div>
+    </p-card>
+  }
+</div>
+
+<p-dialog header="Add Plan Entry" [visible]="addDialogOpen()" (visibleChange)="addDialogOpen.set($event)" [modal]="true" [style]="{ width: '30rem' }">
+  <div class="form">
+    <div class="field">
+      <label for="entry-title">Title</label>
+      <input id="entry-title" pInputText [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" placeholder="e.g. Senior .NET Dev" />
+    </div>
+    <div class="field">
+      <label for="entry-dept">Department</label>
+      <p-select
+        inputId="entry-dept"
+        [options]="departmentOptions().slice(1)"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Select department"
+        [ngModel]="newDepartmentId()"
+        (ngModelChange)="newDepartmentId.set($event)"
+      />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="entry-q1">Q1 Planned</label>
+        <p-inputnumber inputId="entry-q1" [min]="0" [max]="50" [ngModel]="newQ1()" (ngModelChange)="newQ1.set($event)" />
+      </div>
+      <div class="field">
+        <label for="entry-q2">Q2 Planned</label>
+        <p-inputnumber inputId="entry-q2" [min]="0" [max]="50" [ngModel]="newQ2()" (ngModelChange)="newQ2.set($event)" />
+      </div>
+    </div>
+    @if (addError()) {
+      <p-message severity="error" [text]="addError()!" styleClass="w-full" />
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" severity="secondary" label="Cancel" (click)="closeAddDialog()"></button>
+    <button pButton type="button" label="Add Entry" [disabled]="!canAddEntry() || addPending()" [loading]="addPending()" (click)="confirmAddEntry()"></button>
+  </ng-template>
+</p-dialog>

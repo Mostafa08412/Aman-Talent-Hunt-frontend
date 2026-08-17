@@ -91,6 +91,17 @@ export const NAV_CONFIG: NavGroup[] = [
     ],
   },
   {
+    label: 'Finance',
+    items: [
+      {
+        label: 'Plan Approval',
+        icon: 'pi pi-wallet',
+        route: '/finance/manpower-plan-approvals',
+        roles: [Role.FinanceApprover, Role.Admin],
+      },
+    ],
+  },
+  {
     label: 'Administration',
     items: [
       {
