@@ -76,6 +76,7 @@ export const routes: Routes = [
       },
       {
         path: 'requisitions/:id',
+        canActivate: [roleGuard([Role.HiringManager, Role.HRManager])],
         loadComponent: () =>
           import('./features/requisitions/detail/requisition-detail.component').then(
             (m) => m.RequisitionDetailComponent,
