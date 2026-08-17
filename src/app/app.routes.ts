@@ -136,5 +136,22 @@ export const routes: Routes = [
     ],
   },
 
+  // Same console shell as `console`, at its own `/hm` prefix per wireframe #9 (HM Workstation
+  // Dashboard) so the URL stays /hm/dashboard rather than nesting it under /console.
+  {
+    path: 'hm',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./layout/console-shell/console-shell.component').then((m) => m.ConsoleShellComponent),
+    children: [
+      {
+        path: 'dashboard',
+        canActivate: [roleGuard([Role.HiringManager, Role.DepartmentHead])],
+        loadComponent: () =>
+          import('./features/hm-dashboard/hm-dashboard.component').then((m) => m.HmDashboardComponent),
+      },
+    ],
+  },
+
   { path: '**', redirectTo: '' },
 ];

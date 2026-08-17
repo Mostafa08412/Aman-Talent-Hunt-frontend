@@ -1,0 +1,61 @@
+<div class="page">
+  <div class="page-header">
+    <h1>HM Workstation</h1>
+    <button pButton type="button" label="+ Create New Requisition" icon="pi pi-plus" routerLink="/console/requisitions/new"></button>
+  </div>
+
+  <div class="stat-grid">
+    <p-card styleClass="stat-card">
+      <span class="stat-label">Active Requisitions</span>
+      <span class="stat-value">{{ stats().activeReqs }}</span>
+    </p-card>
+    <p-card styleClass="stat-card">
+      <span class="stat-label">Pending Tech Eval</span>
+      <span class="stat-value">{{ stats().pendingTechEval }}</span>
+    </p-card>
+    <p-card styleClass="stat-card">
+      <span class="stat-label">Pending Approval</span>
+      <span class="stat-value">{{ stats().pendingApproval }}</span>
+    </p-card>
+    <p-card styleClass="stat-card">
+      <span class="stat-label">Total This ATC</span>
+      <span class="stat-value">{{ stats().totalThisAtc }}</span>
+    </p-card>
+  </div>
+
+  <p-card header="My Requisitions">
+    @if (loading()) {
+      <div class="state-center">
+        <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+      </div>
+    } @else {
+      <p-table [value]="requisitions()" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Req #</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-req>
+          <tr>
+            <td>{{ req.reqNumber }}</td>
+            <td>{{ req.title }}</td>
+            <td><p-tag [value]="statusLabel(req)" [severity]="statusSeverity(req)" /></td>
+            <td>
+              <a [routerLink]="['/console/requisitions', req.id]">View</a>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="empty-state">
+              You don't have any requisitions yet. <a routerLink="/console/requisitions/new">Create one</a>.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</div>

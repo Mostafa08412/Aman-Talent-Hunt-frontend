@@ -1,9 +1,10 @@
 <aside class="sidebar" [class.collapsed]="collapsed()">
   <div class="brand">
-    <img src="/assets/logo.svg" alt="" class="brand-logo" />
+    <!-- No logo SVG asset exists yet (/assets doesn't exist in this repo) — using a plain
+         text wordmark in the brand palette until a real logo is dropped in. -->
+    <span class="brand-wordmark">AMAN</span>
     @if (!collapsed()) {
       <div class="brand-text">
-        <span class="brand-name">Aman</span>
         <span class="brand-sub">Talent Hunt</span>
       </div>
     }

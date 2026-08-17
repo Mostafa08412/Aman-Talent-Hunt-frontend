@@ -21,9 +21,12 @@
   padding-inline: 1.25rem;
   border-block-end: 1px solid var(--p-surface-200);
 }
-.brand-logo {
-  width: 28px;
-  height: 28px;
+.brand-wordmark {
+  font-family: var(--ath-font-headline);
+  font-weight: 900;
+  font-size: 1.125rem;
+  letter-spacing: 0.02em;
+  color: var(--p-primary-600);
   flex-shrink: 0;
 }
 .brand-text {
@@ -31,13 +34,9 @@
   flex-direction: column;
   line-height: 1.1;
 }
-.brand-name {
-  font-weight: 700;
-  color: var(--p-primary-700);
-}
 .brand-sub {
   font-size: 0.7rem;
-  color: var(--p-surface-500);
+  color: var(--ath-secondary);
 }
 
 .nav {
