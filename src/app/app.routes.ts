@@ -76,9 +76,18 @@ export const routes: Routes = [
       },
       {
         path: 'requisitions/:id',
+        canActivate: [roleGuard([Role.HiringManager, Role.HRManager])],
         loadComponent: () =>
           import('./features/requisitions/detail/requisition-detail.component').then(
             (m) => m.RequisitionDetailComponent,
+          ),
+      },
+      {
+        path: 'requisitions/:id/select',
+        canActivate: [roleGuard([Role.HiringManager])],
+        loadComponent: () =>
+          import('./features/requisitions/finalist-selection/finalist-selection.component').then(
+            (m) => m.FinalistSelectionComponent,
           ),
       },
       {
@@ -111,6 +120,14 @@ export const routes: Routes = [
           import('./features/interviews/interviews.component').then((m) => m.InterviewsComponent),
       },
       {
+        path: 'interviews/:id',
+        canActivate: [roleGuard([Role.HiringManager, Role.Recruiter])],
+        loadComponent: () =>
+          import('./features/interviews/scorecard/interviews-scorecard.component').then(
+            (m) => m.InterviewsScorecardComponent,
+          ),
+      },
+      {
         path: 'offers',
         canActivate: [roleGuard([Role.Recruiter, Role.HRManager])],
         loadComponent: () => import('./features/offers/offers.component').then((m) => m.OffersComponent),
@@ -131,6 +148,23 @@ export const routes: Routes = [
         canActivate: [roleGuard([Role.Admin])],
         loadComponent: () =>
           import('./features/admin/users/user-management.component').then((m) => m.UserManagementComponent),
+      },
+    ],
+  },
+
+  // Same console shell as `console`, at its own `/hm` prefix per wireframe #9 (HM Workstation
+  // Dashboard) so the URL stays /hm/dashboard rather than nesting it under /console.
+  {
+    path: 'hm',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./layout/console-shell/console-shell.component').then((m) => m.ConsoleShellComponent),
+    children: [
+      {
+        path: 'dashboard',
+        canActivate: [roleGuard([Role.HiringManager, Role.DepartmentHead])],
+        loadComponent: () =>
+          import('./features/hm-dashboard/hm-dashboard.component').then((m) => m.HmDashboardComponent),
       },
     ],
   },

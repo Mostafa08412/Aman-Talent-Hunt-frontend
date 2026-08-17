@@ -16,7 +16,15 @@ export interface NavGroup {
 export const NAV_CONFIG: NavGroup[] = [
   {
     label: '',
-    items: [{ label: 'Dashboard', icon: 'pi pi-home', route: '/console' }],
+    items: [
+      { label: 'Dashboard', icon: 'pi pi-home', route: '/console' },
+      {
+        label: 'HM Workstation',
+        icon: 'pi pi-briefcase',
+        route: '/hm/dashboard',
+        roles: [Role.HiringManager, Role.DepartmentHead],
+      },
+    ],
   },
   {
     label: 'Recruitment',

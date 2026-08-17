@@ -1,0 +1,165 @@
+<p-confirmDialog />
+
+@if (isCreateMode()) {
+  <!-- #10 — Create Requisition Form -->
+  <div class="page">
+    <div class="page-header">
+      <h1>Create Requisition</h1>
+    </div>
+
+    <p-card>
+      <div class="form">
+        <div class="field">
+          <label for="req-title">Job Title</label>
+          <input id="req-title" pInputText [ngModel]="title()" (ngModelChange)="title.set($event)" placeholder="e.g. Senior Backend Engineer" />
+        </div>
+
+        <div class="field">
+          <label>Hiring Type</label>
+          <p-selectButton
+            [options]="hiringTypeOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="hiringType()"
+            (ngModelChange)="hiringType.set($event)"
+          />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="req-dept">Department</label>
+            <p-select
+              inputId="req-dept"
+              [options]="departments()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Select department"
+              [ngModel]="departmentId()"
+              (ngModelChange)="departmentId.set($event); onDepartmentChange()"
+            />
+          </div>
+
+          <div class="field">
+            <label for="req-squad">Squad</label>
+            <p-select
+              inputId="req-squad"
+              [options]="availableSquads()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Select squad"
+              [disabled]="!departmentId()"
+              [ngModel]="squadId()"
+              (ngModelChange)="squadId.set($event)"
+            />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="req-headcount">Headcount</label>
+            <p-inputnumber inputId="req-headcount" [min]="1" [max]="50" [ngModel]="headcount()" (ngModelChange)="headcount.set($event)" />
+          </div>
+
+          <div class="field">
+            <label for="req-start">Target Start Date</label>
+            <p-datepicker inputId="req-start" dateFormat="M dd, yy" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
+          </div>
+        </div>
+
+        @if (formError()) {
+          <p-message severity="error" [text]="formError()!" styleClass="w-full" />
+        }
+
+        <div class="form-actions">
+          <button pButton type="button" label="Submit Requisition" icon="pi pi-check" [disabled]="!canSubmit() || submitting()" [loading]="submitting()" (click)="submit()"></button>
+        </div>
+      </div>
+    </p-card>
+  </div>
+} @else {
+  <!-- #11 — Requisition Control Center -->
+  <div class="page">
+    @if (loading()) {
+      <div class="state-center">
+        <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+      </div>
+    } @else if (loadError()) {
+      <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+    } @else if (requisition()) {
+      @if (requisition(); as req) {
+      <div class="page-header">
+        <div class="header-titles">
+          <span class="req-number">{{ req.reqNumber }}</span>
+          <h1>{{ req.title }}</h1>
+        </div>
+        <div class="header-tags">
+          <p-tag [value]="req.hiringType" severity="info" />
+          @if (req.holdState === RequisitionHoldState.OnHold) {
+            <p-tag value="On Hold" severity="warn" />
+          } @else if (req.holdState === RequisitionHoldState.Cancelled) {
+            <p-tag value="Cancelled" severity="danger" />
+          } @else {
+            <p-tag [value]="req.stage" severity="success" />
+          }
+        </div>
+      </div>
+
+      <p-card>
+        <div class="stepper">
+          @for (stage of stages; track stage.value; let i = $index) {
+            <div class="stepper-node" [class.done]="i < currentStageIndex()" [class.active]="i === currentStageIndex()">
+              <span class="dot"></span>
+              <span class="label">{{ stage.label }}</span>
+            </div>
+            @if (i < stages.length - 1) {
+              <span class="stepper-line" [class.done]="i < currentStageIndex()"></span>
+            }
+          }
+        </div>
+        @if (req.holdState !== RequisitionHoldState.None) {
+          <p-message
+            [severity]="req.holdState === RequisitionHoldState.OnHold ? 'warn' : 'error'"
+            [text]="req.holdState === RequisitionHoldState.OnHold ? 'This requisition is on hold — sourcing activity is paused.' : 'This requisition has been cancelled.'"
+            styleClass="w-full"
+          />
+        }
+      </p-card>
+
+      <p-card header="Requisition Details">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">Department</span><span class="detail-value">{{ req.department }}</span></div>
+          <div class="detail-item"><span class="detail-label">Squad</span><span class="detail-value">{{ req.squad }}</span></div>
+          <div class="detail-item"><span class="detail-label">Recruiter</span><span class="detail-value">{{ req.recruiterName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Headcount</span><span class="detail-value">{{ req.headcount }}</span></div>
+          <div class="detail-item"><span class="detail-label">Budget Code</span><span class="detail-value">{{ req.budgetCode }}</span></div>
+          <div class="detail-item"><span class="detail-label">Target Start</span><span class="detail-value">{{ req.startDate | date: 'mediumDate' }}</span></div>
+        </div>
+      </p-card>
+
+      <div class="control-actions">
+        @if (req.stage === RequisitionStage.Sourcing && req.holdState === RequisitionHoldState.None) {
+          <a pButton type="button" severity="success" [routerLink]="['/console/requisitions', req.id, 'select']" icon="pi pi-user-plus" label="Select Finalist" class="select-finalist-link"></a>
+        }
+        <button
+          pButton
+          type="button"
+          severity="warn"
+          label="Place On-Hold"
+          icon="pi pi-pause"
+          [disabled]="req.holdState !== RequisitionHoldState.None || actionPending()"
+          (click)="confirmPlaceOnHold()"
+        ></button>
+        <button
+          pButton
+          type="button"
+          severity="danger"
+          label="Cancel Requisition"
+          icon="pi pi-times"
+          [disabled]="req.holdState === RequisitionHoldState.Cancelled || req.stage === RequisitionStage.Filled || actionPending()"
+          (click)="confirmCancel()"
+        ></button>
+      </div>
+      }
+    }
+  </div>
+}

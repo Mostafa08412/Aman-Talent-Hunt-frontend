@@ -1,0 +1,74 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Select Finalist</h1>
+      @if (requisition(); as req) {
+        <span class="req-subtitle">{{ req.reqNumber }} — {{ req.title }}</span>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else if (submitted()) {
+    <p-card>
+      <div class="submitted-state">
+        <i class="pi pi-check-circle"></i>
+        <p>Finalist selected — formal offer request sent.</p>
+      </div>
+    </p-card>
+  } @else {
+    <p-card header="Interviewed Candidates">
+      <p-table [value]="candidates()" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th></th>
+            <th>Candidate</th>
+            <th>Score</th>
+            <th>Evaluator Highlights</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-candidate>
+          <tr>
+            <td>
+              <p-radioButton
+                name="finalist"
+                [value]="candidate.candidateId"
+                [ngModel]="selectedCandidateId()"
+                (ngModelChange)="selectedCandidateId.set($event)"
+              />
+            </td>
+            <td>{{ candidate.candidateName }}</td>
+            <td>{{ candidate.score }}</td>
+            <td>{{ candidate.highlights }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="empty-state">No interviewed candidates with scores yet for this requisition.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (submitError()) {
+        <p-message severity="error" [text]="submitError()!" styleClass="w-full" />
+      }
+
+      <div class="form-actions">
+        <button
+          pButton
+          type="button"
+          label="Select Candidate & Request Formal Offer"
+          icon="pi pi-send"
+          [disabled]="!canSubmit() || submitting()"
+          [loading]="submitting()"
+          (click)="submit()"
+        ></button>
+      </div>
+    </p-card>
+  }
+</div>

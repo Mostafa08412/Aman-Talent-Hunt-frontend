@@ -1,0 +1,83 @@
+.state-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.submitted-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+
+  i {
+    font-size: 2.5rem;
+    color: var(--p-primary-500);
+  }
+}
+
+.candidate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+  }
+}
+.round-name {
+  font-size: 0.875rem;
+  color: var(--p-surface-500);
+}
+.resume-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--p-primary-600);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.decision-options {
+  display: flex;
+  gap: 1.5rem;
+  margin-block-end: 1.5rem;
+}
+.decision-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--p-surface-600);
+  }
+  textarea {
+    width: 100%;
+  }
+}
+.required {
+  color: var(--p-red-500);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: 1rem;
+}

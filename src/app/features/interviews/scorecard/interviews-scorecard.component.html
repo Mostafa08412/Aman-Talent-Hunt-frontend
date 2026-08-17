@@ -1,0 +1,75 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Technical Evaluation Scorecard</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else if (submitted()) {
+    <p-card>
+      <div class="submitted-state">
+        <i class="pi pi-check-circle"></i>
+        <p>Scorecard decision submitted.</p>
+        <button pButton type="button" label="Back to Interviews" (click)="backToInterviews()"></button>
+      </div>
+    </p-card>
+  } @else if (context()) {
+    @if (context(); as ctx) {
+    <p-card>
+      <div class="candidate-header">
+        <div>
+          <h2>{{ ctx.candidateName }}</h2>
+          <span class="round-name">{{ ctx.roundName }}</span>
+        </div>
+        <a [href]="ctx.resumeUrl" target="_blank" rel="noopener" class="resume-link">
+          <i class="pi pi-file-pdf"></i>
+          View Resume
+        </a>
+      </div>
+    </p-card>
+
+    <p-card header="Scoring Decision">
+      <div class="decision-options">
+        @for (option of [ScorecardDecision.Pass, ScorecardDecision.Reject, ScorecardDecision.Pending]; track option) {
+          <label class="decision-option">
+            <p-radioButton name="decision" [value]="option" [ngModel]="decision()" (ngModelChange)="decision.set($event)" />
+            <span>{{ option }}</span>
+          </label>
+        }
+      </div>
+
+      <div class="field">
+        <label for="feedback">Evaluation Feedback <span class="required">*</span></label>
+        <textarea
+          pTextarea
+          id="feedback"
+          rows="6"
+          placeholder="Summarize technical strengths, gaps, and reasoning for this decision..."
+          [ngModel]="feedback()"
+          (ngModelChange)="feedback.set($event)"
+        ></textarea>
+      </div>
+
+      @if (submitError()) {
+        <p-message severity="error" [text]="submitError()!" styleClass="w-full" />
+      }
+
+      <div class="form-actions">
+        <button
+          pButton
+          type="button"
+          label="Submit Final Scorecard Decision"
+          icon="pi pi-check"
+          [disabled]="!canSubmit() || submitting()"
+          [loading]="submitting()"
+          (click)="submit()"
+        ></button>
+      </div>
+    </p-card>
+    }
+  }
+</div>
