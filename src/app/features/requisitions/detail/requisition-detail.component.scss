@@ -1,0 +1,133 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 640px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+
+  label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--p-surface-600);
+  }
+}
+.field-row {
+  display: flex;
+  gap: 1.25rem;
+
+  .field {
+    min-width: 0;
+  }
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: 0.5rem;
+}
+
+.state-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.req-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--p-primary-600);
+}
+.header-tags {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  padding-block: 0.5rem 1rem;
+}
+.stepper-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--p-surface-200);
+    border: 2px solid var(--p-surface-200);
+  }
+  .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--p-surface-400);
+    white-space: nowrap;
+  }
+
+  &.done .dot {
+    background: var(--p-primary-500);
+    border-color: var(--p-primary-500);
+  }
+  &.done .label {
+    color: var(--p-surface-600);
+  }
+  &.active .dot {
+    background: var(--p-primary-0, #fff);
+    border-color: var(--p-primary-500);
+  }
+  &.active .label {
+    color: var(--p-primary-700);
+  }
+}
+.stepper-line {
+  flex: 1;
+  height: 2px;
+  background: var(--p-surface-200);
+  margin-inline: 0.5rem;
+  margin-block-end: 1.5rem;
+
+  &.done {
+    background: var(--p-primary-500);
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.detail-label {
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+}
+.detail-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--p-surface-900);
+}
+
+.control-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
