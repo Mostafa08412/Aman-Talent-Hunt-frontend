@@ -31,6 +31,22 @@ interface ConfirmEmailResponse {
 const TOKEN_KEY = 'ath_token';
 const USER_KEY = 'ath_user';
 
+// Backend returns SCREAMING_SNAKE_CASE role names (see AmanTalentHunt.Domain.Enums.Roles);
+// the frontend Role enum uses PascalCase. Translate at the boundary so hasRole()/roleGuard
+// checks against Role.* actually match.
+const BACKEND_ROLE_MAP: Record<string, Role> = {
+  SUPER_ADMIN: Role.Admin,
+  RECRUITER: Role.Recruiter,
+  HR_MANAGER: Role.HRManager,
+  DEPARTMENT_HEAD: Role.DepartmentHead,
+  HIRING_MANAGER: Role.HiringManager,
+  CANDIDATE: Role.Candidate,
+};
+
+function normalizeRole(raw: string): Role {
+  return BACKEND_ROLE_MAP[raw] ?? (raw as Role);
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
@@ -59,7 +75,7 @@ export class AuthService {
         id: res.data.userId,
         fullName: `${res.data.firstName} ${res.data.lastName}`,
         email: res.data.email,
-        role: res.data.roles[0] as Role
+        role: normalizeRole(res.data.roles[0])
       };
 
       localStorage.setItem(
@@ -129,6 +145,10 @@ requestResetPassword(email: string): Observable<unknown> {
 
   private loadUser(): CurrentUser | null {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const user: CurrentUser = JSON.parse(raw);
+    // Self-heal sessions persisted before role normalization was added.
+    user.role = normalizeRole(user.role);
+    return user;
   }
 }
