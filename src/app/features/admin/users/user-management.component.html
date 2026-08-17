@@ -1,0 +1,149 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="page">
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <h1>User Accounts &amp; RBAC</h1>
+    <p-button
+      label="Create User"
+      icon="pi pi-plus"
+      severity="success"
+      (onClick)="openCreateDialog()"
+    />
+  </div>
+
+  <!-- ── Search Bar ── -->
+  <div class="search-bar">
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Search users..."
+        [(ngModel)]="searchValue"
+        class="search-input"
+      />
+    </p-iconfield>
+  </div>
+
+  <!-- ── Table ── -->
+  <p-table
+    [value]="users()"
+    [globalFilterFields]="['fullName', 'email']"
+    [paginator]="true"
+    [rows]="10"
+    [rowHover]="true"
+    [showGridlines]="false"
+    [stripedRows]="true"
+    styleClass="p-datatable-sm"
+    dataKey="id"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="fullName">Name <p-sortIcon field="fullName" /></th>
+        <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
+        <th>Roles</th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
+        <th style="width: 10rem">Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-user>
+      <tr>
+        <td>
+          <div class="user-name-cell">
+            <div class="avatar-mini">{{ getInitials(user.fullName) }}</div>
+            <span>{{ user.fullName }}</span>
+          </div>
+        </td>
+        <td>{{ user.email }}</td>
+        <td>
+          @for (role of user.roles; track role) {
+            <p-tag [value]="role" [severity]="getRoleSeverity(role)" [rounded]="true" class="role-tag" />
+          }
+        </td>
+        <td>
+          <p-tag
+            [value]="user.status"
+            [severity]="getStatusSeverity(user.status)"
+            [rounded]="true"
+            class="clickable-tag"
+            (click)="toggleStatus(user)"
+          />
+        </td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEditDialog(user)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="confirmDelete(user)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5">
+          <div class="empty-state">
+            <i class="pi pi-users"></i>
+            <p>No users found.</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ── Create / Edit Dialog ── -->
+<p-dialog
+  [header]="dialogMode() === 'create' ? 'Create New User' : 'Edit User'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="dialog-form">
+    <div class="form-field">
+      <label for="fullName">Full Name</label>
+      <input pInputText id="fullName" [(ngModel)]="formFullName" placeholder="e.g. Sara Ali" />
+    </div>
+
+    <div class="form-field">
+      <label for="email">Email</label>
+      <input pInputText id="email" [(ngModel)]="formEmail" placeholder="e.g. sara@ath.com" type="email" />
+    </div>
+
+    @if (dialogMode() === 'create') {
+      <div class="form-field">
+        <label for="password">Password</label>
+        <input pInputText id="password" [(ngModel)]="formPassword" type="password" placeholder="Min 8 characters" />
+      </div>
+    }
+
+    <div class="form-field">
+      <label for="role">Role</label>
+      <p-select
+        id="role"
+        [options]="roleOptions"
+        [(ngModel)]="formRole"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select a role"
+        [style]="{ width: '100%' }"
+      />
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <div class="dialog-footer">
+      <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button
+        [label]="dialogMode() === 'create' ? 'Create User' : 'Save Changes'"
+        icon="pi pi-check"
+        (onClick)="saveUser()"
+        [disabled]="!formFullName || !formEmail || (dialogMode() === 'create' && !formPassword)"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

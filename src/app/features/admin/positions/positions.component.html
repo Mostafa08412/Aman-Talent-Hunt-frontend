@@ -1,0 +1,168 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="page">
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <h1>Position Registry Catalogue</h1>
+    <p-button
+      label="Create Position"
+      icon="pi pi-plus"
+      styleClass="create-position-btn"
+      (onClick)="openCreateDialog()"
+    />
+  </div>
+
+  <!-- ── Search Bar ── -->
+  <div class="search-bar">
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Search positions..."
+        [(ngModel)]="searchValue"
+        class="search-input"
+      />
+    </p-iconfield>
+  </div>
+
+  <!-- ── Table ── -->
+  <p-table
+    [value]="positions()"
+    [globalFilterFields]="['code', 'title', 'department']"
+    [paginator]="true"
+    [rows]="10"
+    [rowHover]="true"
+    [showGridlines]="false"
+    [stripedRows]="true"
+    styleClass="p-datatable-sm"
+    dataKey="id"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="code" style="width: 8rem">Code <p-sortIcon field="code" /></th>
+        <th pSortableColumn="title">Title <p-sortIcon field="title" /></th>
+        <th pSortableColumn="department">Dept <p-sortIcon field="department" /></th>
+        <th pSortableColumn="approved" style="width: 6rem">Approved <p-sortIcon field="approved" /></th>
+        <th pSortableColumn="filled" style="width: 5rem">Filled <p-sortIcon field="filled" /></th>
+        <th pSortableColumn="vacant" style="width: 5rem">Vacant <p-sortIcon field="vacant" /></th>
+        <th pSortableColumn="status" style="width: 6.5rem">Status <p-sortIcon field="status" /></th>
+        <th style="width: 7rem">Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-pos>
+      <tr>
+        <td><span class="pos-code">{{ pos.code }}</span></td>
+        <td>{{ pos.title }}</td>
+        <td>
+          <p-tag [value]="pos.department" severity="secondary" [rounded]="true" />
+        </td>
+        <td class="num-cell">{{ pos.approved }}</td>
+        <td class="num-cell">{{ pos.filled }}</td>
+        <td class="num-cell">
+          <span [class.vacant-highlight]="pos.vacant > 0">{{ pos.vacant }}</span>
+        </td>
+        <td>
+          <p-tag
+            [value]="pos.status"
+            [severity]="getStatusSeverity(pos.status)"
+            [rounded]="true"
+          />
+        </td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEditDialog(pos)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="confirmDelete(pos)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8">
+          <div class="empty-state">
+            <i class="pi pi-id-card"></i>
+            <p>No positions found.</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ── Create / Edit Dialog ── -->
+<p-dialog
+  [header]="dialogMode() === 'create' ? 'Create New Position' : 'Edit Position'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="dialog-form">
+    <div class="form-row">
+      <div class="form-field">
+        <label for="posCode">Position Code</label>
+        <input pInputText id="posCode" [(ngModel)]="formCode" placeholder="e.g. POS-007" />
+      </div>
+
+      <div class="form-field">
+        <label for="posStatus">Status</label>
+        <p-select
+          id="posStatus"
+          [options]="statusOptions"
+          [(ngModel)]="formStatus"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }"
+        />
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label for="posTitle">Title</label>
+      <input pInputText id="posTitle" [(ngModel)]="formTitle" placeholder="e.g. Senior .NET Developer" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="posDept">Department</label>
+        <p-select
+          id="posDept"
+          [options]="departmentOptions"
+          [(ngModel)]="formDepartment"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select department"
+          [style]="{ width: '100%' }"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="posApproved">Approved Headcount</label>
+        <p-inputNumber
+          id="posApproved"
+          [(ngModel)]="formApproved"
+          [min]="0"
+          [showButtons]="true"
+          [style]="{ width: '100%' }"
+        />
+      </div>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <div class="dialog-footer">
+      <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button
+        [label]="dialogMode() === 'create' ? 'Create Position' : 'Save Changes'"
+        icon="pi pi-check"
+        (onClick)="savePosition()"
+        [disabled]="!formCode || !formTitle || !formDepartment"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

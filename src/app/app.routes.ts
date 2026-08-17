@@ -68,7 +68,7 @@ export const routes: Routes = [
       },
       {
         path: 'requisitions/new',
-        canActivate: [roleGuard([Role.HiringManager])],
+        canActivate: [roleGuard([Role.HiringManager, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/requisitions/detail/requisition-detail.component').then(
             (m) => m.RequisitionDetailComponent,
@@ -92,19 +92,19 @@ export const routes: Routes = [
       },
       {
         path: 'approvals',
-        canActivate: [roleGuard([Role.DepartmentHead, Role.FinanceApprover, Role.HRManager])],
+        canActivate: [roleGuard([Role.DepartmentHead, Role.FinanceApprover, Role.HRManager, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/requisitions/approvals/approvals.component').then((m) => m.ApprovalsComponent),
       },
       {
         path: 'manpower-plan',
-        canActivate: [roleGuard([Role.HRManager, Role.Admin])],
+        canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/manpower-plan/manpower-plan.component').then((m) => m.ManpowerPlanComponent),
       },
       {
         path: 'postings',
-        canActivate: [roleGuard([Role.Recruiter, Role.HRManager])],
+        canActivate: [roleGuard([Role.Recruiter, Role.HRManager, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/job-postings/job-postings-manage.component').then(
             (m) => m.JobPostingsManageComponent,
@@ -129,25 +129,37 @@ export const routes: Routes = [
       },
       {
         path: 'offers',
-        canActivate: [roleGuard([Role.Recruiter, Role.HRManager])],
+        canActivate: [roleGuard([Role.Recruiter, Role.HRManager, Role.SuperAdmin])],
         loadComponent: () => import('./features/offers/offers.component').then((m) => m.OffersComponent),
       },
       {
         path: 'onboarding',
-        canActivate: [roleGuard([Role.OnboardingCoordinator, Role.HRManager])],
+        canActivate: [roleGuard([Role.OnboardingCoordinator, Role.HRManager, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent),
       },
       {
         path: 'reports',
-        canActivate: [roleGuard([Role.HRManager, Role.Admin])],
+        canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
         loadComponent: () => import('./features/reports/reports.component').then((m) => m.ReportsComponent),
       },
       {
         path: 'admin/users',
-        canActivate: [roleGuard([Role.Admin])],
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/admin/users/user-management.component').then((m) => m.UserManagementComponent),
+      },
+      {
+        path: 'admin/squads',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/squads/squads.component').then((m) => m.SquadsComponent),
+      },
+      {
+        path: 'admin/positions',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
+        loadComponent: () =>
+          import('./features/admin/positions/positions.component').then((m) => m.PositionsComponent),
       },
     ],
   },

@@ -1,0 +1,182 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="page">
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <h1>Squads &amp; Department Mapping</h1>
+    <p-button
+      label="Create Squad"
+      icon="pi pi-plus"
+      severity="success"
+      (onClick)="openCreateDialog()"
+    />
+  </div>
+
+  <!-- ── Squad Cards ── -->
+  <div class="squads-grid">
+    @for (squad of squads(); track squad.id) {
+      <p-card class="squad-card">
+        <ng-template #header>
+          <div class="squad-card-header">
+            <div class="squad-title-row">
+              <h3 class="squad-name">{{ squad.name }}</h3>
+              <div class="squad-actions">
+                <p-button
+                  icon="pi pi-user-plus"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="info"
+                  pTooltip="Add Member"
+                  (onClick)="openMemberDialog(squad)"
+                />
+                <p-button
+                  icon="pi pi-pencil"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="secondary"
+                  pTooltip="Edit Squad"
+                  (onClick)="openEditDialog(squad)"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  pTooltip="Delete"
+                  (onClick)="confirmDeleteSquad(squad)"
+                />
+              </div>
+            </div>
+            <div class="squad-departments">
+              @for (dept of squad.departments; track dept) {
+                <p-tag [value]="dept" severity="secondary" [rounded]="true" />
+              }
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Members table -->
+        @if (squad.members.length > 0) {
+          <p-table [value]="squad.members" [showGridlines]="false" styleClass="p-datatable-sm" dataKey="id">
+            <ng-template #header>
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-member>
+              <tr [class.leader-row]="member.isLeader">
+                <td>
+                  <div class="member-name">
+                    @if (member.isLeader) {
+                      <i class="pi pi-crown leader-icon" pTooltip="Squad Leader"></i>
+                    }
+                    <span>{{ member.fullName }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="member-role">{{ member.role }}</span>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <div class="empty-squad">
+            <i class="pi pi-users"></i>
+            <p>No members yet.</p>
+          </div>
+        }
+      </p-card>
+    }
+  </div>
+</div>
+
+<!-- ── Create / Edit Squad Dialog ── -->
+<p-dialog
+  [header]="dialogMode() === 'create' ? 'Create New Squad' : 'Edit Squad'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="dialog-form">
+    <div class="form-field">
+      <label for="squadName">Squad Name</label>
+      <input pInputText id="squadName" [(ngModel)]="formName" placeholder="e.g. Tech Squad" />
+    </div>
+
+    <div class="form-field">
+      <label for="departments">Departments (comma-separated)</label>
+      <input pInputText id="departments" [(ngModel)]="formDepartments" placeholder="e.g. Engineering, DevOps" />
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <div class="dialog-footer">
+      <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button
+        [label]="dialogMode() === 'create' ? 'Create Squad' : 'Save Changes'"
+        icon="pi pi-check"
+        (onClick)="saveSquad()"
+        [disabled]="!formName"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Add Member Dialog ── -->
+<p-dialog
+  header="Add Member"
+  [(visible)]="memberDialogVisible"
+  [modal]="true"
+  [style]="{ width: '420px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  @if (selectedSquad(); as squad) {
+    <div class="dialog-form">
+      <p class="member-dialog-subtitle">Adding to <strong>{{ squad.name }}</strong></p>
+
+      <div class="form-field">
+        <label for="memberName">Member Name</label>
+        <input pInputText id="memberName" [(ngModel)]="newMemberName" placeholder="e.g. Ahmed Hassan" />
+      </div>
+
+      <div class="form-field">
+        <label for="memberRole">Role in Squad</label>
+        <input pInputText id="memberRole" [(ngModel)]="newMemberRole" placeholder="e.g. Developer" />
+      </div>
+
+      @if (squad.members.length > 0) {
+        <div class="current-members">
+          <label>Current Members</label>
+          <div class="member-chips">
+            @for (m of squad.members; track m.id) {
+              <div class="member-chip" [class.is-leader]="m.isLeader">
+                @if (m.isLeader) {
+                  <i class="pi pi-crown"></i>
+                }
+                {{ m.fullName }}
+                <i class="pi pi-times remove-btn" (click)="removeMember(squad, m)"></i>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <ng-template #footer>
+    <div class="dialog-footer">
+      <p-button label="Close" severity="secondary" [text]="true" (onClick)="memberDialogVisible.set(false)" />
+      <p-button
+        label="Add Member"
+        icon="pi pi-user-plus"
+        (onClick)="addMember()"
+        [disabled]="!newMemberName || !newMemberRole"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
