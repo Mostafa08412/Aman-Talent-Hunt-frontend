@@ -112,6 +112,14 @@ export const routes: Routes = [
           import('./features/interviews/interviews.component').then((m) => m.InterviewsComponent),
       },
       {
+        path: 'interviews/:id',
+        canActivate: [roleGuard([Role.HiringManager, Role.Recruiter])],
+        loadComponent: () =>
+          import('./features/interviews/scorecard/interviews-scorecard.component').then(
+            (m) => m.InterviewsScorecardComponent,
+          ),
+      },
+      {
         path: 'offers',
         canActivate: [roleGuard([Role.Recruiter, Role.HRManager])],
         loadComponent: () => import('./features/offers/offers.component').then((m) => m.OffersComponent),
