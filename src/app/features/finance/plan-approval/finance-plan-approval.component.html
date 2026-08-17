@@ -1,0 +1,77 @@
+<p-confirmDialog />
+
+<div class="page">
+  <div class="page-header">
+    <h1>Finance Plan Approval</h1>
+  </div>
+
+  <div class="filter-bar">
+    <div class="field">
+      <label for="fpa-year">Fiscal Year</label>
+      <p-select inputId="fpa-year" [options]="fiscalYears" [ngModel]="fiscalYear()" (ngModelChange)="fiscalYear.set($event); onFilterChange()" />
+    </div>
+    <div class="field">
+      <label for="fpa-dept">Department</label>
+      <p-select
+        inputId="fpa-dept"
+        [options]="departments()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="departmentId()"
+        (ngModelChange)="departmentId.set($event); onFilterChange()"
+      />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else if (summary()) {
+    @if (summary(); as s) {
+    <p-card>
+      <div class="summary-header">
+        <h2>Department Budget Summary — {{ s.department }}: {{ proposedHeadcount() }} Proposed Headcount</h2>
+        @if (s.locked) {
+          <p-tag value="Locked & Approved" severity="success" />
+        }
+      </div>
+
+      <p-table [value]="s.lines" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Position</th>
+            <th>Grade</th>
+            <th>Budgeted Count</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-line>
+          <tr>
+            <td>{{ line.position }}</td>
+            <td>{{ line.grade }}</td>
+            <td>{{ line.budgetedCount }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="empty-state">No plan submitted yet for this fiscal year and department.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <button
+        pButton
+        type="button"
+        class="lock-button"
+        [label]="s.locked ? 'Plan Locked & Approved' : 'Lock & Finance-Approve Annual Plan'"
+        icon="pi pi-lock"
+        [disabled]="s.locked || s.lines.length === 0 || lockPending()"
+        [loading]="lockPending()"
+        (click)="confirmLockAndApprove()"
+      ></button>
+    </p-card>
+    }
+  }
+</div>

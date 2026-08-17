@@ -169,5 +169,25 @@ export const routes: Routes = [
     ],
   },
 
+  // Same console shell as `console`, at its own `/finance` prefix per wireframe #24 (Finance
+  // Plan Approval View) so the URL stays /finance/manpower-plan-approvals rather than nesting
+  // it under /console.
+  {
+    path: 'finance',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./layout/console-shell/console-shell.component').then((m) => m.ConsoleShellComponent),
+    children: [
+      {
+        path: 'manpower-plan-approvals',
+        canActivate: [roleGuard([Role.FinanceApprover, Role.Admin])],
+        loadComponent: () =>
+          import('./features/finance/plan-approval/finance-plan-approval.component').then(
+            (m) => m.FinancePlanApprovalComponent,
+          ),
+      },
+    ],
+  },
+
   { path: '**', redirectTo: '' },
 ];
