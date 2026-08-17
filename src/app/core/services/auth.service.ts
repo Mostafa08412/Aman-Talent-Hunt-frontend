@@ -6,10 +6,28 @@ import { environment } from '../../../environments/environment';
 import { CurrentUser, Role } from '../models/role.model';
 
 interface AuthResponse {
-  accessToken: string;
-  user: CurrentUser;
-}
+  isCompletedSuccessfully: boolean;
+  message: string;
+  code: number;
 
+  data: {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isEmailConfirmed: boolean;
+    accessToken: string;
+    roles: string[];
+    accessTokenExpirationDate: string;
+    refreshToken: string;
+    refreshTokenExpirationDate: string;
+  };
+}
+interface ConfirmEmailResponse {
+  isCompletedSuccessfully: boolean;
+  message: string;
+  code: number;
+}
 const TOKEN_KEY = 'ath_token';
 const USER_KEY = 'ath_user';
 
@@ -31,12 +49,70 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.base}/api/auth/login`, { email, password }).pipe(
-      tap((res) => {
-        localStorage.setItem(TOKEN_KEY, res.accessToken);
-        localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-        this._currentUser.set(res.user);
-      }),
+  return this.http.post<AuthResponse>(
+    `${this.base}/api/Authentication/login`,
+    { email, password }
+  ).pipe(
+    tap((res) => {
+
+      const user: CurrentUser = {
+        id: res.data.userId,
+        fullName: `${res.data.firstName} ${res.data.lastName}`,
+        email: res.data.email,
+        role: res.data.roles[0] as Role
+      };
+
+      localStorage.setItem(
+        TOKEN_KEY,
+        res.data.accessToken
+      );
+
+      localStorage.setItem(
+        USER_KEY,
+        JSON.stringify(user)
+      );
+
+      this._currentUser.set(user);
+    }),
+  );
+}
+  register(data: FormData): Observable<unknown> {
+  return this.http.post(
+    `${this.base}/api/Authentication/register`,
+    data);
+}
+
+requestResetPassword(email: string): Observable<unknown> {
+  return this.http.post(
+    `${this.base}/api/Authentication/request-reset-password`,
+    { email }
+  );
+}
+
+  resetPassword(request: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }): Observable<unknown> {
+    return this.http.post(
+      `${this.base}/api/Authentication/reset-password`,
+      request
+    );
+  }
+
+  confirmEmail(
+  request: { email: string; otp: string }
+): Observable<ConfirmEmailResponse> {
+  return this.http.post<ConfirmEmailResponse>(
+    `${this.base}/api/Authentication/confirm-email`,
+    request
+  );
+}
+
+  resendConfirmationEmail(request: { email: string }): Observable<unknown> {
+    return this.http.post(
+      `${this.base}/api/Authentication/resend-confirmation-email`,
+      request
     );
   }
 

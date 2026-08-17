@@ -1,0 +1,52 @@
+<div class="otp-wrap">
+  <div class="otp-card">
+    <h1>Verify Your Email</h1>
+    <p class="subtitle">We sent a verification code to your email address.</p>
+
+    @if (error(); as err) {
+      <p-message severity="error" [text]="err" styleClass="w-full" />
+    }
+
+    <div class="email-display">
+      <span class="email-label">Code sent to:</span>
+      <span class="email-value">{{ email() }}</span>
+    </div>
+
+    <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()">
+      <div class="otp-container">
+        <label for="otp-0" class="otp-label">Enter Verification Code</label>
+        <div class="otp-inputs">
+          @for (control of otpArray.controls; track $index) {
+            <input
+              [id]="'otp-' + $index"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              [formControl]="control"
+              (input)="onOtpInput($event, $index)"
+              (keydown)="onKeyDown($event, $index)"
+              [attr.aria-label]="'OTP digit ' + ($index + 1)"
+            />
+          }
+        </div>
+      </div>
+
+      <button pButton type="submit" label="Verify & Continue" [loading]="loading()" class="w-full verify-btn"></button>
+    </form>
+
+    <div class="resend-section">
+      <span class="resend-label">Didn't receive the code?</span>
+      <button
+        type="button"
+        pButton
+        text
+        [label]="isCountdownActive() ? 'Resend in ' + resendCountdown() + 's' : 'Resend Code'"
+        (click)="resendCode()"
+        [disabled]="isCountdownActive() || resendDisabled() || resendLoading()"
+        [loading]="resendLoading()"
+        class="resend-btn"
+      ></button>
+    </div>
+  </div>
+</div>

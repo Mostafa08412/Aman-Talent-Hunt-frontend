@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiBase: 'https://localhost:7001', // .NET Web API base URL
+  apiBase: 'http://localhost:5050', // .NET Web API base URL
 };

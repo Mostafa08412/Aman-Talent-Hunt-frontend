@@ -11,7 +11,10 @@ import { RouterOutlet, RouterLink } from '@angular/router';
         <img src="/assets/logo.svg" alt="Aman" />
         <span>Aman Talent Hunt</span>
       </a>
+      <div class="auth-links">
       <a routerLink="/login" class="sign-in">Sign In</a>
+       <a routerLink="/signup" class="sign-up">Sign Up</a>
+      </div>
     </header>
     <main class="public-content">
       <router-outlet />
@@ -40,16 +43,22 @@ import { RouterOutlet, RouterLink } from '@angular/router';
           height: 26px;
         }
       }
-      .sign-in {
+      .sign-in , .sign-up {
         color: var(--p-primary-600);
         font-weight: 600;
         text-decoration: none;
       }
+      
       .public-content {
         padding: 2rem;
         max-width: 1100px;
         margin-inline: auto;
       }
+      .auth-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
     `,
   ],
 })

@@ -1,0 +1,109 @@
+<div class="login-wrap">
+	<form class="login-card" [formGroup]="form" (ngSubmit)="submit()">
+		<h1>Create account</h1>
+		<p class="subtitle">Aman Talent Hunt — Recruiter &amp; HR Console</p>
+
+		@if (error()) {
+			<p-message severity="error" [text]="error()!" styleClass="w-full" />
+		}
+
+		<div class="field">
+			<label for="firstName">First name</label>
+			<input pInputText id="firstName" formControlName="firstName" autocomplete="given-name" />
+			@if (form.controls.firstName.invalid && form.controls.firstName.touched) {
+				<small class="field-error">First name is required.</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="lastName">Last name</label>
+			<input pInputText id="lastName" formControlName="lastName" autocomplete="family-name" />
+			@if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+				<small class="field-error">Last name is required.</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="phoneNumber">Phone number</label>
+			<input pInputText id="phoneNumber" formControlName="phoneNumber" autocomplete="tel" />
+			@if (form.controls.phoneNumber.invalid && form.controls.phoneNumber.touched) {
+				<small class="field-error">Phone number is required.</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="email">Email</label>
+			<input pInputText id="email" formControlName="email" autocomplete="email" />
+			@if (form.controls.email.invalid && form.controls.email.touched) {
+				<small class="field-error">Enter a valid email address.</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="password">Password</label>
+			<p-password
+				id="password"
+				formControlName="password"
+				[feedback]="false"
+				[toggleMask]="true"
+				autocomplete="new-password"
+				styleClass="w-full"
+				inputStyleClass="w-full"
+			></p-password>
+			@if (form.controls.password.invalid && form.controls.password.touched) {
+				<small class="field-error">Password must be at least 8 characters long and include uppercase, lowercase, and a number.</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="confirmPassword">Confirm password</label>
+			<p-password
+				id="confirmPassword"
+				formControlName="confirmPassword"
+				[feedback]="false"
+				[toggleMask]="true"
+				autocomplete="new-password"
+				styleClass="w-full"
+				inputStyleClass="w-full"
+			></p-password>
+			@if ((form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched) || (form.errors?.['passwordsMismatch'] && form.controls.confirmPassword.touched)) {
+				<small class="field-error">
+					@if (form.controls.confirmPassword.hasError('required')) {
+						Confirm password is required.
+					} @else {
+						Passwords do not match.
+					}
+				</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="militaryStatus">Military status</label>
+			<select id="militaryStatus" formControlName="militaryStatus" class="w-full">
+				<option value="">Select status</option>
+				<option value="0">NotApplicable</option>
+				<option value="1">Completed</option>
+				<option value="2">Exempted</option>
+				<option value="3">Postponed</option>
+				<option value="4">NotRequired</option>
+				<option value="5">CurrentlyServing</option>
+				<option value="6">OnReserve</option>
+			</select>
+			@if (form.controls.militaryStatus.invalid && form.controls.militaryStatus.touched) {
+				<small class="field-error">Military status is required.</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="linkedInProfile">LinkedIn profile (optional)</label>
+			<input pInputText id="linkedInProfile" formControlName="linkedInProfile" autocomplete="off" />
+		</div>
+
+		<div class="field">
+			<label for="resume">Resume (PDF/DOC)</label>
+			<input id="resume" type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)" />
+		</div>
+
+		<button pButton type="submit" label="Sign Up" [loading]="loading()" class="w-full"></button>
+	</form>
+</div>
