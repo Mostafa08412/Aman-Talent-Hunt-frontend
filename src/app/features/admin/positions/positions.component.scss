@@ -1,0 +1,105 @@
+/* ── Position Registry Catalogue (ADM-03) ── */
+
+.search-bar {
+  max-width: 360px;
+
+  .search-input {
+    width: 100%;
+  }
+}
+
+/* ── Gradient create button (matches wireframe teal-to-blue) ── */
+:host ::ng-deep .create-position-btn {
+  background: linear-gradient(135deg, var(--p-primary-500), #3b82f6) !important;
+  border: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 184, 176, 0.35);
+  }
+}
+
+/* ── Position code ── */
+.pos-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--p-primary-700);
+  background: var(--p-primary-50);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* ── Numeric cells ── */
+.num-cell {
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.vacant-highlight {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* ── Action buttons ── */
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  color: var(--p-surface-400);
+
+  i {
+    font-size: 2rem;
+  }
+}
+
+/* ── Dialog form ── */
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--p-surface-600);
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

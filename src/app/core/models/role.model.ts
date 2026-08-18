@@ -8,6 +8,7 @@ export enum Role {
   HRManager = 'HRManager',
   OnboardingCoordinator = 'OnboardingCoordinator',
   Admin = 'Admin',
+  SuperAdmin = 'SUPER_ADMIN',
 }
 
 export const INTERNAL_ROLES: Role[] = [
@@ -18,6 +19,7 @@ export const INTERNAL_ROLES: Role[] = [
   Role.HRManager,
   Role.OnboardingCoordinator,
   Role.Admin,
+  Role.SuperAdmin,
 ];
 
 export interface CurrentUser {
