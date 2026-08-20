@@ -1,0 +1,48 @@
+<header class="public-header">
+  <div class="header-container">
+
+    <!-- Logo -->
+    <a routerLink="/" class="logo">
+      <img src="/logo.png" alt="AMAN" class="logo-img" />
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="nav-desktop">
+      <a routerLink="/jobs" routerLinkActive="active" class="nav-link">Jobs</a>
+      @if (isLoggedIn()) {
+      <a routerLink="/account/applications" routerLinkActive="active"
+        class="nav-link">My applications</a>
+      }
+
+      <a routerLink="/about" routerLinkActive="active" class="nav-link">About
+        AMAN</a>
+    </nav>
+
+    <!-- Auth -->
+    <div class="auth-actions">
+      @if (!isLoggedIn()) {
+      <p-button
+        label="Sign in"
+        [outlined]="true"
+        severity="secondary"
+        styleClass="btn-sign-in"
+        routerLink="/login" />
+      <p-button
+        label="Create account"
+        styleClass="btn-create-account"
+        routerLink="/signup" />
+      } @else {
+      <button class="user-btn" (click)="userMenu.toggle($event)">
+
+        <div class="user-info">
+          <span class="user-name">{{ currentUser()?.fullName }}</span>
+          <span class="user-role">{{ currentUser()?.email }}</span>
+        </div>
+        <i class="pi pi-chevron-down"></i>
+      </button>
+      <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
+      }
+    </div>
+
+  </div>
+</header>
