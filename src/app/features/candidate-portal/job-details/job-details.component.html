@@ -1,0 +1,175 @@
+<p-toast styleClass="ath-toast" />
+
+<div class="job-details">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a routerLink="/jobs" class="back-link">
+      <i class="pi pi-arrow-left"></i>
+      Back to Jobs
+    </a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb">{{ job.category }}</span>
+    <span class="crumb-sep">/</span>
+    <span class="crumb current">{{ job.title }}</span>
+  </div>
+
+  <div class="details-layout">
+    <!-- Main column -->
+    <div class="main-col">
+      <div class="job-header">
+        <div class="job-tags">
+          @for (tag of job.tags; track tag.value) {
+            <p-tag [value]="tag.label" styleClass="job-tag" />
+          }
+        </div>
+        <h1>{{ job.title }}</h1>
+        <div class="job-meta">
+          <span><i class="pi pi-briefcase"></i> {{ job.level }}</span>
+          <span><i class="pi pi-clock"></i> {{ job.posted }}</span>
+        </div>
+      </div>
+
+      <div class="prose">
+        <section>
+          <h2>About The Role</h2>
+          @for (paragraph of description; track paragraph) {
+            <p>{{ paragraph }}</p>
+          }
+        </section>
+
+        <section>
+          <h2>Key Responsibilities</h2>
+          <ul>
+            @for (item of responsibilities; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </section>
+
+        <section>
+          <h2>Qualifications</h2>
+          <ul>
+            @for (item of qualifications; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <!-- Apply sidebar -->
+    <aside class="apply-col">
+      <div class="apply-card">
+        <div class="apply-heading">
+          <h3>Apply for this role</h3>
+          <p>Please complete the form below to submit your application.</p>
+        </div>
+
+        <form class="apply-form" [formGroup]="form" (ngSubmit)="submit()">
+          <!-- Resume -->
+          <div class="form-group">
+            <label>Resume / CV *</label>
+
+            <div class="resume-option">
+              <div class="resume-info">
+                <div class="resume-icon"><i class="pi pi-file-pdf"></i></div>
+                <div>
+                  <p class="resume-name">{{ currentResume.name }}</p>
+                  <p class="resume-meta">{{ currentResume.meta }}</p>
+                </div>
+              </div>
+              <span class="selected">
+                <i class="pi pi-check-circle"></i> Selected
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="upload-toggle"
+              (click)="showUpload.set(!showUpload())">
+              <i class="pi pi-plus-circle"></i>
+              {{ showUpload() ? 'Hide upload' : 'Upload new resume' }}
+            </button>
+
+            @if (showUpload()) {
+              <div class="upload-drop">
+                <i class="pi pi-cloud-upload upload-cloud"></i>
+                <p class="upload-title">Click to upload or drag and drop</p>
+                <p class="upload-hint">PDF, DOCX up to 10MB</p>
+                <p-fileupload
+                  mode="basic"
+                  name="resume"
+                  accept=".pdf,.doc,.docx"
+                  maxFileSize="10000000"
+                  chooseLabel="Choose resume"
+                  (onSelect)="onResumeSelected($event)" />
+              </div>
+            }
+          </div>
+
+          <!-- Screening question -->
+          <div class="form-group">
+            <label for="q-payments">Tell us about your experience building digital payment solutions. *</label>
+            <textarea
+              pTextarea
+              id="q-payments"
+              formControlName="question"
+              rows="4"
+              placeholder="Briefly describe relevant projects..."></textarea>
+            @if (form.controls.question.invalid && form.controls.question.touched) {
+              <small class="field-error">This question is required.</small>
+            }
+          </div>
+
+          <!-- Source -->
+          <div class="form-group">
+            <label for="source">How did you hear about this role? *</label>
+            <p-select
+              id="source"
+              formControlName="source"
+              [options]="sourceOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="e.g. LinkedIn, Referral..." />
+            @if (form.controls.source.invalid && form.controls.source.touched) {
+              <small class="field-error">Please select a source.</small>
+            }
+          </div>
+
+          <p-button
+            type="submit"
+            label="Submit Application"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            [loading]="isSubmitting()"
+            styleClass="submit-btn" />
+
+          <p class="privacy-note">By submitting, you agree to our Privacy Policy.</p>
+        </form>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Success dialog -->
+<p-dialog
+  header="Application Submitted"
+  [visible]="successVisible()"
+  (onHide)="successVisible.set(false)"
+  [style]="{ width: 'min(26rem, 92vw)' }"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true">
+  <div class="success-body">
+    <div class="success-icon"><i class="pi pi-check"></i></div>
+    <p>Thank you for applying. Our talent team will review your profile and get back to you soon.</p>
+  </div>
+  <div class="success-actions">
+    <p-button
+      label="Return to Jobs"
+      [outlined]="true"
+      severity="secondary"
+      routerLink="/jobs"
+      (onClick)="successVisible.set(false)" />
+  </div>
+</p-dialog>

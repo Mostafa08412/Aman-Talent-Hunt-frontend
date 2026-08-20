@@ -1,0 +1,63 @@
+<p-toast styleClass="ath-toast" />
+
+<div class="settings-card">
+  <div class="card-glow"></div>
+
+  <div class="card-heading">
+    <h2>
+      <span>Personal Information</span>
+      <i class="pi pi-user heading-icon"></i>
+    </h2>
+    <p>Update your personal details and contact information to keep your profile current.</p>
+  </div>
+
+  <form class="settings-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-grid">
+      <div class="field">
+        <label for="firstName">First Name</label>
+        <input pInputText id="firstName" formControlName="firstName" placeholder="First name" />
+      </div>
+
+      <div class="field">
+        <label for="lastName">Last Name</label>
+        <input pInputText id="lastName" formControlName="lastName" placeholder="Last name" />
+      </div>
+
+      <div class="field field-full">
+        <label for="email">Email Address</label>
+        <input pInputText id="email" formControlName="email" readonly placeholder="Email address" />
+        <small class="field-hint">Your email is the login identifier and cannot be changed here.</small>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone Number</label>
+        <input pInputText id="phone" formControlName="phone" placeholder="+20 ..." />
+      </div>
+
+      <div class="field">
+        <label for="militaryStatus">Military Status</label>
+        <p-select
+          id="militaryStatus"
+          formControlName="militaryStatus"
+          [options]="militaryStatusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select status" />
+      </div>
+
+      <div class="field field-full">
+        <label for="linkedin">LinkedIn Profile</label>
+        <input pInputText id="linkedin" formControlName="linkedin" placeholder="linkedin.com/in/..." />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button
+        type="submit"
+        label="Save Changes"
+        icon="pi pi-check"
+        [loading]="isSubmitting()"
+        styleClass="save-btn" />
+    </div>
+  </form>
+</div>

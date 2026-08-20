@@ -1,0 +1,36 @@
+<div class="jobs-list">
+  <!-- Header -->
+  <div class="list-header">
+    <h2>Recommended Roles</h2>
+    <span class="count">
+      Showing {{ filteredJobs.length }} results
+    </span>
+  </div>
+
+  <!-- Job Cards -->
+  <div class="cards">
+    @for (job of jobs; track job.id) {
+    <app-job-card
+      [job]="job"
+      [department]="job.department"
+      [featured]="job.featured ?? false" />
+    } @empty {
+    <div class="empty-state">
+      <i class="pi pi-briefcase"></i>
+      <p>No roles found</p>
+    </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (filteredJobs.length > rows) {
+  <div class="pagination">
+    <p-paginator
+      [first]="first"
+      [rows]="rows"
+      [totalRecords]="totalRecords"
+      [rowsPerPageOptions]="[3, 6, 12]"
+      (onPageChange)="onPageChange($event)" />
+  </div>
+  }
+</div>

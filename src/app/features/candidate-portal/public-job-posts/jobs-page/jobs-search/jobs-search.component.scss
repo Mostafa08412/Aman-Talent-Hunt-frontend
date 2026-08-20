@@ -1,0 +1,121 @@
+.search-wrapper {
+  max-width: 1160px;
+  margin: -3rem auto 4rem;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 20;
+}
+
+.search-bar {
+  background: #ffffff;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 10, 20, 0.15);
+  border: 1px solid #e1e8eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* ── Shared field ── */
+.search-field,
+.location-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f7f9ff;
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  flex: 1;
+  min-height: 3.25rem;
+
+  .field-icon {
+    color: #8b9aa3;
+    margin-right: 0.6rem;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+.search-field {
+  input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100%;
+    padding: 0.85rem 0;
+    font-size: 0.9375rem;
+    color: #061d2e;
+
+    &::placeholder {
+      color: #8b9aa3;
+    }
+  }
+}
+
+.location-field {
+  @media (min-width: 768px) {
+    max-width: 16rem;
+    flex: 0 0 16rem;
+  }
+}
+
+.divider {
+  display: none;
+  width: 1px;
+  height: 2.25rem;
+  background: #e1e8eb;
+  flex-shrink: 0;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+
+  @media (min-width: 768px) {
+    flex-shrink: 0;
+  }
+}
+
+:host ::ng-deep {
+  .location-select {
+    width: 100%;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+
+    .p-select-label {
+      padding-left: 0;
+      color: #061d2e;
+    }
+  }
+
+  .search-btn.p-button {
+    width: 100%;
+    white-space: nowrap;
+    background: #006878 !important;
+    border-color: #006878 !important;
+    color: #ffffff !important;
+    border-radius: 8px;
+    font-weight: 600;
+
+    &:hover {
+      background: #087f94 !important;
+      border-color: #087f94 !important;
+    }
+
+    @media (min-width: 768px) {
+      width: auto;
+    }
+  }
+}

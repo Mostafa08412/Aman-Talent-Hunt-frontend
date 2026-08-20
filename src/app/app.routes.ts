@@ -8,10 +8,72 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/public-shell/public-shell.component').then((m) => m.PublicShellComponent),
     children: [
-      {
+        {
         path: '',
         loadComponent: () =>
-          import('./features/job-postings/job-board.component').then((m) => m.JobBoardComponent),
+          import('./features/candidate-portal/jobs-refresh/jobs-refresh.component').then(
+            (m) => m.JobsRefreshComponent,
+          ),
+      },
+      {
+        path: 'jobs',
+        loadComponent: () =>
+          import('./features/candidate-portal/jobs-refresh/jobs-refresh.component').then(
+            (m) => m.JobsRefreshComponent,
+          ),
+      },
+      {
+        path: 'jobs/:id',
+        loadComponent: () =>
+          import('./features/candidate-portal/job-details/job-details.component').then(
+            (m) => m.JobDetailsComponent,
+          ),
+      },
+
+      {
+        path: 'account',
+        loadComponent: () =>
+          import(
+            './features/candidate-portal/account-settings/account-settings-shell.component'
+          ).then((m) => m.AccountSettingsShellComponent),
+        children: [
+          { path: '', redirectTo: 'personal-information', pathMatch: 'full' },
+          {
+            path: 'personal-information',
+            loadComponent: () =>
+              import(
+                './features/candidate-portal/account-settings/personal-info/personal-info.component'
+              ).then((m) => m.PersonalInfoComponent),
+          },
+          {
+            path: 'security-password',
+            loadComponent: () =>
+              import(
+                './features/candidate-portal/account-settings/security-password/security-password.component'
+              ).then((m) => m.SecurityPasswordComponent),
+          },
+          {
+            path: 'resume',
+            loadComponent: () =>
+              import(
+                './features/candidate-portal/account-settings/resume/profile-resume.component'
+              ).then((m) => m.ProfileResumeComponent),
+          },
+          {
+            path: 'applications',
+            loadComponent: () =>
+              import(
+                './features/candidate-portal/account-settings/applications/application-history.component'
+              ).then((m) => m.ApplicationHistoryComponent),
+          },
+          {
+            path: 'applications/:id',
+            loadComponent: () =>
+              import(
+                './features/candidate-portal/account-settings/applications/application-details.component'
+              ).then((m) => m.ApplicationDetailsComponent),
+          },
+        ],
       },
       {
         path: 'login',

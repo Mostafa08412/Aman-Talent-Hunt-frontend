@@ -1,0 +1,36 @@
+<div class="job-card" [class.featured]="featured">
+  <div class="accent-bar"></div>
+
+  <div class="card-body">
+    <div class="info">
+      <div class="tags">
+        @if (department) {
+        <span class="pill pill-dept">{{ department }}</span>
+        }
+        @if (featured) {
+        <span class="pill pill-hiring">Actively Hiring</span>
+        }
+      </div>
+
+      <h3 class="title">{{ job.title }}</h3>
+
+      <div class="meta">
+        <span>
+          <i class="pi pi-map-marker"></i>
+          {{ locationLabel }}
+        </span>
+        <span>
+          <i class="pi pi-briefcase"></i>
+          {{ employmentLabel }}
+        </span>
+      </div>
+    </div>
+
+    <div class="action">
+      <a class="view-btn" [routerLink]="['/jobs', job.id]">
+        View Details
+        <span class="triangle"></span>
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,112 @@
+<div class="detail-page">
+  <!-- Back -->
+  <a routerLink="/account/applications" class="back-link">
+    <i class="pi pi-arrow-left"></i>
+    Back to Application History
+  </a>
+
+  <!-- Header -->
+  <div class="detail-card">
+    <div class="card-glow"></div>
+
+    <div class="detail-heading">
+      <div class="heading-main">
+        <h1>{{ detail().title }}</h1>
+        <p-tag
+          [value]="statusLabel(detail().status)"
+          [severity]="statusSeverity(detail().status)"
+          styleClass="status-tag" />
+      </div>
+      <div class="heading-meta">
+        <span><i class="pi pi-briefcase"></i> {{ detail().department }}</span>
+        <span><i class="pi pi-map-marker"></i> {{ detail().location }}</span>
+        <span><i class="pi pi-calendar"></i> Applied {{ detail().appliedAt }}</span>
+        <span><i class="pi pi-share-alt"></i> Via {{ detail().source }}</span>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <!-- Timeline -->
+      <section class="timeline-col">
+        <h2>Application Timeline</h2>
+        <p-timeline [value]="detail().timeline" align="left">
+          <ng-template pTemplate="marker" let-event>
+            <span class="marker" [class.done]="event.done" [class.current]="event.current">
+              <i class="pi" [ngClass]="event.done ? 'pi-check' : 'pi-circle'"></i>
+            </span>
+          </ng-template>
+          <ng-template pTemplate="content" let-event>
+            <div class="event" [class.current]="event.current">
+              <p class="event-title">{{ event.title }}</p>
+              <p class="event-date">{{ event.date }}</p>
+              @if (event.note) {
+                <p class="event-note">{{ event.note }}</p>
+              }
+            </div>
+          </ng-template>
+        </p-timeline>
+      </section>
+
+      <!-- Interviews + actions -->
+      <aside class="side-col">
+        <section class="panel">
+          <h2>Interviews</h2>
+          @if (detail().interviews.length > 0) {
+            <div class="interview-list">
+              @for (interview of detail().interviews; track interview.round) {
+                <div class="interview-card">
+                  <div class="interview-head">
+                    <p class="interview-round">{{ interview.round }}</p>
+                    <p-tag
+                      value="Scheduled"
+                      severity="warn"
+                      styleClass="mini-tag" />
+                  </div>
+                  <p class="interview-date"><i class="pi pi-clock"></i> {{ interview.date }}</p>
+                  <p class="interview-meta"><i class="pi pi-video"></i> {{ interview.format }}</p>
+                  <p class="interview-meta"><i class="pi pi-map-marker"></i> {{ interview.location }}</p>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <i class="pi pi-calendar-times"></i>
+              <p>No interviews scheduled yet.</p>
+            </div>
+          }
+        </section>
+
+        <section class="panel">
+          <h2>Application Details</h2>
+          <div class="detail-rows">
+            <div class="row">
+              <span class="row-label">Status</span>
+              <span class="row-value">{{ statusLabel(detail().status) }}</span>
+            </div>
+            <div class="row">
+              <span class="row-label">Applied On</span>
+              <span class="row-value">{{ detail().appliedAt }}</span>
+            </div>
+            <div class="row">
+              <span class="row-label">Source</span>
+              <span class="row-value">{{ detail().source }}</span>
+            </div>
+            <div class="row">
+              <span class="row-label">Location</span>
+              <span class="row-value">{{ detail().location }}</span>
+            </div>
+          </div>
+
+          @if (detail().status === 'Submitted' || detail().status === 'Screened' || detail().status === 'Shortlisted') {
+            <p-button
+              label="Withdraw Application"
+              icon="pi pi-times"
+              [text]="true"
+              severity="danger"
+              (onClick)="withdraw()" />
+          }
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>

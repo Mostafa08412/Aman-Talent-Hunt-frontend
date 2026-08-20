@@ -1,0 +1,41 @@
+<div class="search-wrapper">
+  <div class="search-bar">
+
+    <!-- Keyword -->
+    <div class="search-field">
+      <i class="pi pi-search field-icon"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Job title, keyword or skillset..."
+        [(ngModel)]="keyword"
+        (keyup.enter)="onSearch()" />
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Location -->
+    <div class="location-field">
+      <i class="pi pi-map-marker field-icon"></i>
+      <p-select
+        [options]="locationOptions"
+        [(ngModel)]="selectedLocation"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="All Cities"
+        styleClass="location-select"
+        [showClear]="false" />
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <p-button
+        label="Search Roles"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        (onClick)="onSearch()"
+        styleClass="search-btn" />
+    </div>
+
+  </div>
+</div>
