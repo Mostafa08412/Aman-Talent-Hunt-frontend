@@ -1,0 +1,67 @@
+import type { PagedResult, ResultWithData } from './common';
+import type { PlanQuarter, PlanStatus, SeniorityLevel } from './enums';
+
+export interface ManPowerPlanListItemDto {
+  id: string;
+  fiscalYear: number;
+  quarter: PlanQuarter;
+  departmentName: string | null;
+  positionTitle: string | null;
+  targetHeadcount: number;
+  vacant: number;
+  status: PlanStatus;
+}
+
+export type ManPowerPlanListItemDtoPagedResult = PagedResult<ManPowerPlanListItemDto>;
+export type ManPowerPlanListItemDtoPagedResultResult = ResultWithData<ManPowerPlanListItemDtoPagedResult>;
+export type ManPowerPlanListItemDtoIReadOnlyListResult = ResultWithData<ManPowerPlanListItemDto[]>;
+
+export interface ManPowerPlanLookupDto {
+  id: string;
+  positionTitle: string | null;
+  targetHeadcount: number;
+  remainingHeadcount: number;
+  quarter: PlanQuarter;
+  fiscalYear: number;
+}
+
+export type ManPowerPlanLookupDtoIReadOnlyListResult = ResultWithData<ManPowerPlanLookupDto[]>;
+
+export interface ManPowerPlanResponse {
+  id: string;
+  fiscalYear: number;
+  quarter: PlanQuarter;
+  departmentId: string;
+  departmentName: string | null;
+  targetHeadcount: number;
+  filledHeadcount: number;
+  pendingRequisitionsCount: number;
+  vacant: number;
+  status: PlanStatus;
+  isNewPositionTitle: boolean;
+  positionTitle: string | null;
+  approvedAt: string | null;
+  fulfilledAt: string | null;
+  rejectionReason: string | null;
+}
+
+export type ManPowerPlanResponseResult = ResultWithData<ManPowerPlanResponse>;
+
+export interface CreateManPowerPlanRequest {
+  fiscalYear: number;
+  quarter: PlanQuarter;
+  departmentId: string;
+  targetHeadcount: number;
+  isNewPositionTitle: boolean;
+  proposedJobTitle: string | null;
+  proposedJobSeniorityLevel: SeniorityLevel;
+  positionRegistryId: string | null;
+}
+
+export interface RejectManPowerPlanRequest {
+  reason: string | null;
+}
+
+export interface PromotePositionRequest {
+  positionRegistryId: string;
+}
