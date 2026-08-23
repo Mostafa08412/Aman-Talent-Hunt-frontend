@@ -19,9 +19,9 @@
       </div>
       <div class="file-info">
         @if (currentResume(); as resume) {
-          <p class="file-name">{{ resume.name }}</p>
+        <p class="file-name">{{ resume.name }}</p>
         } @else {
-          <p class="file-name">No resume uploaded yet</p>
+        <p class="file-name">No resume uploaded yet</p>
         }
       </div>
       <div class="file-actions">
@@ -61,13 +61,13 @@
 
   <!-- Candidate snapshot -->
   @if (candidate(); as person) {
-    <div class="candidate-snapshot">
-      <div class="avatar">{{ person.name[0] }}</div>
-      <div class="snapshot-info">
-        <p class="snapshot-name">{{ person.name }}</p>
-        <p class="snapshot-meta">{{ person.email }} · {{ person.phone }}</p>
-      </div>
+  <div class="candidate-snapshot">
+    <div class="avatar">{{ person.name[0] }}</div>
+    <div class="snapshot-info">
+      <p class="snapshot-name">{{ person.name }}</p>
+      <p class="snapshot-meta">{{ person.email }} · {{ person.phone }}</p>
     </div>
+  </div>
   }
 </div>
 
@@ -82,14 +82,15 @@
   [dismissableMask]="true">
   <div class="resume-preview">
     @if (previewUrl(); as url) {
-      <iframe [src]="url" class="preview-frame" title="Resume preview"></iframe>
+    <iframe [src]="url" class="preview-frame" title="Resume preview"></iframe>
     } @else if (isPreviewLoading()) {
-      <p class="preview-title"><i class="pi pi-spin pi-spinner"></i> Loading preview…</p>
+    <p class="preview-title"><i class="pi pi-spin pi-spinner"></i> Loading
+      preview…</p>
     } @else {
-      <div class="preview-icon">
-        <i class="pi pi-file-pdf"></i>
-      </div>
-      <p class="preview-title">Preview unavailable</p>
+    <div class="preview-icon">
+      <i class="pi pi-file-pdf"></i>
+    </div>
+    <p class="preview-title">Preview unavailable</p>
     }
   </div>
   <div class="preview-actions">
