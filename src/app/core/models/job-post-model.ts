@@ -34,19 +34,7 @@ export interface ScreeningQuestionDto {
   question?: string | null;
 }
 
-export interface PublicJobPostDetailDto {
-  id: string; // uuid
-  title?: string | null;
-  description?: string | null;
-  requirements?: string | null;
-  qualifications?: string | null;
-  location: Location;
-  jobType: JobType;
-  employmentType: EmploymentType;
-  seniorityLevel: SeniorityLevel;
-  createdAtUTC: string; // date-time
-  screeningQuestions?: ScreeningQuestionDto[] | null;
-}
+
 /** Query params for GET /api/JobPost/public */
 export interface PublicJobPostQueryParams {
   Location?: Location;
@@ -54,6 +42,7 @@ export interface PublicJobPostQueryParams {
   SeniorityLevel?: SeniorityLevel;
   DatePosted?: string; // date-time
   JobType?: JobType;
+  DepartmentId?: string; // uuid
   Page?: number;
   PageSize?: number;
   Search?: string;
@@ -63,5 +52,3 @@ export interface PublicJobPostQueryParams {
   NormalizedPageSize?: number;
 }
 
-export type PublicJobPostDetailDtoResult =
-  ResultWithData<PublicJobPostDetailDto>;
