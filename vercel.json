@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:prod",
   "outputDirectory": "dist/aman-talent-hunt/browser",
   "framework": "angular",
   "routes": [
