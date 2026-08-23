@@ -1,0 +1,98 @@
+
+
+<div class="settings-card">
+  <p-toast styleClass="ath-toast" />
+  <div class="card-glow"> </div>
+
+  <div class="card-heading">
+    <h2>
+      <span>Resume &amp; Documents</span>
+      <i class="pi pi-file-edit heading-icon"></i>
+    </h2>
+    <p>Keep your resume up to date — recruiters review this document first when
+      you apply.</p>
+  </div>
+
+  <div class="resume-layout">
+    <!-- Current resume -->
+    <div class="current-resume">
+      <div class="file-icon">
+        <i class="pi pi-file-pdf"></i>
+      </div>
+      <div class="file-info">
+        <p class="file-name">{{ currentResume().name }}</p>
+        <p class="file-meta">{{ formattedSize(currentResume().size) }} · {{
+          currentResume().updated }}</p>
+        @if (uploadedName()) {
+        <p class="file-meta upload-note">Uploaded: {{ uploadedName() }}</p>
+        }
+      </div>
+      <div class="file-actions">
+        <p-button
+          icon="pi pi-eye"
+          label="Preview"
+          [text]="true"
+          severity="secondary"
+          (onClick)="openPreview()" />
+        <p-button
+          icon="pi pi-download"
+          label="Download"
+          [text]="true"
+          (onClick)="download()" />
+      </div>
+    </div>
+
+    <!-- Upload new -->
+    <div class="upload-area">
+      <div class="upload-icon">
+        <i class="pi pi-cloud-upload"></i>
+      </div>
+      <p class="upload-title">Click to upload or drag and drop</p>
+      <p class="upload-hint">PDF, DOCX up to 10MB</p>
+      <p-fileupload
+        mode="basic"
+        name="resume"
+        accept=".pdf,.doc,.docx"
+        maxFileSize="10000000"
+        chooseLabel="Choose resume"
+        (onSelect)="onUpload($event)" />
+    </div>
+  </div>
+
+  <!-- Candidate snapshot -->
+  <div class="candidate-snapshot">
+    <div class="avatar">{{ candidate.name[0] }}</div>
+    <div class="snapshot-info">
+      <p class="snapshot-name">{{ candidate.name }}</p>
+      <p class="snapshot-meta">{{ candidate.email }} · {{ candidate.phone }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Resume preview -->
+<p-dialog
+  [header]="currentResume().name"
+  [visible]="previewVisible()"
+  (onHide)="previewVisible.set(false)"
+  [style]="{ width: 'min(52rem, 92vw)' }"
+  [modal]="true"
+  [dismissableMask]="true">
+  <div class="resume-preview">
+    <div class="preview-icon">
+      <i class="pi pi-file-pdf"></i>
+    </div>
+    <p class="preview-title">PDF Preview</p>
+    <p class="preview-name">{{ currentResume().name }}</p>
+  </div>
+  <div class="preview-actions">
+    <p-button
+      label="Close"
+      [text]="true"
+      severity="secondary"
+      (onClick)="previewVisible.set(false)" />
+    <p-button
+      label="Download PDF"
+      icon="pi pi-download"
+      (onClick)="download()" />
+  </div>
+</p-dialog>

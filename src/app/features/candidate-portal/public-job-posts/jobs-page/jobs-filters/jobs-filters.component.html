@@ -1,0 +1,38 @@
+<aside class="filters">
+  <!-- Department -->
+  <div class="filter-group">
+    <h3>Department</h3>
+    <div class="filter-list">
+      @for (option of departmentOptions; track option.value) {
+      <label class="filter-item">
+        <p-checkbox
+          [(ngModel)]="option.checked"
+          [binary]="true"
+          (onChange)="onDepartmentChange(option)" />
+        <span>{{ option.label }}</span>
+      </label>
+      }
+    </div>
+  </div>
+
+  <!-- Employment Type -->
+  <div class="filter-group">
+    <h3>Employment Type</h3>
+    <div class="filter-list">
+      @for (option of employmentOptions; track option.value) {
+      <label class="filter-item">
+        <p-checkbox
+          [(ngModel)]="option.checked"
+          [binary]="true"
+          (onChange)="onFilterChange()" />
+        <span>{{ option.label }}</span>
+      </label>
+      }
+    </div>
+  </div>
+
+  <!-- Clear -->
+  <button type="button" class="clear-btn" (click)="clearAll()">
+    Clear all filters
+  </button>
+</aside>

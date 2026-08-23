@@ -17,6 +17,7 @@
 :root {
   --ath-font: 'Sora', 'Cairo', sans-serif;
   --ath-accent: #f26522;
+  --ath-teal: #00abc2;
 
   /* Layout constants shared by the console shell, header and sidebar components. */
   --ath-sidebar-width: 264px;
@@ -88,3 +89,12 @@ p {
   font-size: 1.375rem;
   margin: 0;
 }
+
+/* ── Toast below the fixed public header ──
+   The public header is position:fixed (64px) and the PrimeNG toast renders at
+   top:0 of the viewport, so on public pages it ends up behind the header.
+   Offset any toast tagged .ath-toast below it. */
+.ath-toast {
+  top: calc(var(--ath-header-height, 64px) + 1rem) !important;
+}
+

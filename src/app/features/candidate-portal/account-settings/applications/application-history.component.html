@@ -1,0 +1,76 @@
+<div class="settings-card">
+  <div class="card-glow"></div>
+
+  <div class="card-heading">
+    <h2>
+      <span>Application History</span>
+      <i class="pi pi-history heading-icon"></i>
+    </h2>
+    <p>Track the status of every role you have applied to through the AMAN portal.</p>
+  </div>
+
+  <p-table
+    [value]="applications()"
+    [paginator]="true"
+    [rows]="5"
+    [rowsPerPageOptions]="[5, 10]"
+    styleClass="p-datatable-sm p-datatable-responsive"
+    [tableStyle]="{ 'min-width': '46rem' }">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Role</th>
+        <th>Applied</th>
+        <th>Source</th>
+        <th>Status</th>
+        <th class="th-actions"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-app>
+      <tr>
+        <td data-label="Role">
+          <div class="role-cell">
+            <p class="role-title">{{ app.jobPostTitle }}</p>
+            <p class="role-meta">{{ app.department }} · {{ app.location }}</p>
+            @if (app.upcomingInterview) {
+              <p class="role-interview">
+                <i class="pi pi-video"></i>
+                Interview on {{ app.upcomingInterview }}
+              </p>
+            }
+          </div>
+        </td>
+        <td data-label="Applied">
+          <span class="date">{{ app.appliedAt }}</span>
+        </td>
+        <td data-label="Source">
+          <span class="source">{{ app.source }}</span>
+        </td>
+        <td data-label="Status">
+          <p-tag
+            [value]="statusLabel(app.status)"
+            [severity]="statusSeverity(app.status)"
+            styleClass="status-tag" />
+        </td>
+        <td data-label="">
+          <p-button
+            label="View Details"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            [text]="true"
+            styleClass="view-btn"
+            [routerLink]="['/account', 'applications', app.id]" />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="empty-cell">
+          <i class="pi pi-inbox"></i>
+          <p>You have not applied to any roles yet.</p>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

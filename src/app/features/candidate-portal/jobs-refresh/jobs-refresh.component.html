@@ -1,0 +1,158 @@
+<div class="refresh-page">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <span class="eyebrow">Join AMAN</span>
+      <h1>
+        Move your career forward,<br />
+        <span class="highlight">with confidence</span>
+      </h1>
+      <p class="hero-desc">
+        Browse impactful roles across Consumer Finance, Microfinance, and Digital
+        Payments. Build the future of fintech in Egypt.
+      </p>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">{{ openRoles }}</span>
+          <span class="stat-label">Open Roles</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value">{{ businessUnits }}</span>
+          <span class="stat-label">Business Units</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value">{{ teamMembers }}</span>
+          <span class="stat-label">Team Members</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search bar -->
+  <div class="search-wrap">
+    <div class="search-bar">
+      <div class="search-field">
+        <i class="pi pi-search field-icon"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Job title, keyword or skillset..."
+          [(ngModel)]="keyword" />
+      </div>
+
+      <div class="search-divider"></div>
+
+      <div class="location-field">
+        <i class="pi pi-map-marker field-icon"></i>
+        <p-select
+          [options]="locationOptions"
+          [(ngModel)]="selectedLocation"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Cities"
+          [showClear]="false" />
+      </div>
+
+      <div class="search-actions">
+        <p-button
+          label="Search Roles"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          styleClass="search-btn" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters + results -->
+  <section class="content">
+    <div class="content-layout">
+      <!-- Filters sidebar -->
+      <aside class="filters">
+        <div class="filter-group">
+          <h3>Department</h3>
+          <div class="filter-list">
+            @for (opt of departmentOptions; track opt.value) {
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="selectedDepartments()[opt.value]"
+                (ngModelChange)="toggleDepartment(opt.value, $event)"
+                [inputId]="'dept-' + opt.value" />
+              <label [for]="'dept-' + opt.value">{{ opt.label }}</label>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h3>Employment Type</h3>
+          <div class="filter-list">
+            @for (opt of typeOptions; track opt.value) {
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="selectedTypes()[opt.value]"
+                (ngModelChange)="toggleType(opt.value, $event)"
+                [inputId]="'type-' + opt.value" />
+              <label [for]="'type-' + opt.value">{{ opt.label }}</label>
+            }
+          </div>
+        </div>
+
+        <p-button
+          label="Clear filters"
+          icon="pi pi-filter-slash"
+          [text]="true"
+          severity="secondary"
+          (onClick)="resetFilters()" />
+      </aside>
+
+      <!-- Results -->
+      <div class="results">
+        <div class="results-head">
+          <p class="result-label">{{ resultLabel() }}</p>
+        </div>
+
+        <div class="job-list">
+          @for (job of filteredJobs(); track job.id) {
+            <div class="job-card" [class.featured]="job.featured">
+              <div class="job-card-body">
+                <div class="job-info">
+                  <div class="job-tags">
+                    <p-tag [value]="job.department" styleClass="dept-tag" />
+                    @if (job.featured) {
+                      <p-tag value="Actively Hiring" styleClass="hiring-tag" />
+                    }
+                  </div>
+                  <h3>{{ job.title }}</h3>
+                  <div class="job-meta">
+                    <span><i class="pi pi-map-marker"></i> {{ job.location }}</span>
+                    <span><i class="pi pi-briefcase"></i> {{ job.type }}</span>
+                    <span><i class="pi pi-level-up"></i> {{ job.level }}</span>
+                  </div>
+                  <p class="posted">Posted {{ job.posted }}</p>
+                </div>
+                <div class="job-action">
+                  <a class="view-link" [routerLink]="['/jobs', job.id]">
+                    View Details <span class="triangle"></span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="no-results">
+              <i class="pi pi-search"></i>
+              <p>No roles match your filters.</p>
+              <p-button
+                label="Clear all filters"
+                [outlined]="true"
+                severity="secondary"
+                (onClick)="resetFilters()" />
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,165 @@
+.settings-card {
+  position: relative;
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 16px 40px rgba(0, 42, 71, 0.12);
+  padding: 2rem;
+  overflow: hidden;
+
+  @media (min-width: 768px) {
+    padding: 3rem;
+  }
+}
+
+.card-glow {
+  position: absolute;
+  top: -5rem;
+  right: -5rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 999px;
+  background: #cfe5fc;
+  filter: blur(48px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.card-heading {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 42rem;
+}
+
+.card-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #061d2e;
+}
+
+.heading-icon {
+  color: #f47d40;
+  font-size: 1.4rem;
+}
+
+.card-heading p {
+  margin: 0;
+  color: #5a6b74;
+}
+
+/* ── Table ── */
+:host ::ng-deep .p-datatable {
+  position: relative;
+}
+
+.role-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #061d2e;
+}
+
+.role-meta {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  color: #5a6b74;
+}
+
+.role-interview {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: #a14000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.role-interview i {
+  color: #f47d40;
+}
+
+.date,
+.source {
+  font-size: 0.875rem;
+  color: #3d494c;
+}
+
+.th-actions {
+  width: 9rem;
+  text-align: right;
+}
+
+.status-tag {
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.view-btn ::ng-deep .p-button {
+  white-space: nowrap;
+}
+
+.empty-cell {
+  text-align: center;
+  padding: 2.5rem 1rem !important;
+}
+
+.empty-cell i {
+  font-size: 2rem;
+  color: #bcc9cc;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.empty-cell p {
+  margin: 0;
+  color: #5a6b74;
+}
+
+/* ── Responsive: stack rows as cards on small screens ── */
+@media (max-width: 767px) {
+  :host ::ng-deep .p-datatable.p-datatable-responsive {
+    .p-datatable-thead {
+      display: none;
+    }
+
+    .p-datatable-tbody {
+      display: block;
+    }
+
+    .p-datatable-tbody > tr {
+      display: block;
+      border: 1px solid #e1e8eb;
+      border-radius: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 4px 12px rgba(0, 42, 71, 0.06);
+    }
+
+    .p-datatable-tbody > tr > td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      border: 0;
+      padding: 0.4rem 0;
+    }
+
+    .p-datatable-tbody > tr > td::before {
+      content: attr(data-label);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #8b9aa3;
+      flex-shrink: 0;
+    }
+
+    .th-actions,
+    .view-btn ::ng-deep .p-button {
+      width: auto;
+    }
+  }
+}

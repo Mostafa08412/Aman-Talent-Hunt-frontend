@@ -1,0 +1,18 @@
+<div class="jobs-page">
+  <!-- Hero -->
+  <app-jobs-hero
+    [openRoles]="openRoles"
+    [businessUnits]="businessUnits"
+    [teamMembers]="teamMembers" />
+
+  <!-- Search (overlaps hero) -->
+  <app-jobs-search (search)="onSearch($event)" />
+
+  <!-- Filters + List -->
+  <section class="jobs-content">
+    <div class="jobs-layout">
+      <app-jobs-filters (filtersChange)="onFiltersChange($event)" />
+      <app-jobs-list [search]="search" [filters]="filters" />
+    </div>
+  </section>
+</div>

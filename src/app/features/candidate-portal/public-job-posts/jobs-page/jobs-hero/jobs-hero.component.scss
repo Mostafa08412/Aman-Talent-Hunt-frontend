@@ -1,0 +1,137 @@
+.jobs-hero {
+  position: relative;
+  background: linear-gradient(
+      to right,
+      rgba(11, 34, 51, 0.9) 0%,
+      rgba(11, 34, 51, 0.4) 100%
+    ),
+    url('/aman-building.png');
+  background-size: cover;
+  background-position: center center;
+  color: #fff;
+  padding: 72px 1.5rem 96px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 8px 24px rgba(0, 10, 20, 0.2);
+  overflow: hidden;
+  z-index: 10;
+
+  @media (min-width: 1024px) {
+    margin: 0;
+  }
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(8, 127, 148, 0.3),
+    rgba(11, 34, 51, 0.85),
+    rgba(0, 174, 199, 0.2)
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -8rem;
+  right: -8rem;
+  width: 24rem;
+  height: 24rem;
+  background: rgba(0, 174, 199, 0.2);
+  border-radius: 9999px;
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.hero-text {
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(0, 104, 120, 0.3);
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #53d7f1;
+  width: fit-content;
+}
+
+h1 {
+  font-family: 'Alexandria', var(--ath-font), sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: #fff;
+
+  @media (min-width: 768px) {
+    font-size: 3.5rem;
+    letter-spacing: -0.02em;
+  }
+}
+
+.highlight {
+  color: #ffb694;
+}
+
+.description {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: rgba(207, 229, 252, 0.8);
+  max-width: 36rem;
+  margin: 0;
+}
+
+/* ── Stats ── */
+.stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.stat-value {
+  font-family: 'Alexandria', var(--ath-font), sans-serif;
+  font-size: 1.875rem;
+  font-weight: 900;
+  color: #a6eeff;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(207, 229, 252, 0.6);
+}
+
+.divider {
+  width: 1px;
+  height: 2.5rem;
+  background: rgba(255, 255, 255, 0.1);
+}

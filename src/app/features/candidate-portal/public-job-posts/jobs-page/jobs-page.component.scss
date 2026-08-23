@@ -1,0 +1,23 @@
+.jobs-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.jobs-content {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.jobs-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+}

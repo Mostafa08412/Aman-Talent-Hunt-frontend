@@ -36,7 +36,7 @@ export class ForgotPasswordComponent {
   this.loading.set(true);
   this.error.set(null);
 
-  this.auth.requestResetPassword(email).subscribe({
+  this.auth.requestResetPassword({ email }).subscribe({
     next: () => {
       this.loading.set(false);
 

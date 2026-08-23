@@ -1,0 +1,243 @@
+::ng-deep .p-toast {
+  z-index: 9999;
+}
+.settings-card {
+  position: relative;
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 16px 40px rgba(0, 42, 71, 0.12);
+  padding: 2rem;
+  overflow: hidden;
+
+  @media (min-width: 768px) {
+    padding: 3rem;
+  }
+}
+
+.card-glow {
+  position: absolute;
+  top: -5rem;
+  right: -5rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 999px;
+  background: #cfe5fc;
+  filter: blur(48px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.card-heading {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 42rem;
+}
+
+.card-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #061d2e;
+}
+
+.heading-icon {
+  color: #f47d40;
+  font-size: 1.4rem;
+}
+
+.card-heading p {
+  margin: 0;
+  color: #5a6b74;
+}
+
+.resume-layout {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Current resume ── */
+.current-resume {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #e2efff;
+  border: 1px solid #006878;
+  border-radius: 0.5rem;
+
+  @media (min-width: 768px) {
+    flex-wrap: nowrap;
+  }
+}
+
+.file-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: rgba(0, 104, 120, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #006878;
+  flex-shrink: 0;
+}
+
+.file-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.file-name {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #061d2e;
+  word-break: break-all;
+}
+
+.file-meta {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: #8b9aa3;
+}
+
+.upload-note {
+  color: #006878;
+}
+
+.file-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
+}
+
+/* ── Upload area ── */
+.upload-area {
+  border: 2px dashed #bcc9cc;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: #f4f8fa;
+  text-align: center;
+}
+
+.upload-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: #e2efff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #006878;
+  margin-bottom: 0.5rem;
+}
+
+.upload-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #061d2e;
+}
+
+.upload-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  color: #8b9aa3;
+}
+
+/* ── Candidate snapshot ── */
+.candidate-snapshot {
+  position: relative;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #e1e8eb;
+}
+
+.avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: #006878;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.snapshot-name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #061d2e;
+}
+
+.snapshot-meta {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  color: #5a6b74;
+}
+
+/* ── Preview dialog ── */
+.resume-preview {
+  min-height: 18rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #f4f8fa;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.preview-icon {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 999px;
+  background: rgba(0, 104, 120, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #006878;
+  font-size: 3rem;
+}
+
+.preview-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #3d494c;
+}
+
+.preview-name {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #8b9aa3;
+}
+
+.preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

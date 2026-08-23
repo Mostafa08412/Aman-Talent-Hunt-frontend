@@ -1,0 +1,64 @@
+<section class="settings-page">
+  <!-- Header band -->
+  <div class="settings-hero">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <span class="eyebrow">Account Settings</span>
+      <h1>My Profile</h1>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="settings-body">
+    <div class="settings-layout">
+      <!-- Sidebar navigation -->
+      <aside class="settings-nav-wrap">
+        <nav class="settings-nav">
+          <div class="nav-heading">
+            <h3>Settings Menu</h3>
+            <span class="nav-rule"></span>
+          </div>
+          <div class="nav-links">
+            <a
+              routerLink="personal-information"
+              routerLinkActive="active"
+              class="nav-link">
+              <i class="pi pi-user"></i>
+              <span>Personal Information</span>
+              <i class="pi pi-chevron-right nav-arrow"></i>
+            </a>
+            <a
+              routerLink="security-password"
+              routerLinkActive="active"
+              class="nav-link">
+              <i class="pi pi-lock"></i>
+              <span>Security &amp; Password</span>
+              <i class="pi pi-chevron-right nav-arrow"></i>
+            </a>
+            <a
+              routerLink="resume"
+              routerLinkActive="active"
+              class="nav-link">
+              <i class="pi pi-file"></i>
+              <span>Resume &amp; Documents</span>
+              <i class="pi pi-chevron-right nav-arrow"></i>
+            </a>
+            <a
+              routerLink="applications"
+              routerLinkActive="active"
+              class="nav-link">
+              <i class="pi pi-history"></i>
+              <span>Application History</span>
+              <i class="pi pi-chevron-right nav-arrow"></i>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Active screen -->
+      <div class="settings-content">
+        <router-outlet />
+      </div>
+    </div>
+  </div>
+</section>
