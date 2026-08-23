@@ -9,7 +9,8 @@
         type="text"
         placeholder="Job title, keyword or skillset..."
         [(ngModel)]="keyword"
-        (keyup.enter)="onSearch()" />
+        (ngModelChange)="onInput()"
+        (keyup.enter)="onApply()" />
     </div>
 
     <div class="divider"></div>
@@ -20,11 +21,28 @@
       <p-select
         [options]="locationOptions"
         [(ngModel)]="selectedLocation"
+        (ngModelChange)="onInput()"
         optionLabel="label"
         optionValue="value"
         placeholder="All Cities"
         styleClass="location-select"
         [showClear]="false" />
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Department -->
+    <div class="location-field department-field">
+      <i class="pi pi-building field-icon"></i>
+      <p-select
+        [options]="departmentOptions"
+        [(ngModel)]="selectedDepartmentId"
+        (ngModelChange)="onInput()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="All Departments"
+        styleClass="location-select"
+        [showClear]="true" />
     </div>
 
     <!-- Actions -->
@@ -33,7 +51,7 @@
         label="Search Roles"
         icon="pi pi-arrow-right"
         iconPos="right"
-        (onClick)="onSearch()"
+        (onClick)="onApply()"
         styleClass="search-btn" />
     </div>
 

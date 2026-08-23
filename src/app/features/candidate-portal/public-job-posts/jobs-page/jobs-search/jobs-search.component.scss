@@ -60,8 +60,15 @@
 
 .location-field {
   @media (min-width: 768px) {
-    max-width: 16rem;
-    flex: 0 0 16rem;
+    max-width: 12rem;
+    flex: 0 0 12rem;
+  }
+}
+
+.department-field {
+  @media (min-width: 768px) {
+    max-width: 14rem;
+    flex: 0 0 14rem;
   }
 }
 

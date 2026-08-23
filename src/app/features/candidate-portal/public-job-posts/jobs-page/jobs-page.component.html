@@ -1,18 +1,24 @@
 <div class="jobs-page">
   <!-- Hero -->
   <app-jobs-hero
-    [openRoles]="openRoles"
+    [openRoles]="totalCount()"
     [businessUnits]="businessUnits"
     [teamMembers]="teamMembers" />
 
   <!-- Search (overlaps hero) -->
-  <app-jobs-search (search)="onSearch($event)" />
+  <app-jobs-search (search)="onSearchInput($event)" (apply)="onApplyFilters()" />
 
   <!-- Filters + List -->
   <section class="jobs-content">
     <div class="jobs-layout">
       <app-jobs-filters (filtersChange)="onFiltersChange($event)" />
-      <app-jobs-list [search]="search" [filters]="filters" />
+      <app-jobs-list
+        [jobs]="jobs()"
+        [totalRecords]="totalCount()"
+        [first]="(page() - 1) * rows"
+        [rows]="rows"
+        [isLoading]="isLoading()"
+        (pageChange)="onPageChange($event)" />
     </div>
   </section>
 </div>

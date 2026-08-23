@@ -11,16 +11,16 @@ export const routes: Routes = [
         {
         path: '',
         loadComponent: () =>
-          import('./features/candidate-portal/jobs-refresh/jobs-refresh.component').then(
-            (m) => m.JobsRefreshComponent,
-          ),
+          import(
+            './features/candidate-portal/public-job-posts/jobs-page/jobs-page.component'
+          ).then((m) => m.JobsPageComponent),
       },
       {
         path: 'jobs',
         loadComponent: () =>
-          import('./features/candidate-portal/jobs-refresh/jobs-refresh.component').then(
-            (m) => m.JobsRefreshComponent,
-          ),
+          import(
+            './features/candidate-portal/public-job-posts/jobs-page/jobs-page.component'
+          ).then((m) => m.JobsPageComponent),
       },
       {
         path: 'jobs/:id',

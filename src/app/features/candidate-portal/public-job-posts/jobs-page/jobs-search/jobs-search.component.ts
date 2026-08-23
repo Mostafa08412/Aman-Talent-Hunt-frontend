@@ -1,14 +1,16 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Location } from '@core/models';
+import { JobPostService } from '@core/services/job-post.service';
 
 export interface JobsSearchPayload {
   search: string;
   location: Location | null;
+  departmentId: string | null;
 }
 
 @Component({
@@ -24,30 +26,44 @@ export interface JobsSearchPayload {
   templateUrl: './jobs-search.component.html',
   styleUrl: './jobs-search.component.scss'
 })
-export class JobsSearchComponent {
+export class JobsSearchComponent implements OnInit {
   @Output() search = new EventEmitter<JobsSearchPayload>();
+  @Output() apply = new EventEmitter<void>();
+
+  private jobPostService = inject(JobPostService);
 
   keyword = '';
   selectedLocation: Location | null = null;
+  selectedDepartmentId: string | null = null;
 
-  locationOptions = [
-    { label: 'All Cities', value: null },
-    { label: 'Cairo', value: Location.Cairo },
-    { label: 'Giza', value: Location.Giza },
-    { label: 'Alexandria', value: Location.Alexandria },
-    { label: 'Riyadh', value: Location.Riyadh }
-  ];
+  locationOptions = Object.values(Location).map((value) => ({ label: value, value }));
+  departmentOptions: { label: string; value: string }[] = [];
 
-  onSearch(): void {
-    this.search.emit({
-      search: this.keyword.trim(),
-      location: this.selectedLocation
+  ngOnInit(): void {
+    this.jobPostService.getDepartmentLookup().subscribe({
+      next: (result) => {
+        this.departmentOptions = (result.data ?? []).map((d) => ({
+          label: d.name ?? d.id,
+          value: d.id,
+        }));
+      },
+      error: () => {
+        // Leave the dropdown empty; searching without it stays functional.
+        this.departmentOptions = [];
+      },
     });
   }
 
-  onClear(): void {
-    this.keyword = '';
-    this.selectedLocation = null;
-    this.onSearch();
+  onInput(): void {
+    this.search.emit({
+      search: this.keyword.trim(),
+      location: this.selectedLocation,
+      departmentId: this.selectedDepartmentId
+    });
+  }
+
+  onApply(): void {
+    this.onInput();
+    this.apply.emit();
   }
 }
