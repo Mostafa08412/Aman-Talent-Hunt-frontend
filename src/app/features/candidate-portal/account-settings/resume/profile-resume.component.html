@@ -75,6 +75,7 @@
 <p-dialog
   [header]="currentResume()?.name ?? 'Resume Preview'"
   [visible]="previewVisible()"
+  (visibleChange)="previewVisible.set($event)"
   (onHide)="previewVisible.set(false)"
   [style]="{ width: 'min(52rem, 92vw)', height: 'min(70vh, 44rem)' }"
   [modal]="true"

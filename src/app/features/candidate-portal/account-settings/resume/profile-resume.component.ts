@@ -105,18 +105,9 @@ export class ProfileResumeComponent implements OnInit {
     if (this.previewUrl()) return;
     this.isPreviewLoading.set(true);
     this.resumeService.download(true).subscribe({
-      next: async (blob) => {
+      next: (blob) => {
         this.isPreviewLoading.set(false);
-        if (!(await this.isPdfBlob(blob))) {
-          this.message.add({
-            severity: 'warn',
-            summary: 'Preview unavailable',
-            detail: 'Only PDF resumes can be previewed. Use Download instead.',
-          });
-          return;
-        }
-        const typed = new Blob([blob], { type: 'application/pdf' });
-        const url = URL.createObjectURL(typed);
+        const url = URL.createObjectURL(blob.slice(0, blob.size, 'application/pdf'));
         this.previewUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
       },
       error: () => {
@@ -124,12 +115,6 @@ export class ProfileResumeComponent implements OnInit {
         this.message.add({ severity: 'error', summary: 'Preview failed', detail: 'Could not load your resume.' });
       },
     });
-  }
-
-  private async isPdfBlob(blob: Blob): Promise<boolean> {
-    if (blob.type === 'application/pdf') return true;
-    const header = new Uint8Array(await blob.slice(0, 5).arrayBuffer());
-    return String.fromCharCode(...header) === '%PDF-';
   }
 
   download(): void {
