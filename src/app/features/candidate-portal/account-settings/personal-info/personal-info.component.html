@@ -57,6 +57,7 @@
         label="Save Changes"
         icon="pi pi-check"
         [loading]="isSubmitting()"
+        [disabled]="isLoading()"
         styleClass="save-btn" />
     </div>
   </form>

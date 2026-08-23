@@ -1,5 +1,3 @@
-
-
 <div class="settings-card">
   <p-toast styleClass="ath-toast" />
   <div class="card-glow"> </div>
@@ -20,11 +18,10 @@
         <i class="pi pi-file-pdf"></i>
       </div>
       <div class="file-info">
-        <p class="file-name">{{ currentResume().name }}</p>
-        <p class="file-meta">{{ formattedSize(currentResume().size) }} · {{
-          currentResume().updated }}</p>
-        @if (uploadedName()) {
-        <p class="file-meta upload-note">Uploaded: {{ uploadedName() }}</p>
+        @if (currentResume(); as resume) {
+          <p class="file-name">{{ resume.name }}</p>
+        } @else {
+          <p class="file-name">No resume uploaded yet</p>
         }
       </div>
       <div class="file-actions">
@@ -33,11 +30,13 @@
           label="Preview"
           [text]="true"
           severity="secondary"
+          [disabled]="!currentResume()"
           (onClick)="openPreview()" />
         <p-button
           icon="pi pi-download"
           label="Download"
           [text]="true"
+          [disabled]="!currentResume()"
           (onClick)="download()" />
       </div>
     </div>
@@ -55,34 +54,42 @@
         accept=".pdf,.doc,.docx"
         maxFileSize="10000000"
         chooseLabel="Choose resume"
+        [disabled]="isUploading()"
         (onSelect)="onUpload($event)" />
     </div>
   </div>
 
   <!-- Candidate snapshot -->
-  <div class="candidate-snapshot">
-    <div class="avatar">{{ candidate.name[0] }}</div>
-    <div class="snapshot-info">
-      <p class="snapshot-name">{{ candidate.name }}</p>
-      <p class="snapshot-meta">{{ candidate.email }} · {{ candidate.phone }}</p>
+  @if (candidate(); as person) {
+    <div class="candidate-snapshot">
+      <div class="avatar">{{ person.name[0] }}</div>
+      <div class="snapshot-info">
+        <p class="snapshot-name">{{ person.name }}</p>
+        <p class="snapshot-meta">{{ person.email }} · {{ person.phone }}</p>
+      </div>
     </div>
-  </div>
+  }
 </div>
 
 <!-- Resume preview -->
 <p-dialog
-  [header]="currentResume().name"
+  [header]="currentResume()?.name ?? 'Resume Preview'"
   [visible]="previewVisible()"
   (onHide)="previewVisible.set(false)"
-  [style]="{ width: 'min(52rem, 92vw)' }"
+  [style]="{ width: 'min(52rem, 92vw)', height: 'min(70vh, 44rem)' }"
   [modal]="true"
   [dismissableMask]="true">
   <div class="resume-preview">
-    <div class="preview-icon">
-      <i class="pi pi-file-pdf"></i>
-    </div>
-    <p class="preview-title">PDF Preview</p>
-    <p class="preview-name">{{ currentResume().name }}</p>
+    @if (previewUrl(); as url) {
+      <iframe [src]="url" class="preview-frame" title="Resume preview"></iframe>
+    } @else if (isPreviewLoading()) {
+      <p class="preview-title"><i class="pi pi-spin pi-spinner"></i> Loading preview…</p>
+    } @else {
+      <div class="preview-icon">
+        <i class="pi pi-file-pdf"></i>
+      </div>
+      <p class="preview-title">Preview unavailable</p>
+    }
   </div>
   <div class="preview-actions">
     <p-button

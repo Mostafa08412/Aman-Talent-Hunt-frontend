@@ -1,16 +1,17 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { CandidateApplicationsService } from '@core/services/candidate-applications.service';
+import { CandidateApplicationsDTO } from '@core/models/application-model';
 
 export interface ApplicationRow {
   id: string;
   jobPostTitle: string;
-  department: string;
-  location: string;
   source: string;
   status: string;
   appliedAt: string;
@@ -23,67 +24,58 @@ type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
   selector: 'app-application-history',
   standalone: true,
   imports: [CommonModule, RouterModule, TableModule, TagModule, ButtonModule, ToastModule],
+  providers: [MessageService],
   templateUrl: './application-history.component.html',
   styleUrl: './application-history.component.scss',
 })
-export class ApplicationHistoryComponent {
-  applications = signal<ApplicationRow[]>([
-    {
-      id: 'app-pm-payments',
-      jobPostTitle: 'Senior Product Manager - Payments',
-      department: 'Product Management',
-      location: 'Cairo',
-      source: 'LinkedIn',
-      status: 'InterviewScheduled',
-      appliedAt: 'Feb 10, 2026',
-      upcomingInterview: 'Mar 2, 2026',
-    },
-    {
-      id: 'app-fe-angular',
-      jobPostTitle: 'Frontend Engineer (Angular)',
-      department: 'Engineering & IT',
-      location: 'Cairo',
-      source: 'Portal',
-      status: 'Screened',
-      appliedAt: 'Jan 22, 2026',
-    },
-    {
-      id: 'app-flutter-dev',
-      jobPostTitle: 'Mobile Developer (Flutter)',
-      department: 'Engineering & IT',
-      location: 'Remote',
-      source: 'LinkedIn',
-      status: 'Shortlisted',
-      appliedAt: 'Jan 30, 2026',
-    },
-    {
-      id: 'app-payments-spec',
-      jobPostTitle: 'Digital Payments Specialist',
-      department: 'Digital Payments',
-      location: 'Cairo',
-      source: 'Portal',
-      status: 'Submitted',
-      appliedAt: 'Feb 10, 2026',
-    },
-    {
-      id: 'app-data-analyst',
-      jobPostTitle: 'Data Analyst',
-      department: 'Engineering & IT',
-      location: 'Cairo',
-      source: 'Wuzzuf',
-      status: 'OfferExtended',
-      appliedAt: 'Nov 5, 2025',
-    },
-    {
-      id: 'app-risk-analyst',
-      jobPostTitle: 'Credit Risk Analyst',
-      department: 'Consumer Finance',
-      location: 'Cairo',
-      source: 'Wuzzuf',
-      status: 'Rejected',
-      appliedAt: 'Dec 10, 2025',
-    },
-  ]);
+export class ApplicationHistoryComponent implements OnInit {
+  private applicationsService = inject(CandidateApplicationsService);
+  private message = inject(MessageService);
+
+  isLoading = signal(true);
+  applications = signal<ApplicationRow[]>([]);
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  private load(): void {
+    this.isLoading.set(true);
+    this.applicationsService.getMyApplications().subscribe({
+      next: (result) => {
+        const rows = (result.data ?? []).map((dto) => this.toRow(dto));
+        this.applications.set(rows);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.message.add({
+          severity: 'error',
+          summary: 'Could not load applications',
+          detail: 'Please try again in a moment.',
+        });
+      },
+    });
+  }
+
+  private toRow(dto: CandidateApplicationsDTO): ApplicationRow {
+    return {
+      id: dto.id,
+      jobPostTitle: dto.jobPostTitle ?? 'Untitled role',
+      source: dto.source,
+      status: dto.status,
+      appliedAt: this.formatDate(dto.createdAtUTC),
+      upcomingInterview: dto.upcomingInterview?.scheduledDate
+        ? this.formatDate(dto.upcomingInterview.scheduledDate)
+        : undefined,
+    };
+  }
+
+  private formatDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
 
   statusSeverity(status: string): Severity {
     const map: Record<string, Severity> = {
