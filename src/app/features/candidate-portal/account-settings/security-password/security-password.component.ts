@@ -105,11 +105,16 @@ export class SecurityPasswordComponent {
         }
       },
       error: (err: HttpErrorResponse) => {
+
+          const errorBody = err.error;
+          const generalTitle = errorBody.title;
+          const validationErrors = errorBody.errors;
+
         this.isSubmitting.set(false);
         this.message.add({
           severity: 'error',
           summary: 'Could not update password',
-          detail: err.status === 400 ? 'Your current password is incorrect.' : 'Please try again.',
+          detail: generalTitle === "Identity.InvalidPassword" ? 'Your current password is incorrect.' : 'Please try again.',
         });
       },
     });

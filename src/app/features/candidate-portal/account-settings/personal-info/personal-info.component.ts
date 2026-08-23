@@ -7,6 +7,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { CandidateProfileService } from '@core/services/candidate-profile.service';
 import { MilitaryStatus } from '@core/models/enums';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-personal-info',
@@ -82,6 +83,7 @@ export class PersonalInfoComponent implements OnInit {
     }
     const { firstName, lastName, phone, militaryStatus, linkedin } = this.form.getRawValue();
     this.isSubmitting.set(true);
+
     this.profileService
       .updateProfile({
         firstName,
@@ -90,14 +92,29 @@ export class PersonalInfoComponent implements OnInit {
         militaryStatus,
         linkedInProfile: linkedin || null,
       })
+
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
           this.message.add({ severity: 'success', summary: 'Saved', detail: 'Your personal information has been updated.' });
         },
-        error: () => {
-          this.isSubmitting.set(false);
-          this.message.add({ severity: 'error', summary: 'Could not save', detail: 'Please try again.' });
+        error: (error:HttpErrorResponse) => {
+          const errorBody = error.error;
+          const generalTitle = errorBody.title;
+          const validationErrors = errorBody.errors;
+          if (validationErrors) {
+
+            if (validationErrors["LinkedInProfile"]) {
+              this.form.get("linkedin")?.setErrors({serverError: validationErrors["LinkedInProfile"]})
+            }
+          }
+
+          else{
+            this.message.add({ severity: 'error', summary: error.error?.detail, detail: 'Please try again.' });
+
+
+          }
+                this.isSubmitting.set(false);
         },
       });
   }
