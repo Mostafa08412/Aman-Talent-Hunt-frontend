@@ -14,10 +14,38 @@
   max-width: 1160px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+
+  @media (min-width: 768px) {
+    padding: 0 1.5rem;
+  }
+}
+
+/* ── Mobile menu toggle ── */
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: var(--ath-radius, 0.5rem);
+  background: transparent;
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  @media (min-width: 768px) {
+    display: none;
+  }
 }
 
 /* ── Logo ── */
@@ -31,10 +59,14 @@
 
 .logo-img {
   display: block;
-  height: 4.39rem;
-  width: 4.39rem;
+  height: 3.25rem;
+  width: 3.25rem;
   object-fit: contain;
 
+  @media (min-width: 480px) {
+    height: 4.39rem;
+    width: 4.39rem;
+  }
 }
 
 /* ── Navigation ── */
@@ -84,6 +116,10 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 479px) {
+    display: none;
+  }
 }
 
 .user-btn {
@@ -123,6 +159,87 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+/* ── Mobile drawer ── */
+:host ::ng-deep .mobile-nav-drawer {
+  width: min(18rem, 85vw);
+
+  .p-drawer-content {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+}
+
+.drawer-logo {
+  height: 2.75rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.nav-mobile {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--p-content-border-color, #e1e8eb);
+}
+
+.mobile-link {
+  padding: 0.875rem 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #061d2e;
+  text-decoration: none;
+  border-bottom: 1px solid var(--p-content-border-color, #eef3f5);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    color: #d9560f;
+  }
+
+  &.active {
+    color: #d9560f;
+    font-weight: 700;
+  }
+}
+
+.drawer-auth {
+  margin-top: auto;
+  padding: 1rem 0.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-block.p-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.drawer-user {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+
+  .user-name {
+    font-weight: 700;
+    color: #061d2e;
+  }
+
+  .user-role {
+    display: block;
+    max-width: 100%;
+    font-size: 0.75rem;
+    color: #5a6b74;
+    word-break: break-all;
+  }
 }
 
 :host ::ng-deep {
@@ -154,5 +271,15 @@
 @media (min-width: 768px) {
   .header-container {
     padding: 0 2rem;
+  }
+}
+
+@media (max-width: 479px) {
+  :host ::ng-deep {
+    .btn-sign-in.p-button,
+    .btn-create-account.p-button {
+      font-size: 0.8125rem;
+      padding: 0.4rem 0.875rem;
+    }
   }
 }

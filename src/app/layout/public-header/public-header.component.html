@@ -44,5 +44,63 @@
       }
     </div>
 
+    <!-- Mobile menu toggle -->
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Open menu"
+      (click)="mobileMenuVisible.set(true)">
+      <i class="pi pi-bars"></i>
+    </button>
+
   </div>
 </header>
+
+<!-- Mobile navigation drawer -->
+<p-drawer
+  [(visible)]="mobileMenuVisible"
+  position="right"
+  styleClass="mobile-nav-drawer">
+  <ng-template #header>
+    <img src="/logo.png" alt="AMAN" class="drawer-logo" />
+  </ng-template>
+
+  <nav class="nav-mobile">
+    <a routerLink="/jobs" routerLinkActive="active" class="mobile-link"
+      (click)="mobileMenuVisible.set(false)">Jobs</a>
+    @if (isLoggedIn()) {
+    <a routerLink="/account/applications" routerLinkActive="active"
+      class="mobile-link" (click)="mobileMenuVisible.set(false)">My applications</a>
+    }
+    <a routerLink="/about" routerLinkActive="active" class="mobile-link"
+      (click)="mobileMenuVisible.set(false)">About AMAN</a>
+  </nav>
+
+  <div class="drawer-auth">
+    @if (!isLoggedIn()) {
+    <p-button
+      label="Sign in"
+      [outlined]="true"
+      severity="secondary"
+      styleClass="btn-sign-in btn-block"
+      routerLink="/login"
+      (onClick)="mobileMenuVisible.set(false)" />
+    <p-button
+      label="Create account"
+      styleClass="btn-create-account btn-block"
+      routerLink="/signup"
+      (onClick)="mobileMenuVisible.set(false)" />
+    } @else {
+    <div class="drawer-user">
+      <span class="user-name">{{ currentUser()?.fullName }}</span>
+      <span class="user-role">{{ currentUser()?.email }}</span>
+    </div>
+    <p-button
+      label="Logout"
+      icon="pi pi-sign-out"
+      [text]="true"
+      severity="danger"
+      (onClick)="auth.logout()" />
+    }
+  </div>
+</p-drawer>

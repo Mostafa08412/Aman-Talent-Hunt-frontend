@@ -8,32 +8,78 @@
       <span>Personal Information</span>
       <i class="pi pi-user heading-icon"></i>
     </h2>
-    <p>Update your personal details and contact information to keep your profile current.</p>
+    <p>Update your personal details and contact information to keep your profile
+      current.</p>
   </div>
 
   <form class="settings-form" [formGroup]="form" (ngSubmit)="save()">
     <div class="form-grid">
+
+      <!-- First Name -->
       <div class="field">
         <label for="firstName">First Name</label>
-        <input pInputText id="firstName" formControlName="firstName" placeholder="First name" />
+        <input pInputText id="firstName" formControlName="firstName"
+          placeholder="First name" />
+        @if (form.controls.firstName.invalid && form.controls.firstName.touched)
+        {
+        <small class="field-error"
+          style="color: #ef4444; display: block; margin-top: 4px;">
+          @if (form.controls.firstName.hasError('required')) {
+          First Name is required.
+          }
+          @if (form.controls.firstName.hasError('serverError')) {
+          {{ form.controls.firstName.getError('serverError') }}
+          }
+        </small>
+        }
       </div>
 
+      <!-- Last Name -->
       <div class="field">
         <label for="lastName">Last Name</label>
-        <input pInputText id="lastName" formControlName="lastName" placeholder="Last name" />
+        <input pInputText id="lastName" formControlName="lastName"
+          placeholder="Last name" />
+        @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+        <small class="field-error"
+          style="color: #ef4444; display: block; margin-top: 4px;">
+          @if (form.controls.lastName.hasError('required')) {
+          Last Name is required.
+          }
+          @if (form.controls.lastName.hasError('serverError')) {
+          {{ form.controls.lastName.getError('serverError') }}
+          }
+        </small>
+        }
       </div>
 
+      <!-- Email Address -->
       <div class="field field-full">
         <label for="email">Email Address</label>
-        <input pInputText id="email" formControlName="email" readonly placeholder="Email address" />
-        <small class="field-hint">Your email is the login identifier and cannot be changed here.</small>
+        <input pInputText id="email" formControlName="email" readonly
+          placeholder="Email address" />
+        <small class="field-hint">Your email is the login identifier and cannot
+          be changed here.</small>
       </div>
 
+      <!-- Phone Number -->
       <div class="field">
         <label for="phone">Phone Number</label>
-        <input pInputText id="phone" formControlName="phone" placeholder="+20 ..." />
+        <input pInputText id="phone" formControlName="phone"
+          placeholder="+20 ..." />
+        @if (form.controls.phone.invalid && form.controls.phone.touched) {
+        <small class="field-error"
+          style="color: #ef4444; display: block; margin-top: 4px;">
+          @if (form.controls.phone.hasError('required')) {
+          Phone Number is required.
+          }
+          @if (form.controls.phone.hasError('serverError')) {
+          {{ form.controls.phone.getError('serverError') }}
+          }
+        </small>
+        }
       </div>
 
+      <!-- Military Status -->
       <div class="field">
         <label for="militaryStatus">Military Status</label>
         <p-select
@@ -43,12 +89,41 @@
           optionLabel="label"
           optionValue="value"
           placeholder="Select status" />
+        @if (form.controls.militaryStatus.invalid &&
+        form.controls.militaryStatus.touched) {
+        <small class="field-error"
+          style="color: #ef4444; display: block; margin-top: 4px;">
+          @if (form.controls.militaryStatus.hasError('required')) {
+          Military Status is required.
+          }
+          @if (form.controls.militaryStatus.hasError('serverError')) {
+          {{ form.controls.militaryStatus.getError('serverError') }}
+          }
+        </small>
+        }
       </div>
 
+      <!-- LinkedIn Profile -->
       <div class="field field-full">
         <label for="linkedin">LinkedIn Profile</label>
-        <input pInputText id="linkedin" formControlName="linkedin" placeholder="linkedin.com/in/..." />
+        <input pInputText id="linkedin" formControlName="linkedin"
+          placeholder="linkedin.com/in/..." />
+        @if (form.controls.linkedin.invalid && form.controls.linkedin.touched) {
+        <small class="field-error"
+          style="color: #ef4444; display: block; margin-top: 4px;">
+          @if (form.controls.linkedin.hasError('required')) {
+          LinkedIn Profile is required.
+          }
+          @else if (form.controls.linkedin.hasError('pattern')) {
+          Please enter a valid LinkedIn profile URL.
+          }
+          @else if (form.controls.linkedin.hasError('serverError')) {
+          {{ form.controls.linkedin.getError('serverError') }}
+          }
+        </small>
+        }
       </div>
+
     </div>
 
     <div class="form-actions">

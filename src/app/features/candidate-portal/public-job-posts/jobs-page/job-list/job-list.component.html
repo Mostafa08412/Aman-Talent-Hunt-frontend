@@ -3,17 +3,20 @@
   <div class="list-header">
     <h2>Recommended Roles</h2>
     <span class="count">
-      Showing {{ filteredJobs.length }} results
+      Showing {{ jobs.length }} of {{ totalRecords }} results
     </span>
   </div>
 
   <!-- Job Cards -->
+  @if (isLoading) {
+  <div class="empty-state">
+    <i class="pi pi-spin pi-spinner"></i>
+    <p>Loading roles...</p>
+  </div>
+  } @else {
   <div class="cards">
     @for (job of jobs; track job.id) {
-    <app-job-card
-      [job]="job"
-      [department]="job.department"
-      [featured]="job.featured ?? false" />
+    <app-job-card [job]="job" />
     } @empty {
     <div class="empty-state">
       <i class="pi pi-briefcase"></i>
@@ -23,14 +26,15 @@
   </div>
 
   <!-- Pagination -->
-  @if (filteredJobs.length > rows) {
+  @if (totalRecords > rows) {
   <div class="pagination">
     <p-paginator
       [first]="first"
       [rows]="rows"
       [totalRecords]="totalRecords"
-      [rowsPerPageOptions]="[3, 6, 12]"
+      [rowsPerPageOptions]="[6, 12, 24]"
       (onPageChange)="onPageChange($event)" />
   </div>
+  }
   }
 </div>

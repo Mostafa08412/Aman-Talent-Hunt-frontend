@@ -6,6 +6,7 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../../core/services/auth.service';
+import { Role } from '@core/models/role.model';
 
 @Component({
   selector: 'app-login',
@@ -37,7 +38,14 @@ export class LoginComponent {
     const { email, password } = this.form.getRawValue();
 
     this.auth.login(email, password).subscribe({
-      next: () => this.router.navigate(['/console']),
+      next: () =>
+      {
+        if(this.auth.currentUser()?.role === Role.Candidate)
+          this.router.navigate(['/'])
+        else
+          this.router.navigate(['/console'])
+
+        },
       error: () => {
         this.error.set('This email and password combination is invalid, please try again.');
         this.loading.set(false);

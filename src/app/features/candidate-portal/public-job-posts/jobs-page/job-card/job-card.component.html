@@ -1,15 +1,10 @@
-<div class="job-card" [class.featured]="featured">
+<div class="job-card">
   <div class="accent-bar"></div>
 
   <div class="card-body">
     <div class="info">
       <div class="tags">
-        @if (department) {
-        <span class="pill pill-dept">{{ department }}</span>
-        }
-        @if (featured) {
-        <span class="pill pill-hiring">Actively Hiring</span>
-        }
+        <span class="pill pill-dept">{{ seniorityLabel }}</span>
       </div>
 
       <h3 class="title">{{ job.title }}</h3>
@@ -22,6 +17,14 @@
         <span>
           <i class="pi pi-briefcase"></i>
           {{ employmentLabel }}
+        </span>
+        <span>
+          <i class="pi pi-clock"></i>
+          {{ jobTypeLabel }}
+        </span>
+        <span>
+          <i class="pi pi-calendar"></i>
+          {{ postedLabel }}
         </span>
       </div>
     </div>

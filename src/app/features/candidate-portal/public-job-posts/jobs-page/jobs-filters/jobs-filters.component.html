@@ -1,30 +1,52 @@
 <aside class="filters">
-  <!-- Department -->
-  <div class="filter-group">
-    <h3>Department</h3>
-    <div class="filter-list">
-      @for (option of departmentOptions; track option.value) {
-      <label class="filter-item">
-        <p-checkbox
-          [(ngModel)]="option.checked"
-          [binary]="true"
-          (onChange)="onDepartmentChange(option)" />
-        <span>{{ option.label }}</span>
-      </label>
-      }
-    </div>
-  </div>
-
   <!-- Employment Type -->
   <div class="filter-group">
     <h3>Employment Type</h3>
     <div class="filter-list">
       @for (option of employmentOptions; track option.value) {
       <label class="filter-item">
-        <p-checkbox
-          [(ngModel)]="option.checked"
-          [binary]="true"
-          (onChange)="onFilterChange()" />
+        <p-radioButton
+          name="employmentType"
+          [value]="option.value"
+          [ngModel]="selectedEmployment"
+          (ngModelChange)="setEmployment($event)"
+          [inputId]="'emp-' + option.value" />
+        <span>{{ option.label }}</span>
+      </label>
+      }
+    </div>
+  </div>
+
+  <!-- Seniority Level -->
+  <div class="filter-group">
+    <h3>Seniority Level</h3>
+    <div class="filter-list">
+      @for (option of seniorityOptions; track option.value) {
+      <label class="filter-item">
+        <p-radioButton
+          name="seniorityLevel"
+          [value]="option.value"
+          [ngModel]="selectedSeniority"
+          (ngModelChange)="setSeniority($event)"
+          [inputId]="'sen-' + option.value" />
+        <span>{{ option.label }}</span>
+      </label>
+      }
+    </div>
+  </div>
+
+  <!-- Job Type -->
+  <div class="filter-group">
+    <h3>Job Type</h3>
+    <div class="filter-list">
+      @for (option of jobTypeOptions; track option.value) {
+      <label class="filter-item">
+        <p-radioButton
+          name="jobType"
+          [value]="option.value"
+          [ngModel]="selectedJobType"
+          (ngModelChange)="setJobType($event)"
+          [inputId]="'jt-' + option.value" />
         <span>{{ option.label }}</span>
       </label>
       }
