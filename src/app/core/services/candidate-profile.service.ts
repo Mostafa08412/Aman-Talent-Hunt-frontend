@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Result } from '@core/models/common';
 import {
   CandidateProfileDtoResult,
   UpdateCandidateProfileRequest,
@@ -18,7 +19,7 @@ export class CandidateProfileService {
   }
 
   /** PUT /api/candidate/profile — update the authenticated candidate's profile. */
-  updateProfile(request: UpdateCandidateProfileRequest): Observable<CandidateProfileDtoResult> {
-    return this.http.put<CandidateProfileDtoResult>(`${this.base}/api/candidate/profile`, request);
+  updateProfile(request: UpdateCandidateProfileRequest): Observable<Result> {
+    return this.http.put<Result>(`${this.base}/api/candidate/profile`, request);
   }
 }
