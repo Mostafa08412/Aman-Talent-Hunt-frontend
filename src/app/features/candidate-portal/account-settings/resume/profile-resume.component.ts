@@ -1,15 +1,22 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { CandidateProfileService } from '@core/services/candidate-profile.service';
+import { CandidateResumeService } from '@core/services/candidate-resume.service';
 
 interface ResumeFile {
   name: string;
-  size: number;
-  updated: string;
+}
+
+interface CandidateSnapshot {
+  name: string;
+  email: string;
+  phone: string;
 }
 
 @Component({
@@ -20,49 +27,109 @@ interface ResumeFile {
   templateUrl: './profile-resume.component.html',
   styleUrl: './profile-resume.component.scss',
 })
-export class ProfileResumeComponent {
+export class ProfileResumeComponent implements OnInit {
   private message = inject(MessageService);
+  private profileService = inject(CandidateProfileService);
+  private resumeService = inject(CandidateResumeService);
+  private sanitizer = inject(DomSanitizer);
 
-  candidate = {
-    name: 'Alex Mercer',
-    email: 'alex.mercer@email.com',
-    phone: '+20 100 123 4567',
-  };
+  isLoading = signal(true);
+  isUploading = signal(false);
+  isPreviewLoading = signal(false);
 
-  currentResume = signal<ResumeFile>({
-    name: 'Alex_Mercer_Resume_2026.pdf',
-    size: 245760,
-    updated: 'Updated Jan 15, 2026',
-  });
+  candidate = signal<CandidateSnapshot | null>(null);
+  currentResume = signal<ResumeFile | null>(null);
 
   previewVisible = signal(false);
-  uploadedName = signal<string | null>(null);
+  previewUrl = signal<SafeResourceUrl | null>(null);
 
-  formattedSize(bytes: number): string {
-    return (bytes / 1024).toFixed(0) + ' KB';
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  private loadProfile(): void {
+    this.isLoading.set(true);
+    this.profileService.getProfile().subscribe({
+      next: (result) => {
+        const profile = result.data;
+        if (profile) {
+          this.candidate.set({
+            name: `${profile.firstName ?? ''} ${profile.lastName ?? ''}`.trim() || 'Your profile',
+            email: profile.email ?? '',
+            phone: profile.phoneNumber ?? '',
+          });
+          this.currentResume.set(
+            profile.resumeFileName ? { name: profile.resumeFileName } : null,
+          );
+        }
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.message.add({
+          severity: 'error',
+          summary: 'Could not load your profile',
+          detail: 'Please try again in a moment.',
+        });
+      },
+    });
   }
 
   onUpload(event: { files: File[] }): void {
     const file = event.files[0];
     if (!file) return;
-    this.uploadedName.set(file.name);
-    this.message.add({
-      severity: 'success',
-      summary: 'Uploaded',
-      detail: `${file.name} has been added to your profile.`,
+    this.isUploading.set(true);
+    this.resumeService.upload(file).subscribe({
+      next: () => {
+        this.isUploading.set(false);
+        this.currentResume.set({ name: file.name });
+        this.message.add({
+          severity: 'success',
+          summary: 'Uploaded',
+          detail: `${file.name} has been added to your profile.`,
+        });
+      },
+      error: () => {
+        this.isUploading.set(false);
+        this.message.add({
+          severity: 'error',
+          summary: 'Upload failed',
+          detail: 'Please try again.',
+        });
+      },
     });
   }
 
   openPreview(): void {
     this.previewVisible.set(true);
+    if (this.previewUrl()) return;
+    this.isPreviewLoading.set(true);
+    this.resumeService.download().subscribe({
+      next: (blob) => {
+        this.isPreviewLoading.set(false);
+        const url = URL.createObjectURL(blob);
+        this.previewUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+      },
+      error: () => {
+        this.isPreviewLoading.set(false);
+        this.message.add({ severity: 'error', summary: 'Preview failed', detail: 'Could not load your resume.' });
+      },
+    });
   }
 
   download(): void {
-    this.message.add({
-      severity: 'info',
-      summary: 'Download',
-      detail: 'Your resume is being prepared for download.',
-
+    this.resumeService.download().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.currentResume()?.name ?? 'resume.pdf';
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.message.add({ severity: 'error', summary: 'Download failed', detail: 'Please try again.' });
+      },
     });
   }
 }

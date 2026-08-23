@@ -11,6 +11,7 @@
 
   <p-table
     [value]="applications()"
+    [loading]="isLoading()"
     [paginator]="true"
     [rows]="5"
     [rowsPerPageOptions]="[5, 10]"
@@ -31,7 +32,6 @@
         <td data-label="Role">
           <div class="role-cell">
             <p class="role-title">{{ app.jobPostTitle }}</p>
-            <p class="role-meta">{{ app.department }} · {{ app.location }}</p>
             @if (app.upcomingInterview) {
               <p class="role-interview">
                 <i class="pi pi-video"></i>

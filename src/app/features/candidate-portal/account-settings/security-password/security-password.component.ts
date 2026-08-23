@@ -1,10 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { AuthService } from '@core/services/auth.service';
 
 interface StrengthRule {
   met: boolean;
@@ -22,6 +25,7 @@ interface StrengthRule {
 export class SecurityPasswordComponent {
   private fb = inject(FormBuilder);
   private message = inject(MessageService);
+  private auth = inject(AuthService);
 
   isSubmitting = signal(false);
 
@@ -31,8 +35,22 @@ export class SecurityPasswordComponent {
     confirmPassword: ['', Validators.required],
   });
 
+  // FormControl.value is a plain property, not a signal — computed() never
+  // sees it change. Bridge each control's valueChanges into a real signal so
+  // the strength meter, match check, and submit button actually react as the
+  // user types.
+  private currentPasswordValue = toSignal(this.form.controls.currentPassword.valueChanges, {
+    initialValue: this.form.controls.currentPassword.value,
+  });
+  private newPasswordValue = toSignal(this.form.controls.newPassword.valueChanges, {
+    initialValue: this.form.controls.newPassword.value,
+  });
+  private confirmPasswordValue = toSignal(this.form.controls.confirmPassword.valueChanges, {
+    initialValue: this.form.controls.confirmPassword.value,
+  });
+
   rules = computed<StrengthRule[]>(() => {
-    const password = this.form.controls.newPassword.value;
+    const password = this.newPasswordValue();
     return [
       { met: password.length >= 8, label: 'Minimum 8 characters' },
       { met: /[A-Z]/.test(password), label: 'At least one uppercase letter' },
@@ -45,7 +63,7 @@ export class SecurityPasswordComponent {
 
   strength = computed<{ label: string; level: 'weak' | 'medium' | 'strong'; filled: number }>(() => {
     const s = this.score();
-    if (this.form.controls.newPassword.value.length === 0) {
+    if (this.newPasswordValue().length === 0) {
       return { label: 'Strength', level: 'medium', filled: 0 };
     }
     if (s <= 1) return { label: 'Weak', level: 'weak', filled: 1 };
@@ -54,13 +72,11 @@ export class SecurityPasswordComponent {
   });
 
   passwordsMatch = computed(
-    () =>
-      this.form.controls.newPassword.value.length > 0 &&
-      this.form.controls.newPassword.value === this.form.controls.confirmPassword.value,
+    () => this.newPasswordValue().length > 0 && this.newPasswordValue() === this.confirmPasswordValue(),
   );
 
   canSubmit = computed(
-    () => this.score() === 4 && this.passwordsMatch() && this.form.controls.currentPassword.value.length > 0,
+    () => this.score() === 4 && this.passwordsMatch() && this.currentPasswordValue().length > 0,
   );
 
   update(): void {
@@ -68,16 +84,38 @@ export class SecurityPasswordComponent {
       this.form.markAllAsTouched();
       return;
     }
+    const { currentPassword, newPassword } = this.form.getRawValue();
     this.isSubmitting.set(true);
-    // Dummy submit — replace with password service call.
-    setTimeout(() => {
-      this.isSubmitting.set(false);
-      this.form.reset();
-      this.message.add({ severity: 'success', summary: 'Password updated', detail: 'Your password has been changed successfully.' });
-    }, 800);
+    this.auth.changePassword({ currentPassword, newPassword }).subscribe({
+      next: (result) => {
+        this.isSubmitting.set(false);
+        if (result.isCompletedSuccessfully) {
+          this.form.reset();
+          this.message.add({
+            severity: 'success',
+            summary: 'Password updated',
+            detail: 'Your password has been changed successfully.',
+          });
+        } else {
+          this.message.add({
+            severity: 'error',
+            summary: 'Could not update password',
+            detail: result.message ?? 'Please check your current password and try again.',
+          });
+        }
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isSubmitting.set(false);
+        this.message.add({
+          severity: 'error',
+          summary: 'Could not update password',
+          detail: err.status === 400 ? 'Your current password is incorrect.' : 'Please try again.',
+        });
+      },
+    });
   }
 
   reviewDevices(): void {
-    this.message.add({ severity: 'info', summary: 'Devices', detail: 'Signed-in devices list is not available in this demo.' });
+    this.message.add({ severity: 'info', summary: 'Devices', detail: 'Signed-in devices list is not available yet.' });
   }
 }
