@@ -18,11 +18,13 @@ export class CandidateResumeService {
 
   /**
    * GET /api/candidate/resume/download — the raw resume file.
-   * The backend streams the file directly (Content-Type: application/pdf,
-   * Content-Disposition: attachment) rather than wrapping it in JSON, so this
-   * must be requested as a blob rather than parsed as JSON.
+   * Pass inline=true to get it without Content-Disposition: attachment so
+   * browsers/frames render it instead of saving it.
    */
-  download(): Observable<Blob> {
-    return this.http.get(`${this.base}/api/candidate/resume/download`, { responseType: 'blob' });
+  download(inline = false): Observable<Blob> {
+    return this.http.get(`${this.base}/api/candidate/resume/download`, {
+      responseType: 'blob',
+      params: inline ? { inline: 'true' } : undefined,
+    });
   }
 }
