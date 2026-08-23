@@ -69,6 +69,8 @@
     <a routerLink="/jobs" routerLinkActive="active" class="mobile-link"
       (click)="mobileMenuVisible.set(false)">Jobs</a>
     @if (isLoggedIn()) {
+    <a routerLink="/account" routerLinkActive="active"
+      class="mobile-link" (click)="mobileMenuVisible.set(false)">Profile</a>
     <a routerLink="/account/applications" routerLinkActive="active"
       class="mobile-link" (click)="mobileMenuVisible.set(false)">My applications</a>
     }
@@ -100,7 +102,7 @@
       icon="pi pi-sign-out"
       [text]="true"
       severity="danger"
-      (onClick)="auth.logout()" />
+      (onClick)="mobileMenuVisible.set(false); auth.logout()" />
     }
   </div>
 </p-drawer>

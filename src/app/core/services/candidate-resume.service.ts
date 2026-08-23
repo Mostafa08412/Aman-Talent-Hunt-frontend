@@ -22,9 +22,10 @@ export class CandidateResumeService {
    * browsers/frames render it instead of saving it.
    */
   download(inline = false): Observable<Blob> {
-    return this.http.get(`${this.base}/api/candidate/resume/download`, {
+    return this.http.get(`${this.base}/api/candidate/resume/stream`, {
       responseType: 'blob',
       params: inline ? { inline: 'true' } : undefined,
+      headers: inline ? { 'X-Requested-With': 'XMLHttpRequest' } : undefined,
     });
   }
 }
