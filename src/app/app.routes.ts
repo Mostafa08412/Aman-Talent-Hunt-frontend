@@ -32,6 +32,7 @@ export const routes: Routes = [
 
       {
         path: 'account',
+        canActivate: [authGuard],
         loadComponent: () =>
           import(
             './features/candidate-portal/account-settings/account-settings-shell.component'

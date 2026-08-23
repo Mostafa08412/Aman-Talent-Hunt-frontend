@@ -6,6 +6,7 @@ import { CandidateApplicationsDTO, MilitaryStatus, ResultWithData } from ".";
 
 export interface CandidateProfileDto {
   id: string; // uuid
+  referenceNumber?: string | null;
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;
