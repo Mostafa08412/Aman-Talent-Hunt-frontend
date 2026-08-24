@@ -1,0 +1,301 @@
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Departments</h1>
+      <p>
+        Manage organizational departments and reporting structure.
+      </p>
+    </div>
+
+    <p-button
+      label="Create Department"
+      icon="pi pi-plus"
+      styleClass="btn-create-department"
+      (onClick)="openCreateDialog()" />
+  </div>
+
+  <div class="directory">
+
+    <div class="filter-bar">
+
+      <div class="search-box">
+        <button
+          class="search-btn"
+          type="button"
+          aria-label="Search"
+          (click)="applyFilters()">
+
+          <i class="pi pi-search"></i>
+        </button>
+
+        <input
+          type="text"
+          placeholder="Search by department name..."
+          [(ngModel)]="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
+
+      <div class="filter-actions">
+
+        <p-select
+          [options]="squads()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Squad"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="squadFilter"
+          (onChange)="applyFilters()" />
+
+        <button
+          class="clear-btn"
+          type="button"
+          (click)="clearFilters()">
+
+          <i class="pi pi-filter-slash"></i>
+          Clear Filters
+        </button>
+
+      </div>
+    </div>
+
+    <div
+      class="table-wrap"
+      [class.loading]="isLoading()">
+
+      <div class="table-head grid-row">
+        <span class="col-reference">Reference</span>
+        <span class="col-name">Department</span>
+        <span class="col-head">Head Employee</span>
+        <span class="col-employees">Employees</span>
+        <span class="col-requisitions">Active Requisitions</span>
+        <span class="col-squads">Mapped Squads</span>
+        <span class="col-created">Created At</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      @for (department of departments(); track department.id) {
+
+        <div
+          class="grid-row table-row department-row"
+          role="button"
+          tabindex="0"
+          (click)="openDepartment(department)"
+          (keyup.enter)="openDepartment(department)">
+
+          <div class="cell-reference">
+            <span class="ref-code">
+              {{ referenceCode(department) }}
+            </span>
+          </div>
+
+          <div class="cell-name">
+            <span class="department-name">
+              {{ department.name || 'Unnamed department' }}
+            </span>
+          </div>
+
+          <div class="cell-head">
+            @if (department.headEmployeeName) {
+              <div class="head-cell">
+                <span class="head-name">
+                  {{ department.headEmployeeName }}
+                </span>
+
+                @if (department.headEmployeeReferenceNumber) {
+                  <span class="head-ref">
+                    {{ department.headEmployeeReferenceNumber }}
+                  </span>
+                }
+              </div>
+            } @else {
+              <span class="muted">No head assigned</span>
+            }
+          </div>
+
+          <div class="cell-employees">
+            {{ department.employeeCount }}
+          </div>
+
+          <div class="cell-requisitions">
+            {{ department.activeRequisitionsCount }}
+          </div>
+
+          <div class="cell-squads">
+            {{ mappedSquadsLabel(department) }}
+          </div>
+
+          <div class="cell-created muted">
+            {{
+              department.createdAtUTC
+                | date: 'MMM d, y' : 'UTC'
+            }}
+          </div>
+
+          <div class="cell-actions">
+
+            <button
+              class="row-menu-btn"
+              type="button"
+              aria-label="View department"
+              (click)="$event.stopPropagation(); openDepartment(department)">
+
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <button
+              class="row-menu-btn danger"
+              type="button"
+              aria-label="Delete department"
+              (click)="deleteDepartment(department, $event)">
+
+              <i class="pi pi-trash"></i>
+            </button>
+
+          </div>
+        </div>
+
+      } @empty {
+
+        <div class="empty-state">
+          @if (isLoading()) {
+            Loading departments...
+          } @else {
+            No departments found
+          }
+        </div>
+
+      }
+
+    </div>
+
+    <div class="table-foot">
+
+      <span class="foot-info">
+        Showing
+        <strong>{{ rangeStart }}</strong>
+        to
+        <strong>{{ rangeEnd }}</strong>
+        of
+        <strong>{{ totalCount() | number }}</strong>
+        entries
+      </span>
+
+      <div class="pager">
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="previousPage()">
+
+          <i class="pi pi-chevron-left"></i>
+        </button>
+
+        @for (pageNumber of visiblePages; track pageNumber) {
+
+          <button
+            class="page-btn"
+            type="button"
+            [class.current]="pageNumber === page()"
+            (click)="goToPage(pageNumber)">
+
+            {{ pageNumber }}
+          </button>
+
+        }
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() >= totalPages"
+          (click)="nextPage()">
+
+          <i class="pi pi-chevron-right"></i>
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<p-dialog
+  header="Create Department"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="createDialogVisible()"
+  (visibleChange)="createDialogVisible.set($event)"
+  [style]="{ width: '32rem', maxWidth: '95vw' }">
+
+  <form
+    class="dialog-form"
+    [formGroup]="createForm"
+    (ngSubmit)="createDepartment()">
+
+    <div class="form-field">
+      <label for="department-name">
+        Department Name
+      </label>
+
+      <input
+        pInputText
+        id="department-name"
+        formControlName="name"
+        placeholder="Enter department name" />
+
+      @if (
+        createForm.controls.name.invalid &&
+        createForm.controls.name.touched
+      ) {
+        <small class="field-error">
+          Department name is required.
+        </small>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="department-head">
+        Head Employee
+      </label>
+
+      <p-select
+        inputId="department-head"
+        [options]="employees()"
+        optionLabel="fullName"
+        optionValue="id"
+        formControlName="headEmployeeId"
+        placeholder="Select head employee"
+        [filter]="true"
+        filterBy="fullName,referenceNumber"
+        [showClear]="true"
+        styleClass="field-select" />
+
+      <small class="field-hint">
+        Optional
+      </small>
+    </div>
+
+    <div class="dialog-actions">
+
+      <p-button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="closeCreateDialog()" />
+
+      <p-button
+        type="submit"
+        label="Create Department"
+        icon="pi pi-plus"
+        [loading]="isCreating()" />
+
+    </div>
+
+  </form>
+</p-dialog>
+
+<p-toast />
