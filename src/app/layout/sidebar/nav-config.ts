@@ -122,6 +122,12 @@ export const NAV_CONFIG: NavGroup[] = [
         route: '/console/admin/positions',
         roles: [Role.Admin, Role.SuperAdmin, Role.HRManager],
       },
+      {
+        label: 'Employees',
+        icon: 'pi pi-users',
+        route: '/console/admin/employees',
+        roles: [Role.Admin, Role.SuperAdmin, Role.HRManager],
+      },
     ],
   },
 ];

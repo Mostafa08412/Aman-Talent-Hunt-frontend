@@ -160,6 +160,22 @@ export const routes: Routes = [
           import('./features/requisitions/approvals/approvals.component').then((m) => m.ApprovalsComponent),
       },
       {
+        path: 'manpower-plan/new',
+        canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/manpower-plan/manpower-plan-add.component').then(
+            (m) => m.ManpowerPlanAddComponent,
+          ),
+      },
+      {
+        path: 'manpower-plan/:id',
+        canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/manpower-plan/manpower-plan-detail.component').then(
+            (m) => m.ManpowerPlanDetailComponent,
+          ),
+      },
+      {
         path: 'manpower-plan',
         canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
         loadComponent: () =>
@@ -213,6 +229,12 @@ export const routes: Routes = [
           import('./features/admin/users/user-management.component').then((m) => m.UserManagementComponent),
       },
       {
+        path: 'admin/users/new',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/users/user-add.component').then((m) => m.UserAddComponent),
+      },
+      {
         path: 'admin/squads',
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
         loadComponent: () =>
@@ -223,6 +245,24 @@ export const routes: Routes = [
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
         loadComponent: () =>
           import('./features/admin/positions/positions.component').then((m) => m.PositionsComponent),
+      },
+      {
+        path: 'admin/employees',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
+        loadComponent: () =>
+          import('./features/admin/employees/employees.component').then((m) => m.EmployeesComponent),
+      },
+      {
+        path: 'admin/employees/new',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/employees/employee-add.component').then((m) => m.EmployeeAddComponent),
+      },
+      {
+        path: 'admin/employees/:id',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
+        loadComponent: () =>
+          import('./features/admin/employees/employee-edit.component').then((m) => m.EmployeeEditComponent),
       },
     ],
   },
