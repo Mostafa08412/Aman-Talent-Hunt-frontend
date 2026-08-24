@@ -55,3 +55,6 @@ export type * from './admin-squad-model';
 
 // Admin Users & Roles
 export type * from './admin-user-model';
+
+// Interviews
+export type * from './interview-model';
