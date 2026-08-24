@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -23,6 +24,7 @@ import { Role, INTERNAL_ROLES } from '../../../core/models/role.model';
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     TableModule,
     ButtonModule,
     TagModule,
