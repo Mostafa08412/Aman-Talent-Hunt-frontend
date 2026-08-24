@@ -9,6 +9,7 @@ import {
   CreateJobDescriptionRequest,
   JobDescriptionDetailDtoResult,
   JobDescriptionListItemDtoPagedResultResult,
+  JobDescriptionLookupDtoIReadOnlyListResult,
   RejectJobDescriptionRequest,
   UpdateJobDescriptionRequest,
 } from '@core/models/admin-job-description-model';
@@ -27,6 +28,13 @@ export interface AdminJobDescriptionsQueryParams {
 export class AdminJobDescriptionsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
+
+  getLookup(status?: JobDescriptionStatus, search?: string): Observable<JobDescriptionLookupDtoIReadOnlyListResult> {
+    return this.http.get<JobDescriptionLookupDtoIReadOnlyListResult>(
+      `${this.base}/api/admin/job-descriptions/lookup`,
+      { params: toHttpParams({ status, search }) },
+    );
+  }
 
   getList(
     params?: AdminJobDescriptionsQueryParams,

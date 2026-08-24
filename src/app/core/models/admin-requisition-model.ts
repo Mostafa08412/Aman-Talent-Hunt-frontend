@@ -3,6 +3,7 @@ import type { HiringType, Location, RequisitionAction, RequisitionStatus, Senior
 
 export interface JobRequisitionListItemDto {
   id: string;
+  referenceNumber: string | null;
   requisitionNumber: string | null;
   positionTitle: string | null;
   hiringType: HiringType;
@@ -12,6 +13,7 @@ export interface JobRequisitionListItemDto {
   assignedSquadName: string | null;
   assignedRecruiterName: string | null;
   hiringManagerId: string;
+  hiringManagerReferenceNumber: string | null;
   hiringManagerName: string | null;
   createdAtUTC: string;
 }
@@ -21,6 +23,7 @@ export type JobRequisitionListItemDtoPagedResultResult = ResultWithData<JobRequi
 
 export interface JobRequisitionDetailDto {
   id: string;
+  referenceNumber: string | null;
   requisitionNumber: string | null;
   positionTitle: string | null;
   hiringType: HiringType;
@@ -30,19 +33,26 @@ export interface JobRequisitionDetailDto {
   assignedSquadName: string | null;
   assignedRecruiterName: string | null;
   hiringManagerId: string;
+  hiringManagerReferenceNumber: string | null;
   hiringManagerName: string | null;
   location: Location;
   manPowerPlanId: string | null;
+  manPowerPlanReferenceNumber: string | null;
   positionRegistryId: string | null;
+  positionReferenceNumber: string | null;
   jobDescriptionId: string | null;
+  jobDescriptionReferenceNumber: string | null;
   proposedJobTitle: string | null;
   proposedJobSeniorityLevel: SeniorityLevel;
   departingEmployeeName: string | null;
   departingEmployeeId: string | null;
+  departingEmployeeReferenceNumber: string | null;
   growthJustification: string | null;
   selectedHRManagerId: string;
+  selectedHRManagerReferenceNumber: string | null;
   selectedHRManagerName: string | null;
   currentApproverId: string | null;
+  currentApproverReferenceNumber: string | null;
   currentApproverRole: string | null;
   submittedAt: string | null;
   approvedAt: string | null;

@@ -8,6 +8,7 @@ export type { CandidateProfileDto, CandidateProfileDtoResult } from './candidate
 
 export interface CandidateListItemDto {
   id: string;
+  referenceNumber: string | null;
   firstName: string | null;
   lastName: string | null;
   email: string | null;

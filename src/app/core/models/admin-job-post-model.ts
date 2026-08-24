@@ -22,6 +22,7 @@ export interface InterviewRoundDto {
 
 export interface AdminJobPostListItemDto {
   id: string;
+  referenceNumber: string | null;
   title: string | null;
   numberOfOpenings: number;
   status: JobPostStatus;
@@ -31,7 +32,9 @@ export interface AdminJobPostListItemDto {
   employmentType: EmploymentType;
   location: Location;
   jobRequisitionId: string;
+  requisitionReferenceNumber: string | null;
   positionId: string;
+  positionReferenceNumber: string | null;
   departmentName: string | null;
   deadline: string | null;
   publishedAtUTC: string | null;
@@ -43,6 +46,7 @@ export type AdminJobPostListItemDtoPagedResultResult = ResultWithData<AdminJobPo
 
 export interface AdminJobPostDetailDto {
   id: string;
+  referenceNumber: string | null;
   title: string | null;
   numberOfOpenings: number;
   deadline: string | null;
@@ -53,9 +57,12 @@ export interface AdminJobPostDetailDto {
   jobType: JobType;
   employmentType: EmploymentType;
   jobRequisitionId: string;
+  requisitionReferenceNumber: string | null;
   positionId: string;
+  positionReferenceNumber: string | null;
   jobDescriptionId: string;
-  ownerEmployeeId: string;
+  ownerEmployeeId: string | null;
+  ownerEmployeeReferenceNumber: string | null;
   description: string | null;
   requirements: string | null;
   qualifications: string | null;
@@ -90,6 +97,10 @@ export interface UpdateJobPostConfigRequest {
 
 export interface ExtendDeadlineRequest {
   newDeadline: string;
+}
+
+export interface AssignJobPostRecruiterRequest {
+  recruiterEmployeeId: string;
 }
 
 export interface ConfigureScreeningQuestionsRequest {

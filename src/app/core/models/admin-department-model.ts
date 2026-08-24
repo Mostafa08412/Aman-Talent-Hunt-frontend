@@ -1,12 +1,14 @@
 import type { PagedResult, ResultWithData } from './common';
 import type { PositionSummaryDto } from './admin-position-model';
+import type { SquadSummaryDto } from './admin-squad-model';
 
 export interface DepartmentListItemDto {
   id: string;
+  referenceNumber: string | null;
   name: string | null;
-  squadId: string;
-  squadName: string | null;
+  squads: SquadSummaryDto[] | null;
   headEmployeeId: string | null;
+  headEmployeeReferenceNumber: string | null;
   headEmployeeName: string | null;
   employeeCount: number;
   activeRequisitionsCount: number;
@@ -18,6 +20,7 @@ export type DepartmentListItemDtoPagedResultResult = ResultWithData<DepartmentLi
 
 export interface DepartmentLookupDto {
   id: string;
+  referenceNumber: string | null;
   name: string | null;
 }
 
@@ -26,9 +29,10 @@ export type DepartmentLookupDtoIReadOnlyListResult = ResultWithData<DepartmentLo
 export interface DepartmentResponse {
   id: string;
   name: string | null;
-  squadId: string;
-  squadName: string | null;
+  referenceNumber: string | null;
+  squads: SquadSummaryDto[] | null;
   headEmployeeId: string | null;
+  headEmployeeReferenceNumber: string | null;
   headEmployeeName: string | null;
   positions: PositionSummaryDto[] | null;
   totalEmployees: number;
@@ -44,12 +48,10 @@ export interface DepartmentSummaryDto {
 
 export interface CreateDepartmentRequest {
   name: string | null;
-  squadId: string;
   headEmployeeId: string | null;
 }
 
 export interface UpdateDepartmentRequest {
   name: string | null;
-  squadId: string;
   headEmployeeId: string | null;
 }

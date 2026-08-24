@@ -12,6 +12,7 @@ export interface AnswerDetail {
 
 export interface ApplicantListItemDto {
   id: string;
+  referenceNumber: string | null;
   candidateFirstName: string | null;
   candidateLastName: string | null;
   candidateEmail: string | null;
