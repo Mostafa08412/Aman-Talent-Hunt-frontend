@@ -3,7 +3,10 @@ import type { EmploymentType, JobDescriptionStatus } from './enums';
 
 export interface JobDescriptionListItemDto {
   id: string;
+  referenceNumber: string | null;
+  title: string | null;
   summary: string | null;
+  author: string | null;
   employmentType: EmploymentType;
   status: JobDescriptionStatus;
   lastUpdatedAtUTC: string | null;
@@ -14,7 +17,10 @@ export type JobDescriptionListItemDtoPagedResultResult = ResultWithData<JobDescr
 
 export interface JobDescriptionDetailDto {
   id: string;
+  referenceNumber: string | null;
+  title: string | null;
   summary: string | null;
+  author: string | null;
   employmentType: EmploymentType;
   status: JobDescriptionStatus;
   lastUpdatedAtUTC: string | null;
@@ -28,12 +34,25 @@ export type JobDescriptionDetailDtoResult = ResultWithData<JobDescriptionDetailD
 
 export interface JobDescriptionSummaryDto {
   id: string;
+  referenceNumber: string | null;
+  title: string | null;
   summary: string | null;
+  author: string | null;
   employmentType: EmploymentType;
   status: JobDescriptionStatus;
 }
 
+export interface JobDescriptionLookupDto {
+  id: string;
+  referenceNumber: string | null;
+  title: string | null;
+  status: JobDescriptionStatus;
+}
+
+export type JobDescriptionLookupDtoIReadOnlyListResult = ResultWithData<JobDescriptionLookupDto[]>;
+
 export interface CreateJobDescriptionRequest {
+  title: string | null;
   summary: string | null;
   responsibilities: string | null;
   requirements: string | null;
@@ -41,6 +60,7 @@ export interface CreateJobDescriptionRequest {
 }
 
 export interface UpdateJobDescriptionRequest {
+  title: string | null;
   summary: string | null;
   responsibilities: string | null;
   requirements: string | null;
