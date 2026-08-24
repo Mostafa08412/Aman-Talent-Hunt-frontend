@@ -249,6 +249,38 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/departments',
+        canActivate: [
+          roleGuard([
+            Role.Admin,
+            Role.SuperAdmin,
+            Role.HRManager,
+          ]),
+        ],
+        loadComponent: () =>
+          import(
+            './features/admin/departments/departments.component'
+          ).then(
+            (m) => m.DepartmentsComponent,
+          ),
+      },
+      {
+        path: 'admin/departments/:id',
+        canActivate: [
+          roleGuard([
+            Role.Admin,
+            Role.SuperAdmin,
+            Role.HRManager,
+          ]),
+        ],
+        loadComponent: () =>
+          import(
+            './features/admin/departments/department-detail.component'
+          ).then(
+            (m) => m.DepartmentDetailComponent,
+          ),
+      },      
+      {
         path: 'admin/positions',
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
         loadComponent: () =>

@@ -1,0 +1,428 @@
+<div class="page">
+
+  <!-- =========================
+       PAGE HEADER
+       ========================= -->
+  <div class="page-header">
+
+    <div>
+      <nav
+        class="breadcrumb"
+        aria-label="Breadcrumb">
+
+        <a routerLink="/console/admin/departments">
+          Departments
+        </a>
+
+        <span class="divider">/</span>
+
+        <span class="current">
+          Department Details
+        </span>
+
+      </nav>
+
+      <h1>
+        Department Details:
+        {{ department()?.name || 'Department' }}
+      </h1>
+    </div>
+
+
+    <!-- HEADER ACTIONS -->
+    <div class="header-actions">
+
+      <p-button
+        label="Back"
+        severity="secondary"
+        [text]="true"
+        (onClick)="back()" />
+
+      <p-button
+        label="Delete"
+        icon="pi pi-trash"
+        severity="danger"
+        [outlined]="true"
+        [loading]="isDeleting()"
+        (onClick)="deleteDepartment()" />
+
+      @if (isEditing()) {
+
+        <p-button
+          label="Cancel"
+          icon="pi pi-times"
+          styleClass="btn-edit-toggle"
+          (onClick)="toggleEdit()" />
+
+        <p-button
+          label="Save Changes"
+          icon="pi pi-check"
+          styleClass="btn-save"
+          [loading]="isSaving()"
+          (onClick)="save()" />
+
+      } @else {
+
+        <p-button
+          label="Edit"
+          icon="pi pi-pencil"
+          styleClass="btn-edit-toggle"
+          (onClick)="toggleEdit()" />
+
+      }
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       LOADING
+       ========================= -->
+  @if (isLoading()) {
+
+    <div class="loading-state">
+      Loading department...
+    </div>
+
+  } @else {
+
+    <!-- =========================
+         DEPARTMENT EXISTS
+         ========================= -->
+    @if (department(); as dept) {
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="save()">
+
+        <div class="content-grid">
+
+          <div class="left-column">
+
+
+            <!-- =========================
+                 DEPARTMENT INFORMATION
+                 ========================= -->
+            <section class="form-card">
+
+              <h2>
+                <i class="pi pi-building section-icon"></i>
+                Department Information
+              </h2>
+
+
+              <div class="fields-grid two-cols">
+
+                <!-- Department Name -->
+                <div class="form-field">
+
+                  <label for="department-detail-name">
+                    Department Name
+                  </label>
+
+                  <input
+                    pInputText
+                    id="department-detail-name"
+                    formControlName="name"
+                    placeholder="Department name" />
+
+
+                  @if (
+                    isEditing() &&
+                    form.controls.name.invalid &&
+                    form.controls.name.touched
+                  ) {
+
+                    <small class="field-error">
+                      Department name is required.
+                    </small>
+
+                  }
+
+                </div>
+
+
+                <!-- Head Employee -->
+                <div class="form-field">
+
+                  <label for="department-detail-head">
+                    Head Employee
+                  </label>
+
+                  <p-select
+                    inputId="department-detail-head"
+                    [options]="employees()"
+                    optionLabel="fullName"
+                    optionValue="id"
+                    formControlName="headEmployeeId"
+                    placeholder="No head assigned"
+                    [showClear]="true"
+                    [filter]="true"
+                    filterBy="fullName,referenceNumber"
+                    styleClass="field-select" />
+
+
+                  @if (dept.headEmployeeReferenceNumber) {
+
+                    <small class="field-hint">
+
+                      Current reference:
+                      {{ dept.headEmployeeReferenceNumber }}
+
+                    </small>
+
+                  }
+
+                </div>
+
+              </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 OVERVIEW
+                 ========================= -->
+            <section class="form-card">
+
+              <h2>
+                <i class="pi pi-info-circle section-icon"></i>
+                Overview
+              </h2>
+
+
+              <div class="summary-grid">
+
+
+                <!-- Reference Number -->
+                <div class="summary-item">
+
+                  <span class="summary-label">
+                    Reference Number
+                  </span>
+
+                  <span class="summary-value ref-code">
+
+                    {{
+                      dept.referenceNumber ||
+                      dept.id.slice(0, 8).toUpperCase()
+                    }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- Created At -->
+                <div class="summary-item">
+
+                  <span class="summary-label">
+                    Created At
+                  </span>
+
+                  <span class="summary-value">
+
+                    {{
+                      dept.createdAtUTC
+                        | date: 'MMM d, y, h:mm a' : 'UTC'
+                    }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- Total Employees -->
+                <div class="summary-item">
+
+                  <span class="summary-label">
+                    Total Employees
+                  </span>
+
+                  <span class="summary-value large-value">
+
+                    {{ dept.totalEmployees }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- Head Employee -->
+                <div class="summary-item">
+
+                  <span class="summary-label">
+                    Head Employee
+                  </span>
+
+                  <span class="summary-value">
+
+                    {{
+                      dept.headEmployeeName ||
+                      'Not assigned'
+                    }}
+
+                  </span>
+
+                </div>
+
+              </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 MAPPED SQUADS
+                 ========================= -->
+            <section class="form-card">
+
+              <h2>
+                <i class="pi pi-sitemap section-icon"></i>
+                Mapped Squads
+              </h2>
+
+
+              <div class="item-list">
+
+                @for (
+                  squad of dept.squads ?? [];
+                  track squad.id
+                ) {
+
+                  <div class="item-row">
+
+                    <div>
+
+                      <span class="item-title">
+
+                        {{
+                          squad.name ||
+                          'Unnamed Squad'
+                        }}
+
+                      </span>
+
+
+                      <span class="item-reference">
+
+                        {{
+                          squad.referenceNumber ||
+                          'No reference'
+                        }}
+
+                      </span>
+
+                    </div>
+
+
+                    <i class="pi pi-users item-icon"></i>
+
+                  </div>
+
+                } @empty {
+
+                  <div class="empty-list">
+
+                    No squads mapped to this department.
+
+                  </div>
+
+                }
+
+              </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 REGISTERED POSITIONS
+                 ========================= -->
+            <section class="form-card">
+
+              <h2>
+                <i class="pi pi-id-card section-icon"></i>
+                Registered Positions
+              </h2>
+
+
+              <div class="item-list">
+
+                @for (
+                  position of dept.positions ?? [];
+                  track position.id
+                ) {
+
+                  <div class="item-row">
+
+                    <div>
+
+                      <span class="item-title">
+
+                        {{
+                          position.title ||
+                          'Untitled Position'
+                        }}
+
+                      </span>
+
+
+                      <span class="item-reference">
+
+                        {{
+                          position.referenceNumber ||
+                          'No reference'
+                        }}
+
+                      </span>
+
+                    </div>
+
+
+                    <i class="pi pi-briefcase item-icon"></i>
+
+                  </div>
+
+                } @empty {
+
+                  <div class="empty-list">
+
+                    No registered positions in this department.
+
+                  </div>
+
+                }
+
+              </div>
+
+            </section>
+
+
+          </div>
+
+        </div>
+
+      </form>
+
+    } @else {
+
+      <!-- =========================
+           DEPARTMENT NOT FOUND
+           ========================= -->
+      <div class="loading-state">
+
+        Department not found.
+
+      </div>
+
+    }
+
+  }
+
+</div>
+
+
+<p-toast />
