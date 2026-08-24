@@ -20,7 +20,7 @@ export interface AdminRequisitionsQueryParams {
   HiringType?: HiringType;
   Status?: RequisitionStatus;
   DepartmentId?: string;
-  RecruiterId?: string;
+  SquadId?: string;
   CreatedBy?: string;
   Year?: number;
   Page?: number;
