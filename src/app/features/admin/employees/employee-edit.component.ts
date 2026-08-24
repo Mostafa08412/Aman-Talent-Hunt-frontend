@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -20,6 +21,7 @@ import { EmployeeResponse } from '../../../core/models/admin-employee-model';
 import { SquadLookupDto } from '../../../core/models/admin-squad-model';
 import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
 import { PositionRegistryLookupDto } from '../../../core/models/admin-position-model';
+import { toApiError, EmployeeErrors } from '@core/errors';
 
 @Component({
   selector: 'app-employee-edit',
@@ -107,13 +109,23 @@ export class EmployeeEditComponent implements OnInit {
         }
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load employee.',
-        });
+        const { title } = toApiError(err);
+        if (title === EmployeeErrors.NotFound) {
+          this.router.navigate(['/console/admin/employees']);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Not found',
+            detail: 'This employee no longer exists.',
+          });
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load employee.',
+          });
+        }
       },
     });
   }
@@ -193,13 +205,27 @@ export class EmployeeEditComponent implements OnInit {
           });
           this.loadEmployee(this.id());
         },
-        error: () => {
+        error: (err: HttpErrorResponse) => {
           this.isSaving.set(false);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to update employee.',
-          });
+          const { title, detail } = toApiError(err);
+
+          switch (title) {
+            case EmployeeErrors.NotFound:
+              this.router.navigate(['/console/admin/employees']);
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Not found',
+                detail: 'This employee no longer exists.',
+              });
+              break;
+
+            case EmployeeErrors.PositionNotFound:
+              this.form.controls.positionRegistryId.setErrors({ invalidPosition: true });
+              break;
+
+            default:
+              this.messageService.add({ severity: 'error', summary: 'Error', detail });
+          }
         },
       });
   }

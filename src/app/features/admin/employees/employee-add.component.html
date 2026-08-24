@@ -53,7 +53,11 @@
               <small class="field-hint">This will be used for login and cannot
                 be easily changed later.</small>
               @if (form.controls.email.invalid && form.controls.email.touched) {
+              @if (form.controls.email.hasError('taken')) {
+              <small class="field-error">This email is already in use</small>
+              } @else {
               <small class="field-error">A valid email is required</small>
+              }
               }
             </div>
             <div class="form-field">
@@ -103,7 +107,11 @@
               <small class="field-hint">Depends on selected department.</small>
               @if (form.controls.positionRegistryId.invalid &&
               form.controls.positionRegistryId.touched) {
+              @if (form.controls.positionRegistryId.hasError('invalidPosition')) {
+              <small class="field-error">Selected position does not exist</small>
+              } @else {
               <small class="field-error">Position is required</small>
+              }
               }
             </div>
             <div class="form-field">
@@ -117,6 +125,9 @@
                 [showClear]="true"
                 styleClass="field-select"
                 formControlName="squadId" />
+              @if (form.controls.squadId.hasError('invalidSquad')) {
+              <small class="field-error">Selected squad does not exist</small>
+              }
             </div>
           </div>
         </section>

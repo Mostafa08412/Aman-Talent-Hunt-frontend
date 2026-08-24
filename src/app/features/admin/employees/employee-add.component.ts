@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -20,6 +21,7 @@ import { SquadLookupDto } from '../../../core/models/admin-squad-model';
 import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
 import { PositionRegistryLookupDto } from '../../../core/models/admin-position-model';
 import { Roles } from '../../../core/models/enums';
+import { toApiError, EmployeeErrors, SquadErrors, IdentityErrors } from '@core/errors';
 
 interface RoleOption {
   value: Roles;
@@ -162,13 +164,28 @@ export class EmployeeAddComponent implements OnInit {
         });
         this.router.navigate(['/console/admin/employees']);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.isSubmitting = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to create employee.',
-        });
+        const { title, detail } = toApiError(err);
+
+        switch (title) {
+          case EmployeeErrors.DuplicateEmail:
+          case IdentityErrors.EmailAlreadyExists:
+          case IdentityErrors.UserAlreadyExists:
+            this.form.controls.email.setErrors({ taken: true });
+            break;
+
+          case EmployeeErrors.PositionNotFound:
+            this.form.controls.positionRegistryId.setErrors({ invalidPosition: true });
+            break;
+
+          case SquadErrors.NotFound:
+            this.form.controls.squadId.setErrors({ invalidSquad: true });
+            break;
+
+          default:
+            this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        }
       },
     });
   }
