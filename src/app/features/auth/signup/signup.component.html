@@ -8,41 +8,41 @@
 		}
 
 		<div class="field">
-			<label for="firstName">First name</label>
-			<input pInputText id="firstName" formControlName="firstName" autocomplete="given-name" />
+			<label for="signup-firstName">First name</label>
+			<input pInputText id="signup-firstName" formControlName="firstName" autocomplete="given-name" />
 			@if (form.controls.firstName.invalid && form.controls.firstName.touched) {
 				<small class="field-error">First name is required.</small>
 			}
 		</div>
 
 		<div class="field">
-			<label for="lastName">Last name</label>
-			<input pInputText id="lastName" formControlName="lastName" autocomplete="family-name" />
+			<label for="signup-lastName">Last name</label>
+			<input pInputText id="signup-lastName" formControlName="lastName" autocomplete="family-name" />
 			@if (form.controls.lastName.invalid && form.controls.lastName.touched) {
 				<small class="field-error">Last name is required.</small>
 			}
 		</div>
 
 		<div class="field">
-			<label for="phoneNumber">Phone number</label>
-			<input pInputText id="phoneNumber" formControlName="phoneNumber" autocomplete="tel" />
+			<label for="signup-phoneNumber">Phone number</label>
+			<input pInputText id="signup-phoneNumber" formControlName="phoneNumber" autocomplete="tel" />
 			@if (form.controls.phoneNumber.invalid && form.controls.phoneNumber.touched) {
 				<small class="field-error">Phone number is required.</small>
 			}
 		</div>
 
 		<div class="field">
-			<label for="email">Email</label>
-			<input pInputText id="email" formControlName="email" autocomplete="email" />
+			<label for="signup-email">Email</label>
+			<input pInputText id="signup-email" formControlName="email" autocomplete="email" />
 			@if (form.controls.email.invalid && form.controls.email.touched) {
 				<small class="field-error">Enter a valid email address.</small>
 			}
 		</div>
 
 		<div class="field">
-			<label for="password">Password</label>
+			<label for="signup-password">Password</label>
 			<p-password
-				id="password"
+				id="signup-password"
 				formControlName="password"
 				[feedback]="false"
 				[toggleMask]="true"
@@ -56,9 +56,9 @@
 		</div>
 
 		<div class="field">
-			<label for="confirmPassword">Confirm password</label>
+			<label for="signup-confirmPassword">Confirm password</label>
 			<p-password
-				id="confirmPassword"
+				id="signup-confirmPassword"
 				formControlName="confirmPassword"
 				[feedback]="false"
 				[toggleMask]="true"
@@ -78,8 +78,8 @@
 		</div>
 
 		<div class="field">
-			<label for="militaryStatus">Military status</label>
-			<select id="militaryStatus" formControlName="militaryStatus" class="w-full">
+			<label for="signup-militaryStatus">Military status</label>
+			<select id="signup-militaryStatus" formControlName="militaryStatus" class="w-full">
 				<option value="">Select status</option>
 				<option value="0">NotApplicable</option>
 				<option value="1">Completed</option>
@@ -95,13 +95,13 @@
 		</div>
 
 		<div class="field">
-			<label for="linkedInProfile">LinkedIn profile (optional)</label>
-			<input pInputText id="linkedInProfile" formControlName="linkedInProfile" autocomplete="off" />
+			<label for="signup-linkedInProfile">LinkedIn profile (optional)</label>
+			<input pInputText id="signup-linkedInProfile" formControlName="linkedInProfile" autocomplete="off" />
 		</div>
 
 		<div class="field">
-			<label for="resume">Resume (PDF/DOC)</label>
-			<input id="resume" type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)" />
+			<label for="signup-resume">Resume (PDF/DOC)</label>
+			<input id="signup-resume" type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)" />
 		</div>
 
 		<button pButton type="submit" label="Sign Up" [loading]="loading()" class="w-full"></button>

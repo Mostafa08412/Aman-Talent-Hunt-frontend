@@ -9,7 +9,7 @@
       label="Create User"
       icon="pi pi-plus"
       severity="success"
-      (onClick)="openCreateDialog()"
+      routerLink="/console/admin/users/new"
     />
   </div>
 
@@ -105,26 +105,26 @@
 >
   <div class="dialog-form">
     <div class="form-field">
-      <label for="fullName">Full Name</label>
-      <input pInputText id="fullName" [(ngModel)]="formFullName" placeholder="e.g. Sara Ali" />
+      <label for="usr-mgmt-fullName">Full Name</label>
+      <input pInputText id="usr-mgmt-fullName" [(ngModel)]="formFullName" placeholder="e.g. Sara Ali" />
     </div>
 
     <div class="form-field">
-      <label for="email">Email</label>
-      <input pInputText id="email" [(ngModel)]="formEmail" placeholder="e.g. sara@ath.com" type="email" />
+      <label for="usr-mgmt-email">Email</label>
+      <input pInputText id="usr-mgmt-email" [(ngModel)]="formEmail" placeholder="e.g. sara@ath.com" type="email" />
     </div>
 
     @if (dialogMode() === 'create') {
       <div class="form-field">
-        <label for="password">Password</label>
-        <input pInputText id="password" [(ngModel)]="formPassword" type="password" placeholder="Min 8 characters" />
+        <label for="usr-mgmt-password">Password</label>
+        <input pInputText id="usr-mgmt-password" [(ngModel)]="formPassword" type="password" placeholder="Min 8 characters" />
       </div>
     }
 
     <div class="form-field">
-      <label for="role">Role</label>
+      <label for="usr-mgmt-role">Role</label>
       <p-select
-        id="role"
+        id="usr-mgmt-role"
         [options]="roleOptions"
         [(ngModel)]="formRole"
         optionLabel="label"
