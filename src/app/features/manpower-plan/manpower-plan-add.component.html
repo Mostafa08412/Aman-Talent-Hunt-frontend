@@ -1,0 +1,182 @@
+<div class="page">
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a routerLink="/console/manpower-plan">Manpower Plans</a>
+        <span class="divider">/</span>
+        <span class="current">Create</span>
+      </nav>
+      <h1>Create Manpower Plan</h1>
+      <p class="subtitle">Define budget and headcount allocations for the
+        upcoming period.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="content-grid">
+      <!-- Left column -->
+      <div class="left-column">
+        <!-- Plan Details -->
+        <section class="form-card">
+          <h2><i class="pi pi-file-edit section-icon"></i> Plan Details</h2>
+          <div class="fields-grid two-cols">
+            <div class="form-field">
+              <label for="mp-add-period">Period <span
+                  class="required">*</span></label>
+              <p-select
+                inputId="mp-add-period"
+                [options]="periodOptions"
+                optionLabel="label"
+                placeholder="Select Year/Quarter"
+                styleClass="field-select"
+                (onChange)="onPeriodChange($event.value)" />
+              @if (form.controls.quarter.invalid &&
+              form.controls.quarter.touched) {
+              <small class="field-error">Period is required</small>
+              }
+            </div>
+
+            <div class="form-field">
+              <label for="mp-add-targetHeadcount">Total Headcount Target</label>
+              <p-inputnumber
+                inputId="mp-add-targetHeadcount"
+                formControlName="targetHeadcount"
+                [min]="1"
+                placeholder="0"
+                styleClass="field-number" />
+              @if (form.controls.targetHeadcount.invalid &&
+              form.controls.targetHeadcount.touched) {
+              <small class="field-error">Target must be at least 1</small>
+              }
+            </div>
+
+            <div class="form-field full-width">
+              <label for="mp-add-departmentId">Department <span
+                  class="required">*</span></label>
+              <p-select
+                inputId="mp-add-departmentId"
+                [options]="departments()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select a department"
+                styleClass="field-select"
+                formControlName="departmentId"
+                (onChange)="onDepartmentChanged()" />
+              @if (form.controls.departmentId.invalid &&
+              form.controls.departmentId.touched) {
+              <small class="field-error">Department is required</small>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Position Detail -->
+        <section class="form-card">
+          <h2><i class="pi pi-user-plus section-icon"></i> Position Detail</h2>
+
+          <div class="mode-box">
+            <p class="mode-title">Position Configuration</p>
+            <div class="mode-options">
+              <label class="mode-option">
+                <input
+                  class="mode-radio"
+                  type="radio"
+                  name="pos-type"
+                  value="existing"
+                  [checked]="positionMode() === 'existing'"
+                  (change)="onPositionModeChange('existing')" />
+                <span>Existing Position</span>
+              </label>
+              <label class="mode-option">
+                <input
+                  class="mode-radio"
+                  type="radio"
+                  name="pos-type"
+                  value="adhoc"
+                  [checked]="positionMode() === 'adhoc'"
+                  (change)="onPositionModeChange('adhoc')" />
+                <span>Ad-Hoc Position</span>
+              </label>
+            </div>
+
+            <div class="config-grid">
+              @if (isExistingMode()) {
+              <div class="form-field">
+                <label for="mp-add-positionRegistryId">Position Title <span
+                    class="required">*</span></label>
+                <p-select
+                  inputId="mp-add-positionRegistryId"
+                  [options]="positions()"
+                  optionLabel="title"
+                  optionValue="id"
+                  [placeholder]="'Select a position'"
+                  [filter]="true"
+                  filterPlaceholder="Search positions..."
+                  styleClass="field-select"
+                  formControlName="positionRegistryId" />
+                <small class="field-hint">Registry positions of the selected
+                  department.</small>
+                @if (form.controls.positionRegistryId.invalid &&
+                form.controls.positionRegistryId.touched) {
+                <small class="field-error">Position is required</small>
+                }
+              </div>
+              } @else {
+              <div class="form-field">
+                <label for="mp-add-proposedJobTitle">Proposed Title <span
+                    class="required">*</span></label>
+                <input
+                  pInputText
+                  id="mp-add-proposedJobTitle"
+                  formControlName="proposedJobTitle"
+                  placeholder="e.g., AI Specialist" />
+                @if (form.controls.proposedJobTitle.invalid &&
+                form.controls.proposedJobTitle.touched) {
+                <small class="field-error">Proposed title is required</small>
+                }
+              </div>
+              <div class="form-field">
+                <label for="mp-add-proposedJobSeniorityLevel">Seniority Level
+                  <span class="required">*</span></label>
+                <p-select
+                  inputId="mp-add-proposedJobSeniorityLevel"
+                  [options]="seniorityLevels"
+                  placeholder="Select seniority"
+                  styleClass="field-select"
+                  formControlName="proposedJobSeniorityLevel" />
+                @if (form.controls.proposedJobSeniorityLevel.invalid &&
+                form.controls.proposedJobSeniorityLevel.touched) {
+                <small class="field-error">Seniority level is required</small>
+                }
+              </div>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column: actions rail -->
+      <div class="right-column">
+        <section class="actions-card">
+          <p-button
+            label="Submit for Approval"
+            icon="pi pi-send"
+            styleClass="btn-submit"
+            [loading]="isSubmitting()"
+            (onClick)="submit()" />
+          <p-button
+            label="Discard"
+            icon="pi pi-trash"
+            styleClass="btn-discard"
+            [text]="true"
+            severity="danger"
+            [disabled]="isSubmitting()"
+            (onClick)="cancel()" />
+        </section>
+      </div>
+    </div>
+  </form>
+</div>
+
+<p-toast />

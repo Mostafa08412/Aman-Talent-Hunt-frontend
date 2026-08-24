@@ -1,0 +1,327 @@
+<div class="page">
+  <!-- Header actions -->
+  <div class="header-actions-row">
+    <a routerLink="/console/manpower-plan" class="back-link">
+      <i class="pi pi-arrow-left"></i> Back to Manpower Plans
+    </a>
+
+    @if (plan(); as p) {
+    <div class="header-actions">
+      @if (canSubmit()) {
+      <p-button
+        label="Submit for Approval"
+        icon="pi pi-send"
+        styleClass="btn-teal"
+        [loading]="pendingAction() === 'submit'"
+        (onClick)="submit()" />
+      }
+      @if (canReview()) {
+      <p-button
+        label="Approve"
+        icon="pi pi-check-circle"
+        styleClass="btn-approve"
+        [loading]="pendingAction() === 'approve'"
+        (onClick)="approve()" />
+      <p-button
+        label="Reject"
+        icon="pi pi-times-circle"
+        styleClass="btn-reject"
+        [loading]="pendingAction() === 'reject'"
+        (onClick)="openRejectDialog()" />
+      }
+      @if (canActivateAction()) {
+      <p-button
+        label="Activate"
+        icon="pi pi-play"
+        styleClass="btn-neutral"
+        [loading]="pendingAction() === 'activate'"
+        (onClick)="activate()" />
+      }
+      @if (canPromote()) {
+      <p-button
+        label="Promote to Job Position"
+        icon="pi pi-arrow-up-right"
+        styleClass="btn-neutral text-white"
+        [loading]="pendingAction() === 'promote'"
+        (onClick)="openPromoteDialog()" />
+      }
+      @if (canClose()) {
+      <p-button
+        label="Close Plan"
+        icon="pi pi-times"
+        styleClass="btn-neutral"
+        [loading]="pendingAction() === 'close'"
+        (onClick)="close()" />
+      }
+    </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+  <div class="state-center"><p-progressspinner styleClass="w-3rem h-3rem"
+      strokeWidth="4" /></div>
+  } @else {
+  @if (plan(); as p) {
+  <!-- Status hero card -->
+  <div class="hero-card">
+    <div class="hero-gradient"></div>
+    <div class="hero-body">
+      <div class="hero-main">
+        <p class="hero-label">Plan Identifier</p>
+        <div class="hero-title-row">
+          <h1 class="hero-title">{{ p.referenceNumber }}</h1>
+          <span class="status-pill {{ statusStyles[p.status].pillClass }}">
+            <span
+              class="status-dot {{ statusStyles[p.status].dotClass }}"></span>
+            {{ p.status }}
+          </span>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="meta-caption">Fiscal Year</span>
+          <span class="meta-value">{{ p.fiscalYear }} ({{ p.quarter }})</span>
+        </div>
+        <div class="meta-separator"></div>
+        <div class="hero-meta-item">
+          <span class="meta-caption">Department</span>
+          <span class="meta-value">{{ p.departmentName || '—' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bento grid -->
+  <div class="bento-grid">
+    <!-- Left column -->
+    <div class="col-left">
+      <!-- Position Specifications -->
+      <section class="card specs-card">
+        <h2><i class="pi pi-id-card card-icon orange"></i> Position
+          Specifications</h2>
+        <div class="specs-grid">
+          <div>
+            <p class="field-caption">Target Position</p>
+            <p class="position-title">{{ p.positionTitle || '—' }}</p>
+            @if (p.isNewPositionTitle) {
+            <span class="new-role-badge">New Role</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Fulfillment Progress -->
+      <section class="card">
+        <h2><i class="pi pi-users card-icon teal"></i> Fulfillment Progress</h2>
+        <div class="stat-tiles">
+          <div class="tile tile-target">
+            <span class="tile-value">{{ p.targetHeadcount }}</span>
+            <span class="tile-label">Target</span>
+          </div>
+          <div class="tile tile-success">
+            <span class="tile-value">{{ p.filledHeadcount }}</span>
+            <span class="tile-label">Filled</span>
+          </div>
+          <div class="tile tile-warning">
+            <span class="tile-value">{{ p.pendingRequisitionsCount }}</span>
+            <span class="tile-label">In Pipeline</span>
+          </div>
+          <div class="tile tile-error">
+            <span class="tile-value">{{ p.vacant }}</span>
+            <span class="tile-label">Vacant</span>
+          </div>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-head">
+            <span class="progress-chip">Fulfillment Status</span>
+            <span class="progress-pct">{{ completePct() }}% Complete</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill success"
+              [style.width.%]="filledPct()"></div>
+            <div class="progress-fill warning"
+              [style.width.%]="pipelinePct()"></div>
+          </div>
+          <div class="progress-scale">
+            <span>0</span>
+            <span>Target: {{ p.targetHeadcount }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Plan Timeline -->
+      <section class="card">
+        <h2><i class="pi pi-sliders-h card-icon teal"></i> Plan Timeline</h2>
+        <div class="timeline">
+          @for (step of timelineSteps(); track step.label; let last = $last) {
+          <div class="timeline-step">
+            @if (!last) {
+            <div class="step-line"
+              [class.line-active]="step.state === 'completed'"></div>
+            }
+            @switch (step.state) {
+            @case ('completed') {
+            <div class="step-dot dot-completed"><i
+                class="pi pi-check step-check"></i></div>
+            }
+            @case ('current') {
+            <div class="step-dot dot-current"><div class="pulse"></div></div>
+            }
+            @case ('error') {
+            <div class="step-dot dot-error-step"><i
+                class="pi pi-times step-check"></i></div>
+            }
+            @default {
+            <div class="step-dot dot-upcoming"></div>
+            }
+            }
+            <div class="step-body">
+              <p class="step-label {{ 'label-' + step.state }}">{{ step.label
+                }}</p>
+              @if (step.state === 'completed') {
+              <p class="step-note note-completed">Completed</p>
+              }
+              @if (step.state === 'current' && p.pendingRequisitionsCount > 0) {
+              <span class="requisition-chip">{{ p.pendingRequisitionsCount }}
+                Requisition(s)</span>
+              }
+              @if (step.state === 'error' && p.rejectionReason) {
+              <p class="step-note note-error">{{ p.rejectionReason }}</p>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-right">
+      <!-- Lifecycle Dates -->
+      <section class="card dates-card">
+        <h3>Lifecycle Dates</h3>
+        <ul class="dates-list">
+          <li class="date-item">
+            <div class="date-icon icon-approved"><i
+                class="pi pi-check-circle"></i></div>
+            <div>
+              <p class="date-caption">Approved At</p>
+              <p class="date-value" [class.muted]="!p.approvedAt">
+                {{ p.approvedAt ? (p.approvedAt | date: 'MMM d, y') : 'Pending'
+                }}
+              </p>
+            </div>
+          </li>
+          <li class="date-item">
+            <div class="date-icon icon-fulfilled"><i
+                class="pi pi-box"></i></div>
+            <div>
+              <p class="date-caption">Fulfilled At</p>
+              <p class="date-value" [class.muted]="!p.fulfilledAt">
+                {{ p.fulfilledAt ? (p.fulfilledAt | date: 'MMM d, y') :
+                'Pending' }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Rejection Reason -->
+      @if (showRejectionCard()) {
+      <section class="card rejection-card">
+        <h3>Rejection Reason</h3>
+        <div class="rejection-box">
+          <p class="rejection-text">{{ p.rejectionReason }}</p>
+        </div>
+      </section>
+      }
+    </div>
+  </div>
+  } @else {
+  <p-message severity="error" text="Manpower plan not found."
+    styleClass="w-full" />
+  }
+  }
+</div>
+
+<!-- Reject dialog -->
+<p-dialog
+  header="Reject Manpower Plan"
+  [visible]="rejectDialogVisible()"
+  (visibleChange)="rejectDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '26rem' }">
+  <div class="dialog-form">
+    <label for="mp-detail-rejectReason">Reason</label>
+    <textarea
+      id="mp-detail-rejectReason"
+      pTextarea
+      rows="4"
+      placeholder="Explain why this plan is being rejected..."
+      [(ngModel)]="rejectReason"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" severity="secondary" label="Cancel"
+      (click)="rejectDialogVisible.set(false)"></button>
+    <button pButton type="button" severity="danger" label="Reject"
+      [disabled]="!rejectReason.trim()" (click)="confirmReject()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Promotion dialog -->
+<p-dialog
+  header="Promote Plan to Job Position"
+  [visible]="promoteDialogVisible()"
+  (visibleChange)="promoteDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '32rem' }">
+  <div class="dialog-form">
+    <p class="dialog-lead">Search the position registry to link this plan to an
+      active registry item.</p>
+    <div class="search-row">
+      <input
+        pInputText
+        placeholder="e.g. Senior Frontend Engineer"
+        [(ngModel)]="positionSearch"
+        (keyup.enter)="searchPositions()" />
+      <button pButton type="button" class="btn-search" label="Search"
+        [loading]="isSearching()" (click)="searchPositions()"></button>
+    </div>
+
+    @if (searchResults().length > 0) {
+    <ul class="search-results">
+      @for (item of searchResults(); track item.id) {
+      <li
+        class="result-item"
+        [class.selected]="selectedPosition()?.id === item.id"
+        (click)="selectPosition(item)">
+        <div class="result-avatar"><i class="pi pi-briefcase"></i></div>
+        <div class="result-meta">
+          <p class="result-title">{{ item.title }}</p>
+          <p class="result-sub">{{ item.departmentName }} &bull; {{
+            item.seniorityLevel }}</p>
+        </div>
+      </li>
+      }
+    </ul>
+    } @else if (!isSearching()) {
+    <div class="results-empty">No results yet. Search by position title.</div>
+    }
+
+    @if (selectedPosition(); as selected) {
+    <div class="selection-summary">
+      Linked registry position: <strong>{{ selected.title }}</strong>
+    </div>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" severity="secondary" label="Cancel"
+      (click)="promoteDialogVisible.set(false)"></button>
+    <button pButton type="button" class="btn-confirm-promote"
+      label="Confirm Promotion" [disabled]="!selectedPosition()"
+      (click)="confirmPromotion()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-toast />
