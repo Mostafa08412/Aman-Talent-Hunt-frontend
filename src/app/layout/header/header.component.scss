@@ -1,12 +1,29 @@
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   height: var(--ath-header-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-inline: 1.25rem;
-  background: var(--p-surface-0);
+  padding-inline: 1.5rem;
+  background: color-mix(in srgb, #f9f9f9 80%, transparent);
+  backdrop-filter: blur(24px);
   border-block-end: 1px solid var(--p-surface-200);
   flex-shrink: 0;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar-title {
+  font-family: var(--ath-font);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--p-surface-900);
 }
 
 .topbar-right {
@@ -29,32 +46,39 @@
   font-size: 1.05rem;
 
   &:hover {
-    background: var(--p-surface-100);
+    background: var(--p-surface-200);
     color: var(--p-surface-900);
   }
+}
+
+.user-divider {
+  width: 1px;
+  height: 1.5rem;
+  margin-inline: 0.75rem;
+  background: var(--p-surface-200);
 }
 
 .user-btn {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  padding: 0.3rem 0.6rem 0.3rem 0.3rem;
-  margin-inline-start: 0.25rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.75rem;
   border: none;
   background: transparent;
-  border-radius: var(--ath-radius);
+  border-radius: 9999px;
   cursor: pointer;
 
   &:hover {
-    background: var(--p-surface-100);
+    background: var(--p-surface-200);
   }
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   line-height: 1.15;
-  text-align: start;
+  text-align: end;
 }
 .user-name {
   font-size: 0.8125rem;
@@ -64,4 +88,15 @@
 .user-role {
   font-size: 0.7rem;
   color: var(--p-surface-500);
+}
+.user-chevron {
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+}
+
+@media (max-width: 640px) {
+  .user-info,
+  .topbar-title {
+    display: none;
+  }
 }
