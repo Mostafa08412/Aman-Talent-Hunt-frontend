@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router ,  RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -19,6 +20,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   loading = signal(false);
   error = signal<string | null>(null);
@@ -40,7 +42,11 @@ export class LoginComponent {
     this.auth.login(email, password).subscribe({
       next: () =>
       {
-        if(this.auth.currentUser()?.role === Role.Candidate)
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+        } else if(this.auth.currentUser()?.role === Role.Candidate)
           this.router.navigate(['/'])
         else
           this.router.navigate(['/console'])

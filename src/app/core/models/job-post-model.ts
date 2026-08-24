@@ -34,6 +34,14 @@ export interface ScreeningQuestionDto {
   question?: string | null;
 }
 
+export interface PublicJobPostDetailDto extends PublicJobPostListItemDto {
+  requirements?: string | null;
+  qualifications?: string | null;
+  screeningQuestions?: ScreeningQuestionDto[] | null;
+}
+
+export type PublicJobPostDetailDtoResult = ResultWithData<PublicJobPostDetailDto>;
+
 
 /** Query params for GET /api/JobPost/public */
 export interface PublicJobPostQueryParams {

@@ -1,6 +1,7 @@
+import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -9,11 +10,16 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { AuthService } from '../../../core/services/auth.service';
+import { CandidateProfileService } from '../../../core/services/candidate-profile.service';
+import { JobDetailsService } from '../../../core/services/job-details.service';
+import { PublicJobPostDetailDto, ScreeningQuestionDto } from '../../../core/models/job-post-model';
 
 @Component({
   selector: 'app-job-details',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     ButtonModule,
@@ -31,42 +37,19 @@ import { MessageService } from 'primeng/api';
 export class JobDetailsComponent {
   private fb = inject(FormBuilder);
   private message = inject(MessageService);
+  private router = inject(Router);
+  private auth = inject(AuthService);
+  private profileService = inject(CandidateProfileService);
+  private route = inject(ActivatedRoute);
+  private jobDetailsService = inject(JobDetailsService);
 
-  job = {
-    title: 'Senior Product Manager - Payments',
-    category: 'Product Management',
-    tags: [
-      { label: 'Full Time', value: 'full-time' },
-      { label: 'Cairo, Egypt (Hybrid)', value: 'hybrid' },
-    ],
-    level: 'Mid-Senior Level',
-    posted: 'Posted 2 days ago',
-  };
+  isLoggedIn = this.auth.isLoggedIn;
 
-  description = [
-    'AMAN is seeking a highly motivated Senior Product Manager to lead our digital payments portfolio. You will be responsible for defining the product vision, strategy, and roadmap for our core payment experiences, ensuring we deliver seamless, secure, and innovative solutions to millions of users across Egypt.',
-    'In this role, you will work at the intersection of business, design, and engineering, driving initiatives from conceptualization to launch and beyond. You must possess a strong understanding of the fintech landscape, exceptional analytical skills, and a proven track record of shipping successful consumer-facing products.',
-  ];
+  job = signal<PublicJobPostDetailDto | null>(null);
+  loading = signal(true);
+  loadError = signal(false);
 
-  responsibilities = [
-    'Define and execute the product strategy for AMAN\'s digital payments vertical, aligning with overall business objectives.',
-    'Conduct deep market research, competitive analysis, and user interviews to identify unmet needs and emerging trends.',
-    'Translate strategic vision into actionable user stories, detailed requirements, and clear acceptance criteria.',
-    'Collaborate closely with engineering, design, data, and compliance teams to ensure timely and high-quality delivery.',
-    'Define, track, and analyze key performance metrics (KPIs) to measure product success and iterate rapidly based on data.',
-    'Manage stakeholder expectations and communicate product updates effectively across the organization.',
-  ];
-
-  qualifications = [
-    '5+ years of product management experience, with at least 2 years in fintech, payments, or digital banking.',
-    'Strong technical acumen and ability to engage in architectural discussions with engineering teams.',
-    'Demonstrated success in launching complex, consumer-facing mobile products.',
-    'Exceptional analytical and problem-solving skills; proficiency in data analysis tools (e.g., Mixpanel, SQL).',
-    'Excellent written and verbal communication skills; ability to articulate complex concepts simply.',
-    'Bachelor\'s degree in Computer Science, Business, or a related field (MBA is a plus).',
-  ];
-
-  currentResume = { name: 'Alex_Mercer_CV_2026.pdf', meta: 'Updated Jan 15, 2026' };
+  currentResume = { name: 'No resume uploaded', meta: 'Current resume' };
   uploadVisible = signal(false);
   showUpload = signal(false);
   isSubmitting = signal(false);
@@ -81,9 +64,84 @@ export class JobDetailsComponent {
   ];
 
   form = this.fb.nonNullable.group({
-    question: ['', Validators.required],
+    answers: this.fb.array<FormControl<string>>([]),
     source: ['', Validators.required],
   });
+
+  constructor() {
+    this.loadJobDetails();
+    if (this.isLoggedIn()) {
+      this.loadCandidateResume();
+    }
+  }
+
+  get answers(): FormArray<FormControl<string>> {
+    return this.form.controls.answers;
+  }
+
+  get screeningQuestions(): ScreeningQuestionDto[] {
+    return this.job()?.screeningQuestions ?? [];
+  }
+
+  private loadJobDetails(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
+      this.loading.set(false);
+      this.loadError.set(true);
+      return;
+    }
+
+    this.jobDetailsService.getJobDetails(id).subscribe({
+      next: (response) => {
+        if (!response.data) {
+          this.loading.set(false);
+          this.loadError.set(true);
+          return;
+        }
+
+        this.job.set(response.data);
+        this.answers.clear();
+        for (const question of this.screeningQuestions) {
+          this.answers.push(this.fb.nonNullable.control('', Validators.required));
+        }
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.loadError.set(true);
+      },
+    });
+  }
+
+  toList(value: string | null | undefined): string[] {
+    return value
+      ?.split(/\r?\n|•|(?<=\.)\s+(?=[A-Z])/)
+      .map((item) => item.replace(/^[-*]\s*/, '').trim())
+      .filter(Boolean) ?? [];
+  }
+
+  signInToApply(): void {
+    this.router.navigate(['/login'], {
+      queryParams: { returnUrl: this.router.url },
+    });
+  }
+
+  private loadCandidateResume(): void {
+    this.profileService.getProfile().subscribe({
+      next: (response) => {
+        this.currentResume = {
+          name: response.data?.resumeFileName || 'No resume uploaded',
+          meta: 'Current resume',
+        };
+      },
+      error: () => {
+        this.currentResume = {
+          name: 'Unable to load resume',
+          meta: 'Please try again later',
+        };
+      },
+    });
+  }
 
   onResumeSelected(event: { files: File[] }): void {
     const file = event.files[0];
