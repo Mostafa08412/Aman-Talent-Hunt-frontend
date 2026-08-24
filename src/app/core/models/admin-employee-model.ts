@@ -3,12 +3,14 @@ import type { Roles } from './enums';
 
 export interface EmployeeListItemDto {
   id: string;
+  positionReferenceNumber: string | null;
   fullName: string | null;
   email: string | null;
   phoneNumber: string | null;
   positionRegistryId: string;
   jobTitle: string | null;
   squadId: string | null;
+  squadReferenceNumber: string | null;
   squadName: string | null;
   isDeparting: boolean;
   createdAtUTC: string;
@@ -20,15 +22,16 @@ export type EmployeeListItemDtoIReadOnlyListResult = ResultWithData<EmployeeList
 
 export interface EmployeeLookupDto {
   id: string;
+  referenceNumber: string | null;
   fullName: string | null;
   jobTitle: string | null;
-  departmentName: string | null;
 }
 
 export type EmployeeLookupDtoIReadOnlyListResult = ResultWithData<EmployeeLookupDto[]>;
 
 export interface EmployeeResponse {
   id: string;
+  positionReferenceNumber: string | null;
   firstName: string | null;
   lastName: string | null;
   fullName: string | null;
@@ -37,6 +40,7 @@ export interface EmployeeResponse {
   positionRegistryId: string;
   jobTitle: string | null;
   squadId: string | null;
+  squadReferenceNumber: string | null;
   squadName: string | null;
   isSquadLeader: boolean;
   isDeparting: boolean;

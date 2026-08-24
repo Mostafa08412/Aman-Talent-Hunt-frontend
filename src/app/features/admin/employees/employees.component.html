@@ -1,0 +1,162 @@
+<div class="page">
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Employees</h1>
+      <p>Manage and track organizational personnel data</p>
+    </div>
+    <p-button
+      label="Add Employee"
+      icon="pi pi-user-plus"
+      styleClass="btn-add-employee"
+      routerLink="/console/admin/employees/new" />
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <i class="pi pi-users kpi-watermark"></i>
+      <span class="kpi-label">Total Employees</span>
+      <span class="kpi-value">{{ kpiTotal() | number }}</span>
+    </div>
+
+    <div class="kpi-card">
+      <i class="pi pi-verified kpi-watermark"></i>
+      <span class="kpi-label">Active Employees</span>
+      <span class="kpi-value">{{ kpiActive() | number }}</span>
+    </div>
+
+    <div class="kpi-card">
+      <i class="pi pi-sign-out kpi-watermark"></i>
+      <span class="kpi-label">Departing</span>
+      <span class="kpi-value">{{ kpiDeparting() | number }}</span>
+    </div>
+  </div>
+
+  <!-- Data directory -->
+  <div class="directory">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <button class="search-btn" type="button" aria-label="Search" (click)="applyFilters()">
+          <i class="pi pi-search"></i>
+        </button>
+        <input
+          type="text"
+          placeholder="Search by name, email, or position..."
+          [(ngModel)]="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
+
+      <div class="filter-actions">
+        <p-select
+          [options]="squads()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Squad"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="squadFilter" />
+        <p-select
+          [options]="positions()"
+          optionLabel="title"
+          optionValue="id"
+          placeholder="Position"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="positionFilter" />
+        <p-select
+          [options]="statusOptions"
+          placeholder="Status"
+          [showClear]="false"
+          styleClass="filter-select"
+          [(ngModel)]="statusFilter" />
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" [class.loading]="isLoading()">
+      <div class="table-head grid-row">
+        <span class="col-employee">Employee</span>
+        <span class="col-squad">Dept &amp; Squad</span>
+        <span class="col-position">Position</span>
+        <span class="col-joined">Joined Date</span>
+        <span class="col-status">Status</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      @for (employee of pagedEmployees; track employee.id) {
+        <div class="grid-row table-row" (click)="openEmployee(employee)">
+          <div class="cell-employee">
+            <div class="employee-avatar">{{ employee.fullName?.charAt(0) || '?' }}</div>
+            <div class="employee-meta">
+              <span class="employee-name">{{ employee.fullName }}</span>
+              <span class="employee-email">{{ employee.email }}</span>
+            </div>
+          </div>
+
+          <div class="cell-squad">
+            @if (employee.squadName) {
+              <span class="squad-name">{{ employee.squadName }}</span>
+            } @else {
+              <span class="muted">No squad</span>
+            }
+          </div>
+
+          <div class="cell-position">
+            {{ employee.jobTitle || 'Unassigned' }}
+          </div>
+
+          <div class="cell-joined muted">
+            {{ employee.createdAtUTC | date: 'MMM d, y' }}
+          </div>
+
+          <div class="cell-status">
+            @if (employee.isDeparting) {
+              <span class="status-pill status-departing">
+                <span class="dot"></span> Departing
+              </span>
+            } @else {
+              <span class="status-pill status-active">
+                <span class="dot"></span> Active
+              </span>
+            }
+          </div>
+
+          <div class="cell-actions">
+            <button class="row-menu-btn" type="button" aria-label="Edit employee"
+              (click)="openEmployee(employee); $event.stopPropagation()">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">No employees found</div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    <div class="table-foot">
+      <span class="foot-info">
+        Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd }}</strong>
+        of <strong>{{ totalFiltered | number }}</strong> entries
+      </span>
+      <div class="pager">
+        <button class="page-btn" type="button" [disabled]="page() <= 1" (click)="previousPage()"
+          aria-label="Previous page">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        @for (p of visiblePages; track p) {
+          <button class="page-btn" type="button" [class.current]="p === page()"
+            (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="page-btn" type="button" [disabled]="page() >= totalPages" (click)="nextPage()"
+          aria-label="Next page">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast />

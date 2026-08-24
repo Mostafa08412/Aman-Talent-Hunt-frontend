@@ -1,0 +1,168 @@
+<div class="page">
+  <!-- Page header with breadcrumb -->
+  <div class="page-header">
+    <div>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a routerLink="/console/admin/employees">Employees</a>
+        <span class="divider">/</span>
+        <span class="current">Add Employee</span>
+      </nav>
+      <h1>Add an Employee</h1>
+    </div>
+    <p-button
+      label="Create an employee"
+      icon="pi pi-plus"
+      styleClass="btn-create"
+      [loading]="isSubmitting"
+      (onClick)="submit()" />
+  </div>
+
+  <!-- ✅ ADD formGroup HERE -->
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <!-- Two-column layout -->
+    <div class="content-grid">
+      <!-- Left column -->
+      <div class="left-column">
+        <!-- Personal Information -->
+        <section class="form-card" style="width: 100%;">
+          <h2><i class="pi pi-id-card section-icon"></i> Personal
+            Information</h2>
+          <div class="fields-grid two-cols">
+            <div class="form-field">
+              <label for="emp-add-firstName">First Name</label>
+              <input pInputText id="emp-add-firstName" formControlName="firstName"
+                placeholder="Enter first name" />
+              @if (form.controls.firstName.invalid &&
+              form.controls.firstName.touched) {
+              <small class="field-error">First name is required</small>
+              }
+            </div>
+            <div class="form-field">
+              <label for="emp-add-lastName">Last Name</label>
+              <input pInputText id="emp-add-lastName" formControlName="lastName"
+                placeholder="Enter last name" />
+              @if (form.controls.lastName.invalid &&
+              form.controls.lastName.touched) {
+              <small class="field-error">Last name is required</small>
+              }
+            </div>
+            <div class="form-field">
+              <label for="emp-add-email">Email Address</label>
+              <input pInputText id="emp-add-email" formControlName="email" type="email"
+                placeholder="name@aman.com" />
+              <small class="field-hint">This will be used for login and cannot
+                be easily changed later.</small>
+              @if (form.controls.email.invalid && form.controls.email.touched) {
+              <small class="field-error">A valid email is required</small>
+              }
+            </div>
+            <div class="form-field">
+              <label for="emp-add-phoneNumber">Phone Number</label>
+              <div class="phone-box">
+                <span class="phone-prefix">+2</span>
+                <input pInputText id="emp-add-phoneNumber" formControlName="phoneNumber"
+                  type="tel" placeholder="50 123 4567" maxlength="11" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Organizational Alignment -->
+        <section class="form-card">
+          <h2><i class="pi pi-briefcase section-icon"></i> Organizational
+            Alignment</h2>
+          <div class="fields-grid">
+            <div class="form-field">
+              <label for="emp-add-departmentId">Department</label>
+              <p-select
+                inputId="emp-add-departmentId"
+                [options]="departments()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select a department"
+                styleClass="field-select"
+                formControlName="departmentId"
+                (onChange)="onDepartmentChanged()" />
+              @if (form.controls.departmentId.invalid &&
+              form.controls.departmentId.touched) {
+              <small class="field-error">Department is required</small>
+              }
+            </div>
+            <div class="form-field">
+              <label for="emp-add-positionRegistryId">Position Title</label>
+              <p-select
+                inputId="emp-add-positionRegistryId"
+                [options]="positions()"
+                optionLabel="title"
+                optionValue="id"
+                [placeholder]="'Select a position'"
+                [filter]="true"
+                filterPlaceholder="Search positions..."
+                styleClass="field-select"
+                formControlName="positionRegistryId" />
+              <small class="field-hint">Depends on selected department.</small>
+              @if (form.controls.positionRegistryId.invalid &&
+              form.controls.positionRegistryId.touched) {
+              <small class="field-error">Position is required</small>
+              }
+            </div>
+            <div class="form-field">
+              <label for="emp-add-squadId">Squad</label>
+              <p-select
+                inputId="emp-add-squadId"
+                [options]="squads()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select squad"
+                [showClear]="true"
+                styleClass="field-select"
+                formControlName="squadId" />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-column">
+        <!-- Role Assignment -->
+        <section class="form-card role-card">
+          <h2><i class="pi pi-shield section-icon"></i> Role Assignment</h2>
+          <p class="role-lead">Select a primary role to define system access
+            levels for this user.</p>
+
+          <div class="role-list">
+            @for (option of roleOptions; track option.value) {
+            <label class="role-option" (click)="selectRole(option.value)">
+              <input
+                class="role-radio"
+                type="radio"
+                name="userRole"
+                [checked]="selectedRole() === option.value" />
+              <div>
+                <div class="role-title">{{ option.title }}</div>
+                <div class="role-desc">{{ option.description }}</div>
+              </div>
+            </label>
+            }
+          </div>
+
+          <div class="role-divider"></div>
+        </section>
+
+        <!-- Security note -->
+        <div class="security-note">
+          <i class="pi pi-info-circle note-icon"></i>
+          <div>
+            <h4>Security Note</h4>
+            <p>
+              An invitation email will be sent to the user upon creation.
+              They will be required to set up MFA during their first login.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<p-toast />
