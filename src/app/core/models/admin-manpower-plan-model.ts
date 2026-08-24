@@ -3,6 +3,7 @@ import type { PlanQuarter, PlanStatus, SeniorityLevel } from './enums';
 
 export interface ManPowerPlanListItemDto {
   id: string;
+  referenceNumber: string | null;
   fiscalYear: number;
   quarter: PlanQuarter;
   departmentName: string | null;
@@ -18,6 +19,7 @@ export type ManPowerPlanListItemDtoIReadOnlyListResult = ResultWithData<ManPower
 
 export interface ManPowerPlanLookupDto {
   id: string;
+  referenceNumber: string | null;
   positionTitle: string | null;
   targetHeadcount: number;
   remainingHeadcount: number;
@@ -29,9 +31,11 @@ export type ManPowerPlanLookupDtoIReadOnlyListResult = ResultWithData<ManPowerPl
 
 export interface ManPowerPlanResponse {
   id: string;
+  referenceNumber: string | null;
   fiscalYear: number;
   quarter: PlanQuarter;
   departmentId: string;
+  departmentReferenceNumber: string | null;
   departmentName: string | null;
   targetHeadcount: number;
   filledHeadcount: number;

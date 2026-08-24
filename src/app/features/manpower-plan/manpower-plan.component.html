@@ -1,121 +1,141 @@
-<p-confirmDialog />
-
 <div class="page">
   <div class="page-header">
-    <h1>Manpower Plan Manager</h1>
+    <div class="page-header-text">
+      <h1>Manpower Plan Manager</h1>
+      <p>Plan and track department headcount per fiscal year and quarter</p>
+    </div>
+    <p-button
+      label="Create Plan"
+      icon="pi pi-plus"
+      styleClass="btn-create-plan"
+      routerLink="/console/manpower-plan/new" />
   </div>
 
-  <div class="filter-bar">
-    <div class="field">
-      <label for="mp-year">Fiscal Year</label>
-      <p-select
-        inputId="mp-year"
-        [options]="fiscalYears"
-        [ngModel]="fiscalYear()"
-        (ngModelChange)="fiscalYear.set($event); onFilterChange()"
-      />
-    </div>
-    <div class="field">
-      <label for="mp-dept">Department</label>
-      <p-select
-        inputId="mp-dept"
-        [options]="departmentOptions()"
-        optionLabel="name"
-        optionValue="id"
-        [ngModel]="departmentFilter()"
-        (ngModelChange)="departmentFilter.set($event); onFilterChange()"
-      />
-    </div>
-  </div>
+  <div class="directory">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <button class="search-btn" type="button" aria-label="Search"
+          (click)="applyFilters()">
+          <i class="pi pi-search"></i>
+        </button>
+        <input
+          type="text"
+          placeholder="Search by position title or department..."
+          [(ngModel)]="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
 
-  @if (loading()) {
+      <div class="filter-actions">
+        <p-select
+          inputId="mp-year"
+          [options]="fiscalYears"
+          placeholder="All Years"
+          [showClear]="true"
+          styleClass="filter-select"
+          [ngModel]="fiscalYearFilter"
+          (ngModelChange)="onFiscalYearChange($event)" />
+        <p-select
+          inputId="mp-quarter"
+          [options]="quarterOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Quarters"
+          styleClass="filter-select"
+          [ngModel]="quarterFilter"
+          (ngModelChange)="onQuarterChange($event)" />
+        <p-select
+          inputId="mp-dept"
+          [options]="departments()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="All Departments"
+          [showClear]="true"
+          styleClass="filter-select"
+          [ngModel]="departmentFilter"
+          (ngModelChange)="onDepartmentChange($event)" />
+        <p-select
+          inputId="mp-status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Statuses"
+          styleClass="filter-select"
+          [ngModel]="statusFilter"
+          (ngModelChange)="onStatusChange($event)" />
+        @if (hasActiveFilters) {
+        <button class="clear-btn" type="button" (click)="clearFilters()">
+          <i class="pi pi-filter-slash"></i> Clear
+        </button>
+        }
+      </div>
+    </div>
+
+    @if (loading()) {
     <div class="state-center">
-      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+      <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="4" />
     </div>
-  } @else if (loadError()) {
+    } @else if (loadError()) {
     <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
-  } @else {
-    <p-card>
-      <p-table [value]="entries()" [rowHover]="true" responsiveLayout="scroll">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Title</th>
-            <th>Q1</th>
-            <th>Q2</th>
-            <th>Hired</th>
-            <th>Remaining</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-entry>
-          <tr>
-            <td>{{ entry.title }}</td>
-            <td>{{ entry.q1Planned }}</td>
-            <td>{{ entry.q2Planned }}</td>
-            <td>{{ entry.hired }}</td>
-            <td>{{ remaining(entry) }}</td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="5" class="empty-state">No plan entries yet for this fiscal year and department.</td>
-          </tr>
-        </ng-template>
-      </p-table>
+    } @else {
+    <p-table [value]="entries()" [rowHover]="true" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fiscal Year</th>
+          <th>Quarter</th>
+          <th>Department</th>
+          <th>Position Title</th>
+          <th class="num">Target Headcount</th>
+          <th class="num">Vacant</th>
+          <th>Status</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-entry>
+        <tr class="row-click" (click)="openPlan(entry)">
+          <td>{{ entry.fiscalYear }}</td>
+          <td>{{ entry.quarter }}</td>
+          <td>{{ entry.departmentName || '—' }}</td>
+          <td>{{ entry.positionTitle || '—' }}</td>
+          <td class="num">{{ entry.targetHeadcount }}</td>
+          <td class="num">{{ entry.vacant }}</td>
+          <td>
+            <p-tag [value]="entry.status"
+              [severity]="statusSeverity(entry.status)" [rounded]="false" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="empty-state">No manpower plan entries match the
+            current filters.</td>
+        </tr>
+      </ng-template>
+    </p-table>
 
-      @if (submitted()) {
-        <p-message severity="success" text="Plan submitted for Finance approval." styleClass="w-full" />
-      }
-
-      <div class="plan-actions">
-        <button pButton type="button" severity="secondary" label="+ Add Plan Entry" icon="pi pi-plus" (click)="openAddDialog()"></button>
-        <button
-          pButton
-          type="button"
-          label="Submit for Finance Approval"
-          icon="pi pi-send"
-          [disabled]="entries().length === 0 || submitPending()"
-          [loading]="submitPending()"
-          (click)="confirmSubmitForFinance()"
-        ></button>
-      </div>
-    </p-card>
-  }
-</div>
-
-<p-dialog header="Add Plan Entry" [visible]="addDialogOpen()" (visibleChange)="addDialogOpen.set($event)" [modal]="true" [style]="{ width: '30rem' }">
-  <div class="form">
-    <div class="field">
-      <label for="entry-title">Title</label>
-      <input id="entry-title" pInputText [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" placeholder="e.g. Senior .NET Dev" />
-    </div>
-    <div class="field">
-      <label for="entry-dept">Department</label>
-      <p-select
-        inputId="entry-dept"
-        [options]="departmentOptions().slice(1)"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select department"
-        [ngModel]="newDepartmentId()"
-        (ngModelChange)="newDepartmentId.set($event)"
-      />
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="entry-q1">Q1 Planned</label>
-        <p-inputnumber inputId="entry-q1" [min]="0" [max]="50" [ngModel]="newQ1()" (ngModelChange)="newQ1.set($event)" />
-      </div>
-      <div class="field">
-        <label for="entry-q2">Q2 Planned</label>
-        <p-inputnumber inputId="entry-q2" [min]="0" [max]="50" [ngModel]="newQ2()" (ngModelChange)="newQ2.set($event)" />
+    <!-- Pagination -->
+    <div class="table-foot">
+      <span class="foot-info">
+        Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd
+          }}</strong>
+        of <strong>{{ totalCount() }}</strong> entries
+      </span>
+      <div class="pager">
+        <button class="page-btn" type="button" [disabled]="page() <= 1"
+          (click)="previousPage()"
+          aria-label="Previous page">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        @for (p of visiblePages; track p) {
+        <button class="page-btn" type="button" [class.current]="p === page()"
+          (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="page-btn" type="button" [disabled]="page() >= totalPages"
+          (click)="nextPage()"
+          aria-label="Next page">
+          <i class="pi pi-chevron-right"></i>
+        </button>
       </div>
     </div>
-    @if (addError()) {
-      <p-message severity="error" [text]="addError()!" styleClass="w-full" />
     }
   </div>
-  <ng-template pTemplate="footer">
-    <button pButton type="button" severity="secondary" label="Cancel" (click)="closeAddDialog()"></button>
-    <button pButton type="button" label="Add Entry" [disabled]="!canAddEntry() || addPending()" [loading]="addPending()" (click)="confirmAddEntry()"></button>
-  </ng-template>
-</p-dialog>
+</div>

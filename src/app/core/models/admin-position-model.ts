@@ -4,9 +4,12 @@ import type { JobDescriptionSummaryDto } from './admin-job-description-model';
 
 export interface PositionRegistryListItemDto {
   id: string;
+  jobDescriptionReferenceNumber: string | null;
+  referenceNumber: string | null;
   title: string | null;
   seniorityLevel: SeniorityLevel;
   departmentId: string;
+  departmentReferenceNumber: string | null;
   departmentName: string | null;
   jobDescriptionId: string;
   isActive: boolean;
@@ -19,18 +22,21 @@ export type PositionRegistryListItemDtoPagedResultResult = ResultWithData<Positi
 
 export interface PositionRegistryLookupDto {
   id: string;
+  referenceNumber: string | null;
   title: string | null;
-  jobDescriptionId: string;
-  jobDescriptionTitle: string | null;
+  seniorityLevel: SeniorityLevel;
 }
 
 export type PositionRegistryLookupDtoIReadOnlyListResult = ResultWithData<PositionRegistryLookupDto[]>;
 
 export interface PositionRegistryResponse {
   id: string;
+  jobDescriptionReferenceNumber: string | null;
+  referenceNumber: string | null;
   title: string | null;
   seniorityLevel: SeniorityLevel;
   departmentId: string;
+  departmentReferenceNumber: string | null;
   departmentName: string | null;
   jobDescriptionId: string;
   isActive: boolean;
@@ -43,6 +49,7 @@ export type PositionRegistryResponseResult = ResultWithData<PositionRegistryResp
 
 export interface PositionSummaryDto {
   id: string;
+  referenceNumber: string | null;
   title: string | null;
 }
 

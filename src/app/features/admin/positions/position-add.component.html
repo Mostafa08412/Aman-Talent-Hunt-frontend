@@ -1,0 +1,135 @@
+<div class="page">
+  <!-- Page header with breadcrumb -->
+  <div class="page-header">
+    <div>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a routerLink="/console/admin/positions">Positions</a>
+        <span class="divider">/</span>
+        <span class="current">Create Position</span>
+      </nav>
+      <h1>Create New Position</h1>
+      <p class="page-lead">
+        Define the hierarchy, department, and core requirements for this new
+        role before submitting for requisition approval.
+      </p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <section class="form-card accent-top">
+      <!-- Section 1: Position identity -->
+      <div class="card-section">
+        <h2><i class="pi pi-id-card section-icon"></i> Position Identity</h2>
+
+        <div class="form-field">
+          <label for="pos-add-title">Position Title <span class="req">*</span></label>
+          <input pInputText id="pos-add-title" formControlName="title"
+            placeholder="e.g. Senior Frontend Engineer" />
+          @if (form.controls.title.invalid && form.controls.title.touched) {
+          <small class="field-error">Position title is required</small>
+          }
+        </div>
+
+        <div class="fields-grid two-cols">
+          <div class="form-field">
+            <label for="pos-add-seniorityLevel">Seniority Level
+              <span class="req">*</span></label>
+            <p-select inputId="pos-add-seniorityLevel"
+              [options]="seniorityOptions" placeholder="Select seniority..."
+              styleClass="field-select" formControlName="seniorityLevel" />
+            @if (form.controls.seniorityLevel.invalid &&
+            form.controls.seniorityLevel.touched) {
+            <small class="field-error">Seniority level is required</small>
+            }
+          </div>
+          <div class="form-field">
+            <label for="pos-add-departmentId">Department <span class="req">*</span></label>
+            <p-select inputId="pos-add-departmentId" [options]="departments()"
+              optionLabel="name" optionValue="id"
+              placeholder="Select department..." styleClass="field-select"
+              formControlName="departmentId" />
+            @if (form.controls.departmentId.invalid &&
+            form.controls.departmentId.touched) {
+            <small class="field-error">Department is required</small>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="section-separator"></div>
+
+      <!-- Section 2: Job description -->
+      <div class="card-section">
+        <h2><i class="pi pi-file-edit section-icon"></i> Job Description</h2>
+        <p class="section-lead">
+          Search and link an existing verified Job Description (JD) from the
+          corporate library.
+        </p>
+
+        @if (selectedJd(); as jd) {
+        <!-- Selected JD card -->
+        <div class="jd-selected-card">
+          <div class="jd-selected-info">
+            <span class="jd-selected-label">Selected Job Description</span>
+            <span class="jd-selected-title">{{ truncate(jd.summary, 90) }}</span>
+            <span class="jd-selected-meta">{{ jd.employmentType }} · {{ jd.status }}</span>
+          </div>
+          <button class="jd-clear-btn" type="button" title="Remove JD"
+            aria-label="Remove selected job description"
+            (click)="clearJd()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        } @else {
+        <!-- JD search with suggestions -->
+        <div class="jd-picker">
+          <div class="jd-search-box">
+            <i class="pi pi-search"></i>
+            <input type="text" placeholder="Search by JD summary or keywords..."
+              aria-label="Search job descriptions"
+              (input)="onJdSearchInput($any($event.target).value)"
+              (focus)="onJdFocus()" />
+            @if (jdSearching()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            }
+          </div>
+
+          @if (jdPanelOpen() && jdSuggestions().length > 0) {
+          <div class="jd-suggestions">
+            @for (jd of jdSuggestions(); track jd.id) {
+            <button type="button" class="jd-suggestion"
+              (click)="selectJd(jd)">
+              <div>
+                <div class="jd-suggestion-title">{{ truncate(jd.summary, 60) }}</div>
+                <div class="jd-suggestion-meta">{{ jd.employmentType }} · {{ jd.status }}</div>
+              </div>
+              <i class="pi pi-arrow-right"></i>
+            </button>
+            }
+          </div>
+          } @else if (jdPanelOpen() && !jdSearching()) {
+          <div class="jd-suggestions">
+            <div class="jd-empty">No approved job descriptions match your
+              search.</div>
+          </div>
+          }
+        </div>
+
+        <div class="jd-hint">
+          <i class="pi pi-info-circle"></i>
+          Only approved job descriptions from the corporate library are listed.
+        </div>
+        }
+      </div>
+    </section>
+
+    <!-- Footer actions -->
+    <div class="form-footer">
+      <button class="btn-cancel" type="button" (click)="cancel()">Cancel</button>
+      <p-button label="Create Position" icon="pi pi-check"
+        [loading]="isSubmitting" (onClick)="submit()" />
+    </div>
+  </form>
+</div>
+
+<p-toast />

@@ -1,8 +1,6 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
-import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { MenuItem } from 'primeng/api';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, ButtonModule, MenuModule, AvatarModule, BadgeModule],
+  imports: [RouterLink, MenuModule, BadgeModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
@@ -24,15 +22,6 @@ export class HeaderComponent {
 
   // Placeholder counts — wire to a NotificationsService / ApprovalsService once the API is ready.
   pendingApprovals = signal(0);
-
-  initials = computed(() => {
-    const name = this.currentUser()?.fullName ?? '';
-    return name
-      .split(' ')
-      .slice(0, 2)
-      .map((p) => p[0]?.toUpperCase())
-      .join('');
-  });
 
   userMenuItems: MenuItem[] = [
     { label: 'My Profile', icon: 'pi pi-user' },

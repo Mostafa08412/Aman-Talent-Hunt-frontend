@@ -1,12 +1,8 @@
 <aside class="sidebar" [class.collapsed]="collapsed()">
   <div class="brand">
-    <!-- No logo SVG asset exists yet (/assets doesn't exist in this repo) — using a plain
-         text wordmark in the brand palette until a real logo is dropped in. -->
-    <span class="brand-wordmark">AMAN</span>
+    <img src="/logo.png" alt="AMAN" class="brand-logo" />
     @if (!collapsed()) {
-      <div class="brand-text">
-        <span class="brand-sub">Talent Hunt</span>
-      </div>
+      <span class="brand-title">AMAN Console</span>
     }
   </div>
 
@@ -26,23 +22,14 @@
           >
             <i [class]="item.icon"></i>
             @if (!collapsed()) {
-              <span>{{ item.label }}</span>
+              <span class="nav-item-label">{{ item.label }}</span>
+              @if (item.badge === 'pendingApprovals' && pendingApprovals() > 0) {
+                <span class="nav-item-badge">{{ pendingApprovals() }}</span>
+              }
             }
           </a>
         }
       </div>
     }
   </nav>
-
-  <div class="sidebar-footer">
-    <div class="user-chip">
-      <div class="avatar">{{ initials() }}</div>
-      @if (!collapsed()) {
-        <div class="user-chip-text">
-          <span class="name">{{ currentUser()?.fullName }}</span>
-          <span class="role">{{ currentUser()?.role }}</span>
-        </div>
-      }
-    </div>
-  </div>
 </aside>

@@ -8,17 +8,17 @@
     }
 
     <div class="field">
-      <label for="email">Email</label>
-      <input pInputText id="email" formControlName="email" autocomplete="username" />
+      <label for="login-email">Email</label>
+      <input pInputText id="login-email" formControlName="email" autocomplete="username" />
       @if (form.controls.email.invalid && form.controls.email.touched) {
         <small class="field-error">Enter a valid email address.</small>
       }
     </div>
 
     <div class="field">
-      <label for="password">Password</label>
+      <label for="login-password">Password</label>
       <p-password
-        id="password"
+        id="login-password"
         formControlName="password"
         [feedback]="false"
         [toggleMask]="true"

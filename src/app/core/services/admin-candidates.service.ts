@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApplicationStatus } from '@core/models/enums';
+import { ApplicationStatus, MilitaryStatus } from '@core/models/enums';
 import {
   CandidateListItemDtoPagedResultResult,
   CandidateProfileDtoResult,
@@ -10,9 +10,8 @@ import {
 import { toHttpParams } from './http-params.util';
 
 export interface AdminCandidatesQueryParams {
-  name?: string;
-  email?: string;
-  status?: ApplicationStatus;
+  Status?: ApplicationStatus;
+  MilitaryStatus?: MilitaryStatus;
   Page?: number;
   PageSize?: number;
   Search?: string;

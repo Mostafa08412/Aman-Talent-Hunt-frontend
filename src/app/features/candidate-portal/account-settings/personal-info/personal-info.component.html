@@ -17,8 +17,8 @@
 
       <!-- First Name -->
       <div class="field">
-        <label for="firstName">First Name</label>
-        <input pInputText id="firstName" formControlName="firstName"
+        <label for="pi-firstName">First Name</label>
+        <input pInputText id="pi-firstName" formControlName="firstName"
           placeholder="First name" />
         @if (form.controls.firstName.invalid && form.controls.firstName.touched)
         {
@@ -36,8 +36,8 @@
 
       <!-- Last Name -->
       <div class="field">
-        <label for="lastName">Last Name</label>
-        <input pInputText id="lastName" formControlName="lastName"
+        <label for="pi-lastName">Last Name</label>
+        <input pInputText id="pi-lastName" formControlName="lastName"
           placeholder="Last name" />
         @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
         <small class="field-error"
@@ -54,8 +54,8 @@
 
       <!-- Email Address -->
       <div class="field field-full">
-        <label for="email">Email Address</label>
-        <input pInputText id="email" formControlName="email" readonly
+        <label for="pi-email">Email Address</label>
+        <input pInputText id="pi-email" formControlName="email" readonly
           placeholder="Email address" />
         <small class="field-hint">Your email is the login identifier and cannot
           be changed here.</small>
@@ -63,8 +63,8 @@
 
       <!-- Phone Number -->
       <div class="field">
-        <label for="phone">Phone Number</label>
-        <input pInputText id="phone" formControlName="phone"
+        <label for="pi-phone">Phone Number</label>
+        <input pInputText id="pi-phone" formControlName="phone"
           placeholder="+20 ..." />
         @if (form.controls.phone.invalid && form.controls.phone.touched) {
         <small class="field-error"
@@ -81,9 +81,9 @@
 
       <!-- Military Status -->
       <div class="field">
-        <label for="militaryStatus">Military Status</label>
+        <label for="pi-militaryStatus">Military Status</label>
         <p-select
-          id="militaryStatus"
+          id="pi-militaryStatus"
           formControlName="militaryStatus"
           [options]="militaryStatusOptions"
           optionLabel="label"
@@ -105,8 +105,8 @@
 
       <!-- LinkedIn Profile -->
       <div class="field field-full">
-        <label for="linkedin">LinkedIn Profile</label>
-        <input pInputText id="linkedin" formControlName="linkedin"
+        <label for="pi-linkedin">LinkedIn Profile</label>
+        <input pInputText id="pi-linkedin" formControlName="linkedin"
           placeholder="linkedin.com/in/..." />
         @if (form.controls.linkedin.invalid && form.controls.linkedin.touched) {
         <small class="field-error"

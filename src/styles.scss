@@ -21,9 +21,11 @@
 
   /* Layout constants shared by the console shell, header and sidebar components. */
   --ath-sidebar-width: 264px;
-  --ath-sidebar-collapsed-width: 72px;
+  --ath-sidebar-collapsed-width: 64px;
   --ath-header-height: 64px;
-  --ath-radius: 12px;
+  --ath-radius: 8px;
+  --ath-console-bg: #f9f9f9;
+  --aman-orange: #dc6b2f;
 }
 
 * {

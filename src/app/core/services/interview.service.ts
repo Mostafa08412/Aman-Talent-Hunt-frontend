@@ -1,17 +1,31 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, of, delay } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { Result } from '@core/models/common';
+import { InterviewResult } from '@core/models/enums';
+import {
+  CancelInterviewRequest,
+  InterviewDetailDtoResult,
+  InterviewListItemDtoIReadOnlyListResult,
+  InterviewListItemDtoPagedResultResult,
+  InterviewsQueryParams,
+  RescheduleInterviewRequest,
+  ScheduleInterviewRequest,
+  SubmitInterviewResultRequest,
+  UpdateMeetingLinkRequest,
+} from '@core/models/interview-model';
+import { toHttpParams } from './http-params.util';
 
-// TODO: replace with real interviews API once backend InterviewsController exists —
-// there is no InterviewsController in the .NET API today, so every DTO and method
-// below is a placeholder shape for UI purposes only, not confirmed against a backend
-// contract. Keep the public method signatures the same if possible so
-// interviews-scorecard/ and finalist-selection/ don't need to change when it lands.
+// UI-facing aliases over the backend InterviewResult enum, keeping the
+// Pass/Reject/Pending member names used by the scorecard UI.
+export const ScorecardDecision = {
+  Pass: InterviewResult.Passed,
+  Reject: InterviewResult.Failed,
+  Pending: InterviewResult.PendingFeedback,
+} as const;
 
-export enum ScorecardDecision {
-  Pass = 'Pass',
-  Reject = 'Reject',
-  Pending = 'Pending',
-}
+export type ScorecardDecision = InterviewResult;
 
 export interface InterviewScorecardContext {
   interviewId: string;
@@ -36,39 +50,97 @@ export interface ScoredCandidate {
 
 const SIM_LATENCY = 300;
 
-const MOCK_SCORECARD_CONTEXTS: Record<string, InterviewScorecardContext> = {
-  'interview-2001': {
-    interviewId: 'interview-2001',
-    candidateId: 'cand-501',
-    candidateName: 'Mona Tarek',
-    roundName: 'Technical Round 2',
-    resumeUrl: '/assets/mock/mona-tarek-resume.pdf',
-  },
-};
-
-const MOCK_SCORED_CANDIDATES: Record<string, ScoredCandidate[]> = {
-  'req-1001': [
-    { candidateId: 'cand-501', candidateName: 'Mona Tarek', score: 92, highlights: 'Strong system design; led migration at previous role.' },
-    { candidateId: 'cand-502', candidateName: 'Ali Hassan', score: 84, highlights: 'Solid fundamentals; less production experience.' },
-    { candidateId: 'cand-503', candidateName: 'Farida Samir', score: 78, highlights: 'Great communicator; needs ramp-up on distributed systems.' },
-  ],
-};
-
 @Injectable({ providedIn: 'root' })
 export class InterviewService {
+  private http = inject(HttpClient);
+  private base = environment.apiBase;
+
+  // ── Spec endpoints (/api/interviews) ──────────────────────
+
+  schedule(request: ScheduleInterviewRequest): Observable<InterviewDetailDtoResult> {
+    return this.http.post<InterviewDetailDtoResult>(`${this.base}/api/interviews/schedule`, request);
+  }
+
+  getList(params?: InterviewsQueryParams): Observable<InterviewListItemDtoPagedResultResult> {
+    return this.http.get<InterviewListItemDtoPagedResultResult>(`${this.base}/api/interviews`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
+  }
+
+  getById(id: string): Observable<InterviewDetailDtoResult> {
+    return this.http.get<InterviewDetailDtoResult>(`${this.base}/api/interviews/${id}`);
+  }
+
+  reschedule(id: string, request: RescheduleInterviewRequest): Observable<Result> {
+    return this.http.patch<Result>(`${this.base}/api/interviews/${id}/reschedule`, request);
+  }
+
+  cancel(id: string, request: CancelInterviewRequest): Observable<Result> {
+    return this.http.patch<Result>(`${this.base}/api/interviews/${id}/cancel`, request);
+  }
+
+  updateMeetingLink(id: string, request: UpdateMeetingLinkRequest): Observable<Result> {
+    return this.http.post<Result>(`${this.base}/api/interviews/${id}/meeting-link`, request);
+  }
+
+  submitResult(id: string, request: SubmitInterviewResultRequest): Observable<Result> {
+    return this.http.patch<Result>(`${this.base}/api/interviews/${id}/result`, request);
+  }
+
+  getByScheduledDate(date: string): Observable<InterviewListItemDtoIReadOnlyListResult> {
+    return this.http.get<InterviewListItemDtoIReadOnlyListResult>(
+      `${this.base}/api/interviews/by-scheduled-date`,
+      { params: toHttpParams({ date }) },
+    );
+  }
+
+  getMy(): Observable<InterviewListItemDtoIReadOnlyListResult> {
+    return this.http.get<InterviewListItemDtoIReadOnlyListResult>(`${this.base}/api/interviews/my`);
+  }
+
+  getAdminList(params?: InterviewsQueryParams): Observable<InterviewListItemDtoPagedResultResult> {
+    return this.http.get<InterviewListItemDtoPagedResultResult>(`${this.base}/api/admin/interviews`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
+  }
+
+  // ── Convenience wrappers used by scorecard/finalist pages ─
+
   getScorecardContext(interviewId: string): Observable<InterviewScorecardContext | undefined> {
-    return of(MOCK_SCORECARD_CONTEXTS[interviewId]).pipe(delay(SIM_LATENCY));
+    return this.getById(interviewId).pipe(
+      map((res) => {
+        const dto = res.data;
+        if (!dto) return undefined;
+        return {
+          interviewId: dto.id,
+          candidateId: dto.applicantId,
+          candidateName:
+            [dto.candidateFirstName, dto.candidateLastName].filter(Boolean).join(' ').trim() ||
+            'Unknown candidate',
+          roundName: dto.roundName ?? `Round ${dto.roundNumber}`,
+          resumeUrl: '',
+        };
+      }),
+    );
   }
 
-  submitScorecard(request: SubmitScorecardRequest): Observable<void> {
-    return of(void 0).pipe(delay(SIM_LATENCY));
+  submitScorecard(request: SubmitScorecardRequest): Observable<Result> {
+    return this.submitResult(request.interviewId, {
+      result: request.decision,
+      comment: request.feedback,
+    });
   }
 
+  // TODO: no backend endpoint exists yet for scored candidates / finalist
+  // selection — still mocked. Wire these up when the API lands.
   getScoredCandidates(requisitionId: string): Observable<ScoredCandidate[]> {
-    return of(MOCK_SCORED_CANDIDATES[requisitionId] ?? []).pipe(delay(SIM_LATENCY));
+    void requisitionId;
+    return of([]).pipe(delay(SIM_LATENCY));
   }
 
   selectFinalist(requisitionId: string, candidateId: string): Observable<void> {
+    void requisitionId;
+    void candidateId;
     return of(void 0).pipe(delay(SIM_LATENCY));
   }
 }

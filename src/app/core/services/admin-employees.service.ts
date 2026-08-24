@@ -14,6 +14,7 @@ import {
 import { toHttpParams } from './http-params.util';
 
 export interface AdminEmployeesQueryParams {
+  DepartmentId?: string;
   SquadId?: string;
   PositionRegistryId?: string;
   Page?: number;
@@ -22,7 +23,10 @@ export interface AdminEmployeesQueryParams {
   SortBy?: string;
   SortAscending?: boolean;
 }
-
+export interface AdminEmployeesLookupQueryParams {
+  departing?: boolean;
+  search?: string;
+}
 @Injectable({ providedIn: 'root' })
 export class AdminEmployeesService {
   private http = inject(HttpClient);
@@ -38,8 +42,10 @@ export class AdminEmployeesService {
     return this.http.post<GuidResult>(`${this.base}/api/admin/employees`, request);
   }
 
-  getLookup(): Observable<EmployeeLookupDtoIReadOnlyListResult> {
-    return this.http.get<EmployeeLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/employees/lookup`);
+  getLookup(params?: AdminEmployeesLookupQueryParams): Observable<EmployeeLookupDtoIReadOnlyListResult> {
+    return this.http.get<EmployeeLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/employees/lookup`,  {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
   }
 
   getDeparting(search?: string): Observable<EmployeeListItemDtoIReadOnlyListResult> {

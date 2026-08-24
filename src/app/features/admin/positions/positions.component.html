@@ -1,168 +1,142 @@
-<p-toast />
-<p-confirmDialog />
-
 <div class="page">
-  <!-- ── Header ── -->
+  <!-- Page header -->
   <div class="page-header">
-    <h1>Position Registry Catalogue</h1>
-    <p-button
-      label="Create Position"
-      icon="pi pi-plus"
-      styleClass="create-position-btn"
-      (onClick)="openCreateDialog()"
-    />
+    <div class="page-header-text">
+      <h1>Position Registry</h1>
+      <p>Manage and track all organizational roles.</p>
+    </div>
+    <p-button label="Create Position" icon="pi pi-plus" styleClass="btn-create-position" />
   </div>
 
-  <!-- ── Search Bar ── -->
-  <div class="search-bar">
-    <p-iconfield>
-      <p-inputicon styleClass="pi pi-search" />
-      <input
-        pInputText
-        type="text"
-        placeholder="Search positions..."
-        [(ngModel)]="searchValue"
-        class="search-input"
-      />
-    </p-iconfield>
+  <!-- Data directory -->
+  <div class="directory">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <button class="search-btn" type="button" aria-label="Search" (click)="applyFilters()">
+          <i class="pi pi-search"></i>
+        </button>
+        <input
+          type="text"
+          placeholder="Search by title or reference number..."
+          [(ngModel)]="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
+
+      <div class="filter-actions">
+        <p-select
+          [options]="departments()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Department"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="departmentFilter" />
+        <p-select
+          [options]="statusOptions"
+          placeholder="Status"
+          [showClear]="false"
+          styleClass="filter-select"
+          [(ngModel)]="statusFilter" />
+        <button class="clear-btn" type="button" (click)="clearFilters()">
+          <i class="pi pi-filter-slash"></i> Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" [class.loading]="isLoading()">
+      <div class="table-head grid-row">
+        <span class="col-id">ID</span>
+        <span class="col-title">Position Title</span>
+        <span class="col-level">Level</span>
+        <span class="col-dept">Department</span>
+        <span class="col-jd">JD Ref</span>
+        <span class="col-status">Status</span>
+        <span class="col-created">Created Date</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      @for (position of positions(); track position.id) {
+        <div class="grid-row table-row">
+          <span class="cell-id ref-code">{{ referenceCode(position) }}</span>
+
+          <div class="cell-title">
+            <span class="position-name">{{ position.title || 'Untitled position' }}</span>
+          </div>
+
+          <div class="cell-level">
+            <span
+              class="level-pill"
+              [class]="'level-pill level-' + position.seniorityLevel.toLowerCase()">
+              {{ levelLabel(position.seniorityLevel) }}
+            </span>
+          </div>
+
+          <div class="cell-dept">
+            @if (position.departmentName) {
+              <span class="dept-name">{{ position.departmentName }}</span>
+            } @else {
+              <span class="muted">No department</span>
+            }
+          </div>
+
+          <div class="cell-jd">
+            @if (position.jobDescriptionReferenceNumber) {
+              <span class="ref-code jd-ref">{{ position.jobDescriptionReferenceNumber }}</span>
+            } @else {
+              <span class="muted">—</span>
+            }
+          </div>
+
+          <div class="cell-status">
+            @if (position.isActive) {
+              <span class="status-pill status-active"><span class="dot"></span> Active</span>
+            } @else {
+              <span class="status-pill status-inactive"><span class="dot"></span> Inactive</span>
+            }
+          </div>
+
+          <div class="cell-created muted">
+            {{ position.createdAtUTC | date: 'MMM d, y' }}
+          </div>
+
+          <div class="cell-actions">
+            <button class="row-menu-btn" type="button" aria-label="View position">
+              <i class="pi pi-eye"></i>
+            </button>
+            <button class="row-menu-btn" type="button" aria-label="Edit position">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">No positions found</div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    <div class="table-foot">
+      <span class="foot-info">
+        Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd }}</strong>
+        of <strong>{{ totalFiltered | number }}</strong> entries
+      </span>
+      <div class="pager">
+        <button class="page-btn" type="button" [disabled]="page() <= 1" (click)="previousPage()"
+          aria-label="Previous page">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        @for (p of visiblePages; track p) {
+          <button class="page-btn" type="button" [class.current]="p === page()"
+            (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="page-btn" type="button" [disabled]="page() >= totalPages" (click)="nextPage()"
+          aria-label="Next page">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
   </div>
-
-  <!-- ── Table ── -->
-  <p-table
-    [value]="positions()"
-    [globalFilterFields]="['code', 'title', 'department']"
-    [paginator]="true"
-    [rows]="10"
-    [rowHover]="true"
-    [showGridlines]="false"
-    [stripedRows]="true"
-    styleClass="p-datatable-sm"
-    dataKey="id"
-  >
-    <ng-template #header>
-      <tr>
-        <th pSortableColumn="code" style="width: 8rem">Code <p-sortIcon field="code" /></th>
-        <th pSortableColumn="title">Title <p-sortIcon field="title" /></th>
-        <th pSortableColumn="department">Dept <p-sortIcon field="department" /></th>
-        <th pSortableColumn="approved" style="width: 6rem">Approved <p-sortIcon field="approved" /></th>
-        <th pSortableColumn="filled" style="width: 5rem">Filled <p-sortIcon field="filled" /></th>
-        <th pSortableColumn="vacant" style="width: 5rem">Vacant <p-sortIcon field="vacant" /></th>
-        <th pSortableColumn="status" style="width: 6.5rem">Status <p-sortIcon field="status" /></th>
-        <th style="width: 7rem">Actions</th>
-      </tr>
-    </ng-template>
-
-    <ng-template #body let-pos>
-      <tr>
-        <td><span class="pos-code">{{ pos.code }}</span></td>
-        <td>{{ pos.title }}</td>
-        <td>
-          <p-tag [value]="pos.department" severity="secondary" [rounded]="true" />
-        </td>
-        <td class="num-cell">{{ pos.approved }}</td>
-        <td class="num-cell">{{ pos.filled }}</td>
-        <td class="num-cell">
-          <span [class.vacant-highlight]="pos.vacant > 0">{{ pos.vacant }}</span>
-        </td>
-        <td>
-          <p-tag
-            [value]="pos.status"
-            [severity]="getStatusSeverity(pos.status)"
-            [rounded]="true"
-          />
-        </td>
-        <td>
-          <div class="action-buttons">
-            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEditDialog(pos)" />
-            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="confirmDelete(pos)" />
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="8">
-          <div class="empty-state">
-            <i class="pi pi-id-card"></i>
-            <p>No positions found.</p>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
 </div>
 
-<!-- ── Create / Edit Dialog ── -->
-<p-dialog
-  [header]="dialogMode() === 'create' ? 'Create New Position' : 'Edit Position'"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '500px' }"
-  [draggable]="false"
-  [resizable]="false"
->
-  <div class="dialog-form">
-    <div class="form-row">
-      <div class="form-field">
-        <label for="posCode">Position Code</label>
-        <input pInputText id="posCode" [(ngModel)]="formCode" placeholder="e.g. POS-007" />
-      </div>
-
-      <div class="form-field">
-        <label for="posStatus">Status</label>
-        <p-select
-          id="posStatus"
-          [options]="statusOptions"
-          [(ngModel)]="formStatus"
-          optionLabel="label"
-          optionValue="value"
-          [style]="{ width: '100%' }"
-        />
-      </div>
-    </div>
-
-    <div class="form-field">
-      <label for="posTitle">Title</label>
-      <input pInputText id="posTitle" [(ngModel)]="formTitle" placeholder="e.g. Senior .NET Developer" />
-    </div>
-
-    <div class="form-row">
-      <div class="form-field">
-        <label for="posDept">Department</label>
-        <p-select
-          id="posDept"
-          [options]="departmentOptions"
-          [(ngModel)]="formDepartment"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Select department"
-          [style]="{ width: '100%' }"
-        />
-      </div>
-
-      <div class="form-field">
-        <label for="posApproved">Approved Headcount</label>
-        <p-inputNumber
-          id="posApproved"
-          [(ngModel)]="formApproved"
-          [min]="0"
-          [showButtons]="true"
-          [style]="{ width: '100%' }"
-        />
-      </div>
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <div class="dialog-footer">
-      <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="dialogVisible.set(false)" />
-      <p-button
-        [label]="dialogMode() === 'create' ? 'Create Position' : 'Save Changes'"
-        icon="pi pi-check"
-        (onClick)="savePosition()"
-        [disabled]="!formCode || !formTitle || !formDepartment"
-      />
-    </div>
-  </ng-template>
-</p-dialog>
+<p-toast />

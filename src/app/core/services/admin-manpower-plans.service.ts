@@ -6,7 +6,6 @@ import { GuidResult, Result } from '@core/models/common';
 import { PlanQuarter, PlanStatus } from '@core/models/enums';
 import {
   CreateManPowerPlanRequest,
-  ManPowerPlanListItemDtoIReadOnlyListResult,
   ManPowerPlanListItemDtoPagedResultResult,
   ManPowerPlanLookupDtoIReadOnlyListResult,
   ManPowerPlanResponseResult,
@@ -38,14 +37,11 @@ export class AdminManpowerPlansService {
     });
   }
 
-  getActive(departmentId?: string): Observable<ManPowerPlanListItemDtoIReadOnlyListResult> {
-    return this.http.get<ManPowerPlanListItemDtoIReadOnlyListResult>(`${this.base}/api/admin/manpower-plans/active`, {
-      params: toHttpParams({ departmentId }),
-    });
-  }
-
-  getLookup(): Observable<ManPowerPlanLookupDtoIReadOnlyListResult> {
-    return this.http.get<ManPowerPlanLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/manpower-plans/lookup`);
+  getLookup(positionId?: string): Observable<ManPowerPlanLookupDtoIReadOnlyListResult> {
+    return this.http.get<ManPowerPlanLookupDtoIReadOnlyListResult>(
+      `${this.base}/api/admin/manpower-plans/lookup`,
+      { params: toHttpParams({ positionId }) },
+    );
   }
 
   create(request: CreateManPowerPlanRequest): Observable<GuidResult> {

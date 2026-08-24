@@ -7,6 +7,7 @@ import { EmploymentType, JobPostStatus, JobType, Location, SeniorityLevel } from
 import {
   AdminJobPostDetailDtoResult,
   AdminJobPostListItemDtoPagedResultResult,
+  AssignJobPostRecruiterRequest,
   ConfigureInterviewRoundsRequest,
   ConfigureScreeningQuestionsRequest,
   CreateJobPostRequest,
@@ -45,10 +46,6 @@ export class AdminJobPostsService {
 
   getById(id: string): Observable<AdminJobPostDetailDtoResult> {
     return this.http.get<AdminJobPostDetailDtoResult>(`${this.base}/api/admin/job-posts/${id}`);
-  }
-
-  update(id: string, request: UpdateJobPostConfigRequest): Observable<Result> {
-    return this.http.put<Result>(`${this.base}/api/admin/job-posts/${id}`, request);
   }
 
   createFromRequisition(
@@ -98,5 +95,9 @@ export class AdminJobPostsService {
 
   configureInterviewRounds(id: string, request: ConfigureInterviewRoundsRequest): Observable<Result> {
     return this.http.put<Result>(`${this.base}/api/admin/job-posts/${id}/interview-rounds`, request);
+  }
+
+  assignRecruiter(id: string, request: AssignJobPostRecruiterRequest): Observable<Result> {
+    return this.http.patch<Result>(`${this.base}/api/admin/job-posts/${id}/assign-recruiter`, request);
   }
 }

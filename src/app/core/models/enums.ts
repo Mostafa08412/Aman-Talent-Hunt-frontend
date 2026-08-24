@@ -38,8 +38,15 @@ export enum InterviewFormat {
 
 export enum InterviewStatus {
   Scheduled = 'Scheduled',
-  InProgress = 'InProgress',
-  Finished = 'Finished'
+  Completed = 'Completed',
+  Cancelled = 'Cancelled',
+  Rescheduled = 'Rescheduled'
+}
+
+export enum InterviewResult {
+  PendingFeedback = 'PendingFeedback',
+  Passed = 'Passed',
+  Failed = 'Failed'
 }
 
 export enum JobType {

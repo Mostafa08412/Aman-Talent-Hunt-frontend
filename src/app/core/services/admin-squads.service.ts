@@ -13,14 +13,17 @@ import {
   SquadResponseResult,
   UpdateSquadRequest,
 } from '@core/models/admin-squad-model';
+import { toHttpParams } from './http-params.util';
 
 @Injectable({ providedIn: 'root' })
 export class AdminSquadsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
 
-  getLookup(): Observable<SquadLookupDtoIReadOnlyListResult> {
-    return this.http.get<SquadLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/squads/lookup`);
+  getLookup(departmentId?: string): Observable<SquadLookupDtoIReadOnlyListResult> {
+    return this.http.get<SquadLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/squads/lookup`, {
+      params: toHttpParams({ departmentId }),
+    });
   }
 
   getList(): Observable<SquadListItemDtoIReadOnlyListResult> {
@@ -39,12 +42,8 @@ export class AdminSquadsService {
     return this.http.put<Result>(`${this.base}/api/admin/squads/${id}`, request);
   }
 
-  delete(id: string): Observable<Result> {
-    return this.http.delete<Result>(`${this.base}/api/admin/squads/${id}`);
-  }
-
-  addMember(id: string, request: AddSquadMemberRequest): Observable<SquadResponseResult> {
-    return this.http.post<SquadResponseResult>(`${this.base}/api/admin/squads/${id}/members`, request);
+  addMember(id: string, request: AddSquadMemberRequest): Observable<Result> {
+    return this.http.post<Result>(`${this.base}/api/admin/squads/${id}/members`, request);
   }
 
   removeMember(id: string, employeeId: string): Observable<Result> {
