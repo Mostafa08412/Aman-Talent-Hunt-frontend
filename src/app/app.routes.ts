@@ -247,6 +247,18 @@ export const routes: Routes = [
           import('./features/admin/positions/positions.component').then((m) => m.PositionsComponent),
       },
       {
+        path: 'admin/positions/new',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
+        loadComponent: () =>
+          import('./features/admin/positions/position-add.component').then((m) => m.PositionAddComponent),
+      },
+      {
+        path: 'admin/positions/:id',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
+        loadComponent: () =>
+          import('./features/admin/positions/position-edit.component').then((m) => m.PositionEditComponent),
+      },
+      {
         path: 'admin/employees',
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
         loadComponent: () =>

@@ -1,10 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 import {
   AdminPositionsQueryParams,
@@ -15,11 +17,6 @@ import { PositionRegistryListItemDto } from '../../../core/models/admin-position
 import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
 import { SeniorityLevel } from '../../../core/models/enums';
 
-interface DepartmentOption {
-  label: string;
-  value: string | null;
-}
-
 interface StatusOption {
   label: string;
   value: string | null;
@@ -28,8 +25,16 @@ interface StatusOption {
 @Component({
   selector: 'app-positions',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, ToastModule],
-  providers: [MessageService],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ButtonModule,
+    SelectModule,
+    ToastModule,
+    ConfirmDialogModule,
+  ],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './positions.component.html',
   styleUrl: './positions.component.scss',
 })
@@ -37,11 +42,16 @@ export class PositionsComponent implements OnInit {
   private positionsService = inject(AdminPositionsService);
   private departmentsService = inject(AdminDepartmentsService);
   private messageService = inject(MessageService);
+  private confirmService = inject(ConfirmationService);
+  private router = inject(Router);
 
   positions = signal<PositionRegistryListItemDto[]>([]);
   isLoading = signal(false);
   departments = signal<DepartmentLookupDto[]>([]);
   totalCount = signal(0);
+
+  /** Guards against double-submitting a status change / delete on the same row. */
+  pendingIds = signal<Set<string>>(new Set());
 
   search = '';
   departmentFilter: string | null = null;
@@ -183,5 +193,117 @@ export class PositionsComponent implements OnInit {
       default:
         return level;
     }
+  }
+
+  isPending(id: string): boolean {
+    return this.pendingIds().has(id);
+  }
+
+  private setPending(id: string, pending: boolean): void {
+    this.pendingIds.update((set) => {
+      const next = new Set(set);
+      if (pending) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  /* ── Row actions ── */
+
+  openPosition(position: PositionRegistryListItemDto): void {
+    this.router.navigate(['/console/admin/positions', position.id]);
+  }
+
+  confirmToggleStatus(position: PositionRegistryListItemDto): void {
+    const nextActive = !position.isActive;
+    this.confirmService.confirm({
+      message: nextActive
+        ? `Reactivate position "${position.title}"?`
+        : `Deactivate position "${position.title}"? It will no longer be usable for new hires.`,
+      header: nextActive ? 'Activate Position' : 'Deactivate Position',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: nextActive ? undefined : 'p-button-danger',
+      accept: () => this.toggleStatus(position, nextActive),
+    });
+  }
+
+  private toggleStatus(position: PositionRegistryListItemDto, nextActive: boolean): void {
+    if (this.isPending(position.id)) return;
+    this.setPending(position.id, true);
+
+    this.positionsService.changeStatus(position.id, { isActive: nextActive }).subscribe({
+      next: (res) => {
+        this.setPending(position.id, false);
+        if (!res.isCompletedSuccessfully) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.message || 'Failed to update position status.',
+          });
+          return;
+        }
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Status Updated',
+          detail: `"${position.title}" is now ${nextActive ? 'Active' : 'Inactive'}.`,
+        });
+        this.loadPositions();
+      },
+      error: (err) => {
+        this.setPending(position.id, false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message || 'Failed to update position status.',
+        });
+      },
+    });
+  }
+
+  confirmDelete(position: PositionRegistryListItemDto): void {
+    this.confirmService.confirm({
+      message: `Delete position "${position.title}"? This position will be removed from the registry.`,
+      header: 'Delete Position',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.deletePosition(position),
+    });
+  }
+
+  private deletePosition(position: PositionRegistryListItemDto): void {
+    if (this.isPending(position.id)) return;
+    this.setPending(position.id, true);
+
+    this.positionsService.delete(position.id).subscribe({
+      next: (res) => {
+        this.setPending(position.id, false);
+        if (!res.isCompletedSuccessfully) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.message || 'Failed to delete position.',
+          });
+          return;
+        }
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Deleted',
+          detail: `Position "${position.title}" removed.`,
+        });
+        // Step back a page if this was the last row on the current page.
+        if (this.positions().length === 1 && this.page() > 1) {
+          this.page.update((p) => p - 1);
+        }
+        this.loadPositions();
+      },
+      error: (err) => {
+        this.setPending(position.id, false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message || 'Failed to delete position.',
+        });
+      },
+    });
   }
 }

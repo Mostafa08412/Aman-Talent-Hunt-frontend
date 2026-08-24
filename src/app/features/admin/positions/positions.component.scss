@@ -142,17 +142,17 @@
 
 .grid-row {
   display: grid;
-  grid-template-columns: 0.9fr 1.5fr 1fr 1.1fr 0.9fr 0.9fr 1fr 76px;
+  grid-template-columns: 0.9fr 1.5fr 1fr 1.1fr 0.9fr 0.9fr 1fr 104px;
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
 
   @media (max-width: 900px) {
-    grid-template-columns: 1fr 1.6fr 1.1fr 1fr 76px;
+    grid-template-columns: 1fr 1.6fr 1.1fr 1fr 104px;
   }
 
   @media (max-width: 640px) {
-    grid-template-columns: 1.6fr 1.1fr 76px;
+    grid-template-columns: 1.6fr 1.1fr 104px;
   }
 }
 
@@ -171,6 +171,7 @@
 
 .table-row {
   border-top: 1px solid var(--p-surface-100);
+  cursor: pointer;
   transition: background-color 0.15s ease;
 
   &:hover {
@@ -246,9 +247,22 @@
   color: var(--ath-teal);
 }
 
+.cell-dept {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
 .dept-name {
   font-weight: 600;
   color: var(--ath-teal);
+}
+
+.dept-ref {
+  font-family: monospace;
+  font-size: 0.6875rem;
+  color: var(--p-surface-400);
 }
 
 .jd-ref {
@@ -313,6 +327,16 @@
     background: var(--p-surface-200);
     color: var(--ath-teal);
   }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.row-menu-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
 }
 
 .cell-actions {

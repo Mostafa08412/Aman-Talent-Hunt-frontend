@@ -62,64 +62,25 @@
       <div class="card-section">
         <h2><i class="pi pi-file-edit section-icon"></i> Job Description</h2>
         <p class="section-lead">
-          Search and link an existing verified Job Description (JD) from the
-          corporate library.
+          Link an existing Approved Job Description (JD) from the corporate
+          library.
         </p>
 
-        @if (selectedJd(); as jd) {
-        <!-- Selected JD card -->
-        <div class="jd-selected-card">
-          <div class="jd-selected-info">
-            <span class="jd-selected-label">Selected Job Description</span>
-            <span class="jd-selected-title">{{ truncate(jd.summary, 90) }}</span>
-            <span class="jd-selected-meta">{{ jd.employmentType }} · {{ jd.status }}</span>
-          </div>
-          <button class="jd-clear-btn" type="button" title="Remove JD"
-            aria-label="Remove selected job description"
-            (click)="clearJd()">
-            <i class="pi pi-times"></i>
-          </button>
-        </div>
-        } @else {
-        <!-- JD search with suggestions -->
-        <div class="jd-picker">
-          <div class="jd-search-box">
-            <i class="pi pi-search"></i>
-            <input type="text" placeholder="Search by JD summary or keywords..."
-              aria-label="Search job descriptions"
-              (input)="onJdSearchInput($any($event.target).value)"
-              (focus)="onJdFocus()" />
-            @if (jdSearching()) {
-            <i class="pi pi-spin pi-spinner"></i>
-            }
-          </div>
-
-          @if (jdPanelOpen() && jdSuggestions().length > 0) {
-          <div class="jd-suggestions">
-            @for (jd of jdSuggestions(); track jd.id) {
-            <button type="button" class="jd-suggestion"
-              (click)="selectJd(jd)">
-              <div>
-                <div class="jd-suggestion-title">{{ truncate(jd.summary, 60) }}</div>
-                <div class="jd-suggestion-meta">{{ jd.employmentType }} · {{ jd.status }}</div>
-              </div>
-              <i class="pi pi-arrow-right"></i>
-            </button>
-            }
-          </div>
-          } @else if (jdPanelOpen() && !jdSearching()) {
-          <div class="jd-suggestions">
-            <div class="jd-empty">No approved job descriptions match your
-              search.</div>
-          </div>
+        <div class="form-field">
+          <label for="pos-add-jobDescriptionId">Job Description <span class="req">*</span></label>
+          <p-select inputId="pos-add-jobDescriptionId"
+            [options]="jobDescriptions()" optionLabel="title" optionValue="id"
+            [filter]="true" filterPlaceholder="Search job descriptions..."
+            [loading]="jdLoading()"
+            placeholder="Select an approved job description..."
+            styleClass="field-select" formControlName="jobDescriptionId" />
+          @if (form.controls.jobDescriptionId.invalid &&
+          form.controls.jobDescriptionId.touched) {
+          <small class="field-error">Job description is required</small>
           }
+          <small class="field-hint">Only Approved job descriptions from the
+            corporate library are listed.</small>
         </div>
-
-        <div class="jd-hint">
-          <i class="pi pi-info-circle"></i>
-          Only approved job descriptions from the corporate library are listed.
-        </div>
-        }
       </div>
     </section>
 

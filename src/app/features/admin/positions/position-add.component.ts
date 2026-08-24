@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -10,13 +10,12 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { AdminPositionsService } from '../../../core/services/admin-positions.service';
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { AdminJobDescriptionsService } from '../../../core/services/admin-job-descriptions.service';
 import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
-import { JobDescriptionListItemDto } from '../../../core/models/admin-job-description-model';
+import { JobDescriptionLookupDto } from '../../../core/models/admin-job-description-model';
 import { SeniorityLevel, JobDescriptionStatus } from '../../../core/models/enums';
 
 interface SeniorityOption {
@@ -50,11 +49,9 @@ export class PositionAddComponent implements OnInit {
   departments = signal<DepartmentLookupDto[]>([]);
   isSubmitting = false;
 
-  /* JD picker — suggestions come from the corporate JD library (approved only). */
-  jdSuggestions = signal<JobDescriptionListItemDto[]>([]);
-  jdSearching = signal(false);
-  jdPanelOpen = signal(false);
-  selectedJd = signal<JobDescriptionListItemDto | null>(null);
+  /* Only Approved job descriptions may be linked to a new position. */
+  jobDescriptions = signal<JobDescriptionLookupDto[]>([]);
+  jdLoading = signal(false);
 
   readonly seniorityOptions: SeniorityOption[] = [
     { label: 'Intern', value: SeniorityLevel.Intern },
@@ -70,78 +67,27 @@ export class PositionAddComponent implements OnInit {
     jobDescriptionId: ['', Validators.required],
   });
 
-  private readonly jdSearchTerm$ = new Subject<string>();
-
   ngOnInit(): void {
     this.departmentsService.getLookup().subscribe({
       next: (res) => this.departments.set(res.data ?? []),
       error: () => this.departments.set([]),
     });
 
-    this.jdSearchTerm$
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((term) => this.searchJd(term));
+    this.loadJobDescriptions();
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.jd-picker')) this.jdPanelOpen.set(false);
-  }
-
-  /* ── JD picker ── */
-
-  onJdSearchInput(value: string): void {
-    this.jdSearchTerm$.next(value.trim());
-  }
-
-  onJdFocus(): void {
-    if (this.jdSuggestions().length) this.jdPanelOpen.set(true);
-  }
-
-  searchJd(term: string): void {
-    if (!term) {
-      this.jdSuggestions.set([]);
-      this.jdPanelOpen.set(false);
-      return;
-    }
-    this.jdSearching.set(true);
-    this.jobDescriptionsService
-      .getList({
-        Status: JobDescriptionStatus.Approved,
-        Search: term,
-        PageSize: 8,
-      })
-      .subscribe({
-        next: (res) => {
-          this.jdSuggestions.set(res.data?.items ?? []);
-          this.jdPanelOpen.set(true);
-          this.jdSearching.set(false);
-        },
-        error: () => {
-          this.jdSuggestions.set([]);
-          this.jdSearching.set(false);
-        },
-      });
-  }
-
-  selectJd(jd: JobDescriptionListItemDto): void {
-    this.selectedJd.set(jd);
-    this.form.controls.jobDescriptionId.setValue(jd.id);
-    this.jdPanelOpen.set(false);
-    if (!this.form.controls.title.value) {
-      this.form.controls.title.setValue((jd.summary ?? '').trim());
-    }
-  }
-
-  clearJd(): void {
-    this.selectedJd.set(null);
-    this.form.controls.jobDescriptionId.reset();
-  }
-
-  truncate(text: string | null, max = 70): string {
-    if (!text) return '';
-    return text.length > max ? text.slice(0, max) + '…' : text;
+  private loadJobDescriptions(): void {
+    this.jdLoading.set(true);
+    this.jobDescriptionsService.getLookup(JobDescriptionStatus.Approved).subscribe({
+      next: (res) => {
+        this.jobDescriptions.set(res.data ?? []);
+        this.jdLoading.set(false);
+      },
+      error: () => {
+        this.jobDescriptions.set([]);
+        this.jdLoading.set(false);
+      },
+    });
   }
 
   /* ── Submit ── */
@@ -163,8 +109,16 @@ export class PositionAddComponent implements OnInit {
         seniorityLevel: value.seniorityLevel as SeniorityLevel,
       })
       .subscribe({
-        next: () => {
+        next: (res) => {
           this.isSubmitting = false;
+          if (!res.isCompletedSuccessfully) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: res.message || 'Failed to create position.',
+            });
+            return;
+          }
           this.messageService.add({
             severity: 'success',
             summary: 'Created',
@@ -172,12 +126,12 @@ export class PositionAddComponent implements OnInit {
           });
           this.router.navigate(['/console/admin/positions']);
         },
-        error: () => {
+        error: (err) => {
           this.isSubmitting = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to create position.',
+            detail: err?.error?.message || 'Failed to create position.',
           });
         },
       });
