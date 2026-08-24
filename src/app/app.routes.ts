@@ -241,6 +241,14 @@ export const routes: Routes = [
           import('./features/admin/squads/squads.component').then((m) => m.SquadsComponent),
       },
       {
+        path: 'admin/squads/:id',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/squads/squad-detail.component').then(
+            (m) => m.SquadDetailComponent,
+          ),
+      },
+      {
         path: 'admin/positions',
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin, Role.HRManager])],
         loadComponent: () =>

@@ -1,172 +1,89 @@
-/* ── Squads & Department Mapping (ADM-02) ── */
-
-.squads-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 1.25rem;
+.page {
+  padding: 1.5rem;
+  max-width: 80rem;
+  margin: 0 auto;
 }
 
-/* ── Card header ── */
-.squad-card-header {
-  padding: 1rem 1.25rem 0.5rem;
-}
-
-.squad-title-row {
+.page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
 }
 
-.squad-name {
-  font-size: 1.05rem;
-  font-weight: 700;
+.page-subtitle {
   margin: 0;
-  color: var(--p-surface-800);
-}
-
-.squad-actions {
-  display: flex;
-  gap: 0;
-}
-
-.squad-departments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.5rem;
-}
-
-/* ── Members table ── */
-.leader-row {
-  background: var(--p-primary-50) !important;
-}
-
-.member-name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.leader-icon {
-  color: #f59e0b;
+  color: var(--p-surface-500);
   font-size: 0.9rem;
 }
 
-.member-role {
-  font-size: 0.85rem;
-  color: var(--p-surface-500);
+.toolbar {
+  margin-bottom: 1rem;
 }
 
-.empty-squad {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem;
-  color: var(--p-surface-400);
-
-  i {
-    font-size: 1.5rem;
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.85rem;
-  }
-}
-
-/* ── Dialog ── */
-.dialog-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.15rem;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-
-  label {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--p-surface-600);
-  }
+.search-field {
+  width: 100%;
+  max-width: 22rem;
 
   input {
     width: 100%;
   }
 }
 
-.dialog-footer {
+.clickable-row {
+  cursor: pointer;
+}
+
+.name-cell {
+  font-weight: 600;
+}
+
+.desc-cell {
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--p-surface-500);
+}
+
+.ref-chip {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  color: var(--p-surface-500);
+}
+
+.empty-cell {
+  text-align: center;
+  padding: 2rem;
+  color: var(--p-surface-400);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+  }
+}
+
+.dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-}
-
-.member-dialog-subtitle {
-  margin: 0;
-  color: var(--p-surface-500);
-  font-size: 0.88rem;
-}
-
-/* ── Member chips (inside dialog) ── */
-.current-members {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-
-  label {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--p-surface-600);
-  }
-}
-
-.member-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.member-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  background: var(--p-surface-100);
-  color: var(--p-surface-700);
-  transition: background 0.15s ease;
-
-  &.is-leader {
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    color: #92400e;
-
-    .pi-crown {
-      font-size: 0.7rem;
-    }
-  }
-
-  .remove-btn {
-    font-size: 0.65rem;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: opacity 0.15s;
-
-    &:hover {
-      opacity: 1;
-      color: #ef4444;
-    }
-  }
-}
-
-/* ── Responsive ── */
-@media (max-width: 480px) {
-  .squads-grid {
-    grid-template-columns: 1fr;
-  }
 }
