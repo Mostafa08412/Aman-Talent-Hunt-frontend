@@ -5,7 +5,11 @@
       <h1>Position Registry</h1>
       <p>Manage and track all organizational roles.</p>
     </div>
-    <p-button label="Create Position" icon="pi pi-plus" styleClass="btn-create-position" />
+    <p-button
+      label="Create Position"
+      icon="pi pi-plus"
+      styleClass="btn-create-position"
+      routerLink="/console/admin/positions/new" />
   </div>
 
   <!-- Data directory -->
@@ -58,7 +62,7 @@
       </div>
 
       @for (position of positions(); track position.id) {
-        <div class="grid-row table-row">
+        <div class="grid-row table-row" (click)="openPosition(position)">
           <span class="cell-id ref-code">{{ referenceCode(position) }}</span>
 
           <div class="cell-title">
@@ -76,6 +80,9 @@
           <div class="cell-dept">
             @if (position.departmentName) {
               <span class="dept-name">{{ position.departmentName }}</span>
+              @if (position.departmentReferenceNumber) {
+                <span class="dept-ref">{{ position.departmentReferenceNumber }}</span>
+              }
             } @else {
               <span class="muted">No department</span>
             }
@@ -101,17 +108,40 @@
             {{ position.createdAtUTC | date: 'MMM d, y' }}
           </div>
 
-          <div class="cell-actions">
-            <button class="row-menu-btn" type="button" aria-label="View position">
+          <div class="cell-actions" (click)="$event.stopPropagation()">
+            <button
+              class="row-menu-btn"
+              type="button"
+              aria-label="View position"
+              (click)="openPosition(position)">
               <i class="pi pi-eye"></i>
             </button>
-            <button class="row-menu-btn" type="button" aria-label="Edit position">
-              <i class="pi pi-pencil"></i>
+            <button
+              class="row-menu-btn"
+              type="button"
+              [attr.aria-label]="position.isActive ? 'Deactivate position' : 'Activate position'"
+              [disabled]="isPending(position.id)"
+              (click)="confirmToggleStatus(position)">
+              <i class="pi" [class.pi-ban]="position.isActive" [class.pi-check-circle]="!position.isActive"></i>
+            </button>
+            <button
+              class="row-menu-btn row-menu-btn-danger"
+              type="button"
+              aria-label="Delete position"
+              [disabled]="isPending(position.id)"
+              (click)="confirmDelete(position)">
+              <i class="pi pi-trash"></i>
             </button>
           </div>
         </div>
       } @empty {
-        <div class="empty-state">No positions found</div>
+        <div class="empty-state">
+          @if (isLoading()) {
+            Loading positions…
+          } @else {
+            No positions found
+          }
+        </div>
       }
     </div>
 
@@ -140,3 +170,4 @@
 </div>
 
 <p-toast />
+<p-confirmDialog />

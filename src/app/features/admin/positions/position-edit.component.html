@@ -1,0 +1,205 @@
+<div class="page">
+  <!-- Page header with breadcrumb -->
+  <div class="page-header">
+    <div>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a routerLink="/console/admin/positions">Positions</a>
+        <span class="divider">/</span>
+        <span class="current">Position Detail</span>
+      </nav>
+      <h1>{{ position()?.title || 'Position Detail' }}</h1>
+    </div>
+    @if (!isLoading() && !loadFailed()) {
+    <div class="header-actions">
+      <p-button
+        label="Back"
+        styleClass="btn-back"
+        [text]="true"
+        severity="secondary"
+        (onClick)="back()" />
+
+      @if (isEditing()) {
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        styleClass="btn-edit-toggle"
+        (onClick)="toggleEdit()" />
+      <p-button
+        label="Save Changes"
+        icon="pi pi-check"
+        styleClass="btn-save"
+        [loading]="isSaving()"
+        (onClick)="save()" />
+      } @else {
+      <p-button
+        [label]="position()?.isActive ? 'Deactivate' : 'Activate'"
+        [icon]="position()?.isActive ? 'pi pi-ban' : 'pi pi-check-circle'"
+        styleClass="btn-status-toggle"
+        [loading]="isStatusPending()"
+        (onClick)="confirmToggleStatus()" />
+      <p-button
+        label="Delete"
+        icon="pi pi-trash"
+        styleClass="btn-delete"
+        [loading]="isDeleting()"
+        (onClick)="confirmDelete()" />
+      <p-button
+        label="Edit"
+        icon="pi pi-pencil"
+        styleClass="btn-edit-toggle"
+        (onClick)="toggleEdit()" />
+      }
+    </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+  <div class="loading-state">Loading position...</div>
+  } @else if (loadFailed() || !position()) {
+  <div class="error-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <p>This position could not be found or failed to load.</p>
+    <p-button label="Back to Positions" (onClick)="back()" />
+  </div>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div class="content-grid">
+      <!-- Left column -->
+      <div class="left-column">
+        <!-- Position Identity -->
+        <section class="form-card">
+          <h2><i class="pi pi-id-card section-icon"></i> Position Identity</h2>
+          <div class="fields-grid">
+            <div class="form-field">
+              <label for="pos-edit-title">Position Title</label>
+              <input pInputText id="pos-edit-title" formControlName="title"
+                placeholder="Enter position title" />
+              @if (isEditing() && form.controls.title.invalid && form.controls.title.touched) {
+              <small class="field-error">Position title is required</small>
+              }
+            </div>
+          </div>
+          <div class="fields-grid two-cols">
+            <div class="form-field">
+              <label for="pos-edit-departmentId">Department</label>
+              <p-select
+                inputId="pos-edit-departmentId"
+                [options]="departments()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select department"
+                styleClass="field-select"
+                formControlName="departmentId" />
+              @if (isEditing() && form.controls.departmentId.invalid && form.controls.departmentId.touched) {
+              <small class="field-error">Department is required</small>
+              }
+            </div>
+            <div class="form-field">
+              <label for="pos-edit-seniorityLevel">Seniority Level</label>
+              <p-select
+                inputId="pos-edit-seniorityLevel"
+                [options]="seniorityOptions"
+                placeholder="Select seniority"
+                styleClass="field-select"
+                formControlName="seniorityLevel" />
+              @if (isEditing() && form.controls.seniorityLevel.invalid && form.controls.seniorityLevel.touched) {
+              <small class="field-error">Seniority level is required</small>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Job Description -->
+        <section class="form-card">
+          <h2><i class="pi pi-file-edit section-icon"></i> Job Description</h2>
+          <div class="fields-grid">
+            <div class="form-field">
+              <label for="pos-edit-jobDescriptionId">Linked Job Description</label>
+              <p-select
+                inputId="pos-edit-jobDescriptionId"
+                [options]="jobDescriptions()"
+                optionLabel="title"
+                optionValue="id"
+                [filter]="true"
+                filterPlaceholder="Search job descriptions..."
+                placeholder="Select an approved job description"
+                styleClass="field-select"
+                formControlName="jobDescriptionId" />
+              @if (isEditing() && form.controls.jobDescriptionId.invalid && form.controls.jobDescriptionId.touched) {
+              <small class="field-error">Job description is required</small>
+              }
+              <small class="field-hint">Only Approved job descriptions are listed.</small>
+            </div>
+          </div>
+
+          @if (position()?.jobDescription; as jd) {
+          <div class="jd-summary-card">
+            <div class="jd-summary-row">
+              <span class="jd-summary-label">Reference</span>
+              <span class="ref-code">{{ jd.referenceNumber || '—' }}</span>
+            </div>
+            <div class="jd-summary-row">
+              <span class="jd-summary-label">Title</span>
+              <span>{{ jd.title || '—' }}</span>
+            </div>
+            <div class="jd-summary-row">
+              <span class="jd-summary-label">Employment Type</span>
+              <span>{{ jd.employmentType }}</span>
+            </div>
+            <div class="jd-summary-row">
+              <span class="jd-summary-label">Status</span>
+              <span>{{ jd.status }}</span>
+            </div>
+            @if (jd.summary) {
+            <p class="jd-summary-text">{{ jd.summary }}</p>
+            }
+          </div>
+          } @else {
+          <p class="muted">No job description details available.</p>
+          }
+        </section>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-column">
+        <section class="stats-card">
+          <h2><i class="pi pi-chart-bar section-icon"></i> Overview</h2>
+          <div class="stat-row">
+            <span class="stat-label">Reference</span>
+            <span class="ref-code">{{ position()?.referenceNumber || '—' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Status</span>
+            @if (position()?.isActive) {
+              <span class="status-pill status-active"><span class="dot"></span> Active</span>
+            } @else {
+              <span class="status-pill status-inactive"><span class="dot"></span> Inactive</span>
+            }
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Seniority</span>
+            <span class="level-pill" [class]="'level-pill level-' + (position()?.seniorityLevel || '').toLowerCase()">
+              {{ levelLabel(position()!.seniorityLevel) }}
+            </span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Created At</span>
+            <span>{{ position()?.createdAtUTC | date: 'MMM d, y' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Department</span>
+            <span class="dept-name">{{ position()?.departmentName || '—' }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Employee Count</span>
+            <span class="employee-count">{{ position()?.employeeCount ?? 0 }}</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </form>
+  }
+</div>
+
+<p-toast />
+<p-confirmDialog />
