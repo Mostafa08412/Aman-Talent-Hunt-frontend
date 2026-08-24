@@ -1,19 +1,18 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
+import { Router } from '@angular/router';
+import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
+import { TextareaModule } from 'primeng/textarea';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TooltipModule } from 'primeng/tooltip';
-import { MessageService, ConfirmationService } from 'primeng/api';
-
-import { AdminService } from '../../../core/services/admin.service';
-import { Squad, SquadMember } from '../../../core/models/admin.models';
+import { MessageService } from 'primeng/api';
+import { AdminSquadsService } from '@core/services/admin-squads.service';
+import { SquadListItemDto } from '@core/models/admin-squad-model';
 
 @Component({
   selector: 'app-squads',
@@ -21,142 +20,103 @@ import { Squad, SquadMember } from '../../../core/models/admin.models';
   imports: [
     CommonModule,
     FormsModule,
-    CardModule,
+    TableModule,
     ButtonModule,
-    TagModule,
     DialogModule,
     InputTextModule,
-    TableModule,
+    TextareaModule,
+    IconFieldModule,
+    InputIconModule,
     ToastModule,
-    ConfirmDialogModule,
-    TooltipModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [MessageService],
   templateUrl: './squads.component.html',
   styleUrl: './squads.component.scss',
 })
 export class SquadsComponent implements OnInit {
-  private adminService = inject(AdminService);
-  private messageService = inject(MessageService);
-  private confirmService = inject(ConfirmationService);
+  private squadsService = inject(AdminSquadsService);
+  private router = inject(Router);
+  private message = inject(MessageService);
 
-  squads = this.adminService.squads;
+  isLoading = signal(true);
+  squads = signal<SquadListItemDto[]>([]);
+  searchTerm = signal('');
 
-  /* Dialog state */
-  dialogVisible = signal(false);
-  dialogMode = signal<'create' | 'edit'>('create');
+  filteredSquads = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) return this.squads();
+    return this.squads().filter((s) => (s.name ?? '').toLowerCase().includes(term));
+  });
 
-  formName = '';
-  formDepartments = '';
-  editingSquadId: string | null = null;
-
-  /* Member management */
-  memberDialogVisible = signal(false);
-  selectedSquad = signal<Squad | null>(null);
-  newMemberName = '';
-  newMemberRole = '';
+  createDialogVisible = signal(false);
+  isCreating = signal(false);
+  newName = signal('');
+  newDescription = signal('');
 
   ngOnInit(): void {
-    this.adminService.loadSquads();
+    this.load();
   }
 
-  /* ── Squad CRUD ── */
-
-  openCreateDialog(): void {
-    this.dialogMode.set('create');
-    this.formName = '';
-    this.formDepartments = '';
-    this.editingSquadId = null;
-    this.dialogVisible.set(true);
-  }
-
-  openEditDialog(squad: Squad): void {
-    this.dialogMode.set('edit');
-    this.formName = squad.name;
-    this.formDepartments = squad.departments.join(', ');
-    this.editingSquadId = squad.id;
-    this.dialogVisible.set(true);
-  }
-
-  saveSquad(): void {
-    const depts = this.formDepartments.split(',').map((d) => d.trim()).filter(Boolean);
-
-    if (this.dialogMode() === 'create') {
-      this.adminService.createSquad({
-        name: this.formName,
-        departments: depts,
-        memberIds: [],
-        leaderId: '',
-      }).subscribe(() => {
-        this.messageService.add({ severity: 'success', summary: 'Created', detail: `Squad "${this.formName}" created.` });
-        this.dialogVisible.set(false);
-      });
-    } else {
-      this.adminService.updateSquad(this.editingSquadId!, {
-        name: this.formName,
-        departments: depts,
-      }).subscribe(() => {
-        this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Squad updated.' });
-        this.dialogVisible.set(false);
-      });
-    }
-  }
-
-  confirmDeleteSquad(squad: Squad): void {
-    this.confirmService.confirm({
-      message: `Delete squad "${squad.name}"? All member assignments will be removed.`,
-      header: 'Delete Squad',
-      icon: 'pi pi-exclamation-triangle',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.adminService.deleteSquad(squad.id).subscribe(() => {
-          this.messageService.add({ severity: 'warn', summary: 'Deleted', detail: `Squad "${squad.name}" removed.` });
+  private load(): void {
+    this.isLoading.set(true);
+    this.squadsService.getList().subscribe({
+      next: (result) => {
+        this.squads.set(result.data ?? []);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.message.add({
+          severity: 'error',
+          summary: 'Could not load squads',
+          detail: 'Please try again in a moment.',
         });
       },
     });
   }
 
-  /* ── Member helpers ── */
-
-  openMemberDialog(squad: Squad): void {
-    this.selectedSquad.set(squad);
-    this.newMemberName = '';
-    this.newMemberRole = '';
-    this.memberDialogVisible.set(true);
+  openCreateDialog(): void {
+    this.newName.set('');
+    this.newDescription.set('');
+    this.createDialogVisible.set(true);
   }
 
-  addMember(): void {
-    const squad = this.selectedSquad();
-    if (!squad) return;
-
-    const newMember: SquadMember = {
-      id: `m${Date.now()}`,
-      fullName: this.newMemberName,
-      role: this.newMemberRole,
-      isLeader: false,
-    };
-
-    this.adminService.updateSquad(squad.id, {
-      members: [...squad.members, newMember],
-    }).subscribe(() => {
-      this.messageService.add({ severity: 'success', summary: 'Added', detail: `${this.newMemberName} added to ${squad.name}.` });
-      this.newMemberName = '';
-      this.newMemberRole = '';
-      /* Refresh the selectedSquad reference */
-      this.selectedSquad.set(this.squads().find((s) => s.id === squad.id) ?? null);
+  createSquad(): void {
+    const name = this.newName().trim();
+    if (!name) {
+      this.message.add({ severity: 'warn', summary: 'Name required', detail: 'Please enter a squad name.' });
+      return;
+    }
+    this.isCreating.set(true);
+    this.squadsService.create({ name, description: this.newDescription().trim() || null }).subscribe({
+      next: () => {
+        this.isCreating.set(false);
+        this.createDialogVisible.set(false);
+        this.message.add({ severity: 'success', summary: 'Squad created', detail: `"${name}" has been created.` });
+        this.load();
+      },
+      error: () => {
+        this.isCreating.set(false);
+        this.message.add({
+          severity: 'error',
+          summary: 'Could not create squad',
+          detail: 'Please try again.',
+        });
+      },
     });
   }
 
-  removeMember(squad: Squad, member: SquadMember): void {
-    this.adminService.updateSquad(squad.id, {
-      members: squad.members.filter((m) => m.id !== member.id),
-    }).subscribe(() => {
-      this.messageService.add({ severity: 'warn', summary: 'Removed', detail: `${member.fullName} removed from ${squad.name}.` });
-      this.selectedSquad.set(this.squads().find((s) => s.id === squad.id) ?? null);
-    });
+  openSquad(squad: SquadListItemDto): void {
+    this.router.navigate(['/console/admin/squads', squad.id]);
   }
 
-  getLeader(squad: Squad): SquadMember | undefined {
-    return squad.members.find((m) => m.isLeader);
+  formatDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  shortRef(id: string): string {
+    return id.slice(0, 8);
   }
 }
