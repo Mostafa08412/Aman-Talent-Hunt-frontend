@@ -7,6 +7,8 @@ import { AvatarModule } from 'primeng/avatar';
 import { DrawerModule } from 'primeng/drawer';
 import { MenuItem } from 'primeng/api';
 import { AuthService } from '../../core/services/auth.service';
+import { Roles } from '@core/models';
+import { Role } from '@core/models/role.model';
 
 @Component({
   selector: 'app-public-header',
@@ -31,9 +33,12 @@ export class PublicHeaderComponent {
       .map((p) => p[0]?.toUpperCase())
       .join('');
   });
+  isUserCandidate: boolean = this.auth.hasRole(Role.Candidate);
+
+  profileRoute: string = this.isUserCandidate ? `/account` : `/console/profile`;
 
   userMenuItems: MenuItem[] = [
-    { label: 'Profile', icon: 'pi pi-user', command: () => this.router.navigate(['/account']) },
+    { label: 'Profile', icon: 'pi pi-user', command: () => this.router.navigate([this.profileRoute]) },
     { separator: true },
     { label: 'Logout', icon: 'pi pi-sign-out', command: () => this.auth.logout() },
   ];
