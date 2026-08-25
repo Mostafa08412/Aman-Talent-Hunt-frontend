@@ -17,18 +17,6 @@ export type ManPowerPlanListItemDtoPagedResult = PagedResult<ManPowerPlanListIte
 export type ManPowerPlanListItemDtoPagedResultResult = ResultWithData<ManPowerPlanListItemDtoPagedResult>;
 export type ManPowerPlanListItemDtoIReadOnlyListResult = ResultWithData<ManPowerPlanListItemDto[]>;
 
-export interface ManPowerPlanLookupDto {
-  id: string;
-  referenceNumber: string | null;
-  positionTitle: string | null;
-  targetHeadcount: number;
-  remainingHeadcount: number;
-  quarter: PlanQuarter;
-  fiscalYear: number;
-}
-
-export type ManPowerPlanLookupDtoIReadOnlyListResult = ResultWithData<ManPowerPlanLookupDto[]>;
-
 export interface ManPowerPlanResponse {
   id: string;
   referenceNumber: string | null;

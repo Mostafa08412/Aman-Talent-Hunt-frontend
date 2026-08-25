@@ -60,9 +60,11 @@ export interface AdminJobPostDetailDto {
   requisitionReferenceNumber: string | null;
   positionId: string;
   positionReferenceNumber: string | null;
+  departmentName: string | null;
   jobDescriptionId: string;
   ownerEmployeeId: string | null;
   ownerEmployeeReferenceNumber: string | null;
+  ownerEmployeeName: string | null;
   description: string | null;
   requirements: string | null;
   qualifications: string | null;

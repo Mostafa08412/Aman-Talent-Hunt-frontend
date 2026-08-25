@@ -20,15 +20,6 @@ export type PositionRegistryListItemDtoListResult = ResultWithData<PositionRegis
 export type PositionRegistryListItemDtoPagedResult = PagedResult<PositionRegistryListItemDto>;
 export type PositionRegistryListItemDtoPagedResultResult = ResultWithData<PositionRegistryListItemDtoPagedResult>;
 
-export interface PositionRegistryLookupDto {
-  id: string;
-  referenceNumber: string | null;
-  title: string | null;
-  seniorityLevel: SeniorityLevel;
-}
-
-export type PositionRegistryLookupDtoIReadOnlyListResult = ResultWithData<PositionRegistryLookupDto[]>;
-
 export interface PositionRegistryResponse {
   id: string;
   jobDescriptionReferenceNumber: string | null;

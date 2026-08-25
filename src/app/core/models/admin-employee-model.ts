@@ -20,15 +20,6 @@ export type EmployeeListItemDtoPagedResult = PagedResult<EmployeeListItemDto>;
 export type EmployeeListItemDtoPagedResultResult = ResultWithData<EmployeeListItemDtoPagedResult>;
 export type EmployeeListItemDtoIReadOnlyListResult = ResultWithData<EmployeeListItemDto[]>;
 
-export interface EmployeeLookupDto {
-  id: string;
-  referenceNumber: string | null;
-  fullName: string | null;
-  jobTitle: string | null;
-}
-
-export type EmployeeLookupDtoIReadOnlyListResult = ResultWithData<EmployeeLookupDto[]>;
-
 export interface EmployeeResponse {
   id: string;
   positionReferenceNumber: string | null;
