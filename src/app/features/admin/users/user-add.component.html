@@ -3,34 +3,49 @@
   <div class="page-header">
     <div>
       <nav aria-label="Breadcrumb" class="breadcrumb">
-        <a routerLink="/console/admin/users">Users</a>
-        <span class="divider">/</span>
-        <span class="current">Add User</span>
+        <ol>
+          <li>
+            <a routerLink="/console/admin/users">Users</a>
+          </li>
+          <li class="divider" aria-hidden="true">/</li>
+          <li class="current" aria-current="page">Add User</li>
+        </ol>
       </nav>
-      <h1>Create a user</h1>
+      <h1>Add User</h1>
     </div>
-    <p-button
-      label="Create a User"
-      icon="pi pi-save"
-      styleClass="btn-create"
-      [loading]="isSubmitting()"
-      (onClick)="submit()" />
+    <div class="header-actions">
+      <p-button
+        label="Create a User"
+        icon="pi pi-save"
+        styleClass="btn-create"
+        [loading]="isSubmitting()"
+        (onClick)="submit()" />
+    </div>
   </div>
 
   <!-- Two-column layout -->
-  <div class="content-grid">
+  <div class="content-grid" [formGroup]="form">
     <!-- Left column -->
     <div class="left-column">
       <!-- Personal Information -->
       <section class="form-card">
-        <h2><i class="pi pi-id-card section-icon"></i> Personal Information</h2>
+        <h2>
+          <i class="pi pi-id-card section-icon"></i>
+          Personal Information
+        </h2>
         <div class="fields-grid two-cols">
           <div class="form-field">
             <label for="usr-add-firstName">First Name</label>
             <input pInputText id="usr-add-firstName" formControlName="firstName"
               placeholder="Enter first name" />
             @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
-              <small class="field-error">First name is required</small>
+              @if (form.controls.firstName.hasError('required')) {
+                <small class="field-error">First name is required</small>
+              } @else if (form.controls.firstName.hasError('minlength')) {
+                <small class="field-error">Must be at least 2 characters</small>
+              } @else if (form.controls.firstName.hasError('maxlength')) {
+                <small class="field-error">Must be at most 50 characters</small>
+              }
             }
           </div>
           <div class="form-field">
@@ -38,7 +53,13 @@
             <input pInputText id="usr-add-lastName" formControlName="lastName"
               placeholder="Enter last name" />
             @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
-              <small class="field-error">Last name is required</small>
+              @if (form.controls.lastName.hasError('required')) {
+                <small class="field-error">Last name is required</small>
+              } @else if (form.controls.lastName.hasError('minlength')) {
+                <small class="field-error">Must be at least 2 characters</small>
+              } @else if (form.controls.lastName.hasError('maxlength')) {
+                <small class="field-error">Must be at most 50 characters</small>
+              }
             }
           </div>
           <div class="form-field">
@@ -47,7 +68,11 @@
               placeholder="name@aman.com" />
             <small class="field-hint">This will be used for login and cannot be easily changed later.</small>
             @if (form.controls.email.invalid && form.controls.email.touched) {
-              <small class="field-error">A valid email is required</small>
+              @if (form.controls.email.hasError('required')) {
+                <small class="field-error">Email is required</small>
+              } @else if (form.controls.email.hasError('email')) {
+                <small class="field-error">Please enter a valid email address</small>
+              }
             }
           </div>
           <div class="form-field">
@@ -57,6 +82,10 @@
               <input pInputText id="usr-add-phoneNumber" formControlName="phoneNumber"
                 type="tel" placeholder="50 123 4567" />
             </div>
+            <small class="field-hint">Optional. 9 digits without the country code.</small>
+            @if (form.controls.phoneNumber.invalid && form.controls.phoneNumber.touched) {
+              <small class="field-error">Please enter a valid 9-digit phone number</small>
+            }
           </div>
         </div>
       </section>
@@ -66,7 +95,10 @@
     <div class="right-column">
       <!-- Role Assignment -->
       <section class="form-card role-card">
-        <h2><i class="pi pi-shield section-icon"></i> Role Assignment</h2>
+        <h2>
+          <i class="pi pi-shield section-icon"></i>
+          Role Assignment
+        </h2>
         <p class="role-lead">Select a primary role to define system access levels for this user.</p>
 
         <div class="role-list">
@@ -81,14 +113,21 @@
                 name="userRole"
                 [checked]="selectedRole() === option.value" />
               <div>
-                <div class="role-title">{{ option.title }}</div>
+                <div class="role-title">{{ option.viewName }}</div>
                 <div class="role-desc">{{ option.description }}</div>
               </div>
             </label>
           }
         </div>
 
-        <div class="role-divider"></div>
+        <div class="role-divider">
+          <p-button
+            label="Save Roles"
+            icon="pi pi-save"
+            styleClass="btn-save-roles"
+            [loading]="isSubmitting()"
+            (onClick)="submit()" />
+        </div>
       </section>
 
       <!-- Security note -->
@@ -102,13 +141,6 @@
           </p>
         </div>
       </div>
-
-      <p-button
-        label="Back to Users"
-        styleClass="btn-back"
-        [text]="true"
-        severity="secondary"
-        (onClick)="cancel()" />
     </div>
   </div>
 </div>

@@ -13,12 +13,7 @@ import { MessageService } from 'primeng/api';
 
 import { AdminUsersService } from '../../../core/services/admin-users.service';
 import { Roles } from '../../../core/models/enums';
-
-interface RoleOption {
-  value: Roles;
-  title: string;
-  description: string;
-}
+import { ROLE_DEFINITIONS } from '../../../core/roles/roles';
 
 @Component({
   selector: 'app-user-add',
@@ -44,43 +39,13 @@ export class UserAddComponent {
   isSubmitting = signal(false);
   selectedRole = signal<Roles>(Roles.HRManager);
 
-  readonly roleOptions: RoleOption[] = [
-    {
-      value: Roles.SuperAdmin,
-      title: 'Super Admin',
-      description: 'Full system access across all modules and settings.',
-    },
-    {
-      value: Roles.HRManager,
-      title: 'HR Manager',
-      description:
-        'Full access to recruitment, manpower planning, and position registry.',
-    },
-    {
-      value: Roles.Recruiter,
-      title: 'Recruiter',
-      description:
-        'Can manage job postings, view candidates, and process applications.',
-    },
-    {
-      value: Roles.DepartmentHead,
-      title: 'Department Head',
-      description:
-        'Can view departmental requisitions and approve manpower requests.',
-    },
-    {
-      value: Roles.HiringManager,
-      title: 'Hiring Manager',
-      description:
-        'Can interview candidates and submit feedback for specific requisitions.',
-    },
-  ];
+  readonly roleOptions = ROLE_DEFINITIONS;
 
   readonly form = this.fb.nonNullable.group({
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    phoneNumber: [''],
+    firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+    lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+    phoneNumber: ['', [Validators.pattern(/^\d{9}$/)]],
   });
 
   selectRole(role: Roles): void {

@@ -1,0 +1,234 @@
+<div class="page">
+  <!-- Page header with breadcrumb -->
+  <div class="page-header">
+    <div>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <ol>
+          <li>
+            <a routerLink="/console/admin/users">Users</a>
+          </li>
+          <li class="divider" aria-hidden="true">/</li>
+          <li class="current" aria-current="page">User Details</li>
+        </ol>
+      </nav>
+      <h1>
+        User Details: {{ user()?.firstName }} {{ user()?.lastName }}
+      </h1>
+      @if (user()) {
+      <p class="user-id">ID: {{ user()!.id }}</p>
+      }
+    </div>
+    <div class="header-actions">
+      <button
+        class="btn-back"
+        type="button"
+        (click)="router.navigate(['/console/admin/users'])">
+        Back
+      </button>
+      <p-button
+        [label]="isEditMode() ? 'Cancel' : 'Edit'"
+        [icon]="isEditMode() ? 'pi pi-times' : 'pi pi-pencil'"
+        [styleClass]="isEditMode() ? 'btn-edit-cancel' : 'btn-edit'"
+        (onClick)="toggleEditMode()" />
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <div class="loading-state">Loading user...</div>
+  } @else if (user()) {
+  <!-- Two-column layout -->
+  <div class="content-grid">
+    <!-- Left column -->
+    <div class="left-column">
+      <!-- Personal Information -->
+      <section class="form-card">
+        <h2>
+          <div class="h2-left">
+            <i class="pi pi-id-card section-icon"></i>
+            Personal Information
+          </div>
+          @if (user()!.isEmailConfirmed) {
+          <span class="badge-success">Email Confirmed</span>
+          }
+        </h2>
+
+        <div class="fields-grid two-cols" [formGroup]="profileForm">
+          <div class="form-field">
+            <label for="usr-edit-firstName">First Name</label>
+            <input pInputText id="usr-edit-firstName"
+              formControlName="firstName"
+              placeholder="Enter first name"
+              [disabled]="!isEditMode()" />
+            @if (isEditMode() && profileForm.controls.firstName.invalid &&
+            profileForm.controls.firstName.touched) {
+            @if (profileForm.controls.firstName.hasError('required')) {
+            <small class="field-error">First name is required</small>
+            } @else if (profileForm.controls.firstName.hasError('minlength')) {
+            <small class="field-error">Must be at least 2 characters</small>
+            }
+            }
+          </div>
+          <div class="form-field">
+            <label for="usr-edit-lastName">Last Name</label>
+            <input pInputText id="usr-edit-lastName" formControlName="lastName"
+              placeholder="Enter last name"
+              [disabled]="!isEditMode()" />
+            @if (isEditMode() && profileForm.controls.lastName.invalid &&
+            profileForm.controls.lastName.touched) {
+            @if (profileForm.controls.lastName.hasError('required')) {
+            <small class="field-error">Last name is required</small>
+            } @else if (profileForm.controls.lastName.hasError('minlength')) {
+            <small class="field-error">Must be at least 2 characters</small>
+            }
+            }
+          </div>
+          <div class="form-field">
+            <label for="usr-edit-email">Email Address</label>
+            <input pInputText id="usr-edit-email" type="email"
+              [value]="user()!.email ?? ''"
+              readonly class="email-readonly" />
+          </div>
+          <div class="form-field">
+            <label for="usr-edit-phoneNumber">Phone Number</label>
+            <div class="phone-box">
+              <span class="phone-prefix"></span>
+              <input pInputText id="usr-edit-phoneNumber"
+                formControlName="phoneNumber"
+                type="tel" placeholder="50 123 4567"
+                [disabled]="!isEditMode()" />
+            </div>
+            @if (isEditMode() && profileForm.controls.phoneNumber.invalid &&
+            profileForm.controls.phoneNumber.touched) {
+            <small class="field-error">Please enter a valid 9-digit phone
+              number</small>
+            }
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="metadata-row">
+          <div class="meta-item">
+            <p class="meta-label">Last Login</p>
+            <p class="meta-value">{{ formatDate(user()!.lastLoginUTC) }}</p>
+          </div>
+          <div class="meta-item">
+            <p class="meta-label">Created Date</p>
+            <p class="meta-value">{{ formatDate(user()!.createdAtUTC) }}</p>
+          </div>
+        </div>
+
+        <!-- Save actions (visible in edit mode) -->
+        @if (isEditMode()) {
+        <div class="form-actions">
+          <p-button
+            label="Save Changes"
+            icon="pi pi-save"
+            styleClass="btn-save"
+            [loading]="isSaving()"
+            (onClick)="savePersonalInfo()" />
+        </div>
+        }
+      </section>
+    </div>
+
+    <!-- Right column -->
+    <div class="right-column">
+      <!-- Account Status -->
+      <section class="form-card">
+        <h2>
+          <i class="pi pi-lock section-icon icon-error"></i>
+          Account Status
+        </h2>
+        <div class="status-list">
+          <div class="status-row">
+            <div class="status-info">
+              <span class="status-title">Account Lock</span>
+              <span class="status-subtitle">
+                {{ user()!.isLocked ? 'Currently locked' : 'Currently active' }}
+              </span>
+            </div>
+            <button
+              class="status-btn"
+              [class.btn-danger]="!user()!.isLocked"
+              [class.btn-outline]="user()!.isLocked"
+              [disabled]="isLocking()"
+              (click)="toggleLock()">
+              {{ user()!.isLocked ? 'Unlock' : 'Lock' }}
+            </button>
+          </div>
+          <div class="status-row">
+            <div class="status-info">
+              <span class="status-title">Password</span>
+              @if (user()!.requiresResetPassword) {
+              <span class="status-subtitle warning">
+                <i class="pi pi-exclamation-triangle"></i>
+                Requires Reset
+              </span>
+              } @else {
+              <span class="status-subtitle">Normal</span>
+              }
+            </div>
+            <button
+              class="status-btn btn-outline"
+              [disabled]="isResetting()"
+              (click)="resetPassword()">
+              Reset
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Role Assignment -->
+      <section class="form-card role-card">
+        <h2>
+          <i class="pi pi-shield section-icon"></i>
+          Role Assignment
+        </h2>
+        <p class="role-lead">Select roles to define system access levels for
+          this user.</p>
+
+        <div class="role-list">
+          @for (option of roleOptions; track option.value) {
+          <label
+            class="role-option"
+            [class.selected]="isRoleSelected(option.value)"
+            [class.disabled]="!isEditMode()">
+            <input
+              class="role-checkbox"
+              type="checkbox"
+              [checked]="isRoleSelected(option.value)"
+              [disabled]="!isEditMode()"
+              (change)="toggleRole(option.value)" />
+            <div>
+              <div class="role-title">{{ option.viewName }}</div>
+              <div class="role-desc">{{ option.description }}</div>
+            </div>
+          </label>
+          }
+        </div>
+
+        <!-- Role actions (visible in edit mode) -->
+        @if (isEditMode()) {
+        <div class="role-actions">
+          <p-button
+            label="Reset Permissions"
+            icon="pi pi-replay"
+            styleClass="btn-reset-roles"
+            [outlined]="true"
+            [loading]="isSavingRoles()"
+            (onClick)="loadUser()" />
+          <p-button
+            label="Save Roles"
+            icon="pi pi-save"
+            styleClass="btn-save-roles"
+            [loading]="isSavingRoles()"
+            (onClick)="saveRoles()" />
+        </div>
+        }
+      </section>
+    </div>
+  </div>
+  }
+</div>
+
+<p-toast />
