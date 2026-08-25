@@ -3,20 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GuidResult, Result } from '@core/models/common';
-import { JobDescriptionStatus } from '@core/models/enums';
 import {
   AttachJobDescriptionRequest,
   CreateJobDescriptionRequest,
   JobDescriptionDetailDtoResult,
   JobDescriptionListItemDtoPagedResultResult,
-  JobDescriptionLookupDtoIReadOnlyListResult,
   RejectJobDescriptionRequest,
   UpdateJobDescriptionRequest,
 } from '@core/models/admin-job-description-model';
+import { JobDescriptionsLookupParams, LookupItemDtoPagedResultResult } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminJobDescriptionsQueryParams {
-  Status?: JobDescriptionStatus;
+  Status?: string;
   Page?: number;
   PageSize?: number;
   Search?: string;
@@ -29,11 +28,10 @@ export class AdminJobDescriptionsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
 
-  getLookup(status?: JobDescriptionStatus, search?: string): Observable<JobDescriptionLookupDtoIReadOnlyListResult> {
-    return this.http.get<JobDescriptionLookupDtoIReadOnlyListResult>(
-      `${this.base}/api/admin/job-descriptions/lookup`,
-      { params: toHttpParams({ status, search }) },
-    );
+  getLookup(params?: JobDescriptionsLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/job-descriptions`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
   }
 
   getList(
@@ -73,6 +71,6 @@ export class AdminJobDescriptionsService {
   }
 
   attachToRequisition(id: string, request: AttachJobDescriptionRequest): Observable<Result> {
-    return this.http.post<Result>(`${this.base}/api/admin/job-descriptions/${id}/attach-to-jd`, request);
+    return this.http.post<Result>(`${this.base}/api/admin/job-descriptions/${id}/attach-to-req`, request);
   }
 }

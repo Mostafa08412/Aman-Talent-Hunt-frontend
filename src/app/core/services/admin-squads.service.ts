@@ -9,17 +9,20 @@ import {
   CreateSquadRequest,
   MapSquadDepartmentsRequest,
   SquadListItemDtoIReadOnlyListResult,
-  SquadLookupDtoIReadOnlyListResult,
   SquadResponseResult,
   UpdateSquadRequest,
 } from '@core/models/admin-squad-model';
+import { LookupItemDtoPagedResultResult, SquadsLookupParams } from '@core/models/lookup-model';
+import { toHttpParams } from './http-params.util';
 @Injectable({ providedIn: 'root' })
 export class AdminSquadsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
 
-  getLookup(): Observable<SquadLookupDtoIReadOnlyListResult> {
-    return this.http.get<SquadLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/squads/lookup`);
+  getLookup(params?: SquadsLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/squads`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
   }
 
   getList(): Observable<SquadListItemDtoIReadOnlyListResult> {
@@ -36,10 +39,6 @@ export class AdminSquadsService {
 
   update(id: string, request: UpdateSquadRequest): Observable<Result> {
     return this.http.put<Result>(`${this.base}/api/admin/squads/${id}`, request);
-  }
-
-  delete(id: string): Observable<Result> {
-    return this.http.delete<Result>(`${this.base}/api/admin/squads/${id}`);
   }
 
   addMember(id: string, request: AddSquadMemberRequest): Observable<Result> {

@@ -6,10 +6,10 @@ import { GuidResult, Result } from '@core/models/common';
 import {
   CreateDepartmentRequest,
   DepartmentListItemDtoPagedResultResult,
-  DepartmentLookupDtoIReadOnlyListResult,
   DepartmentResponseResult,
   UpdateDepartmentRequest,
 } from '@core/models/admin-department-model';
+import { LookupItemDtoPagedResultResult, LookupQueryParams } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminDepartmentsQueryParams {
@@ -26,8 +26,10 @@ export class AdminDepartmentsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
 
-  getLookup(): Observable<DepartmentLookupDtoIReadOnlyListResult> {
-    return this.http.get<DepartmentLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/departments/lookup`);
+  getLookup(params?: LookupQueryParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/departments`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
   }
 
   getList(params?: AdminDepartmentsQueryParams): Observable<DepartmentListItemDtoPagedResultResult> {

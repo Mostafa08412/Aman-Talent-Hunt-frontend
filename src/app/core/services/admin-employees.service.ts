@@ -7,10 +7,10 @@ import {
   CreateEmployeeRequest,
   EmployeeListItemDtoIReadOnlyListResult,
   EmployeeListItemDtoPagedResultResult,
-  EmployeeLookupDtoIReadOnlyListResult,
   EmployeeResponseResult,
   UpdateEmployeeRequest,
 } from '@core/models/admin-employee-model';
+import { EmployeesLookupParams, LookupItemDtoPagedResultResult } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminEmployeesQueryParams {
@@ -23,10 +23,7 @@ export interface AdminEmployeesQueryParams {
   SortBy?: string;
   SortAscending?: boolean;
 }
-export interface AdminEmployeesLookupQueryParams {
-  departing?: boolean;
-  search?: string;
-}
+
 @Injectable({ providedIn: 'root' })
 export class AdminEmployeesService {
   private http = inject(HttpClient);
@@ -42,8 +39,8 @@ export class AdminEmployeesService {
     return this.http.post<GuidResult>(`${this.base}/api/admin/employees`, request);
   }
 
-  getLookup(params?: AdminEmployeesLookupQueryParams): Observable<EmployeeLookupDtoIReadOnlyListResult> {
-    return this.http.get<EmployeeLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/employees/lookup`,  {
+  getLookup(params?: EmployeesLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/employees`, {
       params: toHttpParams(params as Record<string, unknown>),
     });
   }

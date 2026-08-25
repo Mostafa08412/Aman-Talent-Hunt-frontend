@@ -14,6 +14,7 @@ import {
   RequisitionStatusRequest,
   UpdateRequisitionRequest,
 } from '@core/models/admin-requisition-model';
+import { BaseLookupParams, LookupItemDtoPagedResultResult } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminRequisitionsQueryParams {
@@ -34,6 +35,12 @@ export interface AdminRequisitionsQueryParams {
 export class AdminRequisitionsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
+
+  getLookup(params?: BaseLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/requisitions`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
+  }
 
   getList(params?: AdminRequisitionsQueryParams): Observable<JobRequisitionListItemDtoPagedResultResult> {
     return this.http.get<JobRequisitionListItemDtoPagedResultResult>(`${this.base}/api/admin/requisitions`, {
