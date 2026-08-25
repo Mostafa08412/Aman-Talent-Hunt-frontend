@@ -45,7 +45,7 @@
           <div class="form-field">
             <label for="pos-add-departmentId">Department <span class="req">*</span></label>
             <p-select inputId="pos-add-departmentId" [options]="departments()"
-              optionLabel="name" optionValue="id"
+              optionLabel="viewText" optionValue="id"
               placeholder="Select department..." styleClass="field-select"
               formControlName="departmentId" />
             @if (form.controls.departmentId.invalid &&
@@ -69,7 +69,7 @@
         <div class="form-field">
           <label for="pos-add-jobDescriptionId">Job Description <span class="req">*</span></label>
           <p-select inputId="pos-add-jobDescriptionId"
-            [options]="jobDescriptions()" optionLabel="title" optionValue="id"
+            [options]="jobDescriptions()" optionLabel="viewText" optionValue="id"
             [filter]="true" filterPlaceholder="Search job descriptions..."
             [loading]="jdLoading()"
             placeholder="Select an approved job description..."

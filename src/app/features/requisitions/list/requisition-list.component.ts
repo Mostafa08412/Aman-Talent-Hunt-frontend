@@ -14,8 +14,7 @@ import {
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { AdminSquadsService } from '../../../core/services/admin-squads.service';
 import { JobRequisitionListItemDto } from '../../../core/models/admin-requisition-model';
-import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
-import { SquadLookupDto } from '../../../core/models/admin-squad-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 import { HiringType, RequisitionStatus } from '../../../core/models/enums';
 
 interface FilterOption<T> {
@@ -39,8 +38,8 @@ export class RequisitionListComponent implements OnInit {
   private router = inject(Router);
 
   requisitions = signal<JobRequisitionListItemDto[]>([]);
-  departments = signal<DepartmentLookupDto[]>([]);
-  squads = signal<SquadLookupDto[]>([]);
+  departments = signal<LookupItemDto[]>([]);
+  squads = signal<LookupItemDto[]>([]);
   isLoading = signal(false);
   totalCount = signal(0);
 
@@ -110,11 +109,11 @@ export class RequisitionListComponent implements OnInit {
 
   private loadLookups(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
     this.squadsService.getLookup().subscribe({
-      next: (res) => this.squads.set(res.data ?? []),
+      next: (res) => this.squads.set(res.data?.items ?? []),
       error: () => this.squads.set([]),
     });
   }

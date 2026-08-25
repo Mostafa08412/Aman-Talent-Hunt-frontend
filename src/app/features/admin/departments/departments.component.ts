@@ -23,8 +23,7 @@ import { AdminEmployeesService } from '../../../core/services/admin-employees.se
 import { AdminSquadsService } from '../../../core/services/admin-squads.service';
 
 import { DepartmentListItemDto } from '../../../core/models/admin-department-model';
-import { EmployeeLookupDto } from '../../../core/models/admin-employee-model';
-import { SquadLookupDto } from '../../../core/models/admin-squad-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 
 @Component({
   selector: 'app-departments',
@@ -52,8 +51,8 @@ export class DepartmentsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   readonly departments = signal<DepartmentListItemDto[]>([]);
-  readonly squads = signal<SquadLookupDto[]>([]);
-  readonly employees = signal<EmployeeLookupDto[]>([]);
+  readonly squads = signal<LookupItemDto[]>([]);
+  readonly employees = signal<LookupItemDto[]>([]);
 
   readonly isLoading = signal(false);
   readonly isCreating = signal(false);
@@ -84,7 +83,7 @@ export class DepartmentsComponent implements OnInit {
     this.squadsService.getLookup().subscribe({
       next: (res) => {
         this.squads.set(
-          res.isCompletedSuccessfully ? (res.data ?? []) : [],
+          res.isCompletedSuccessfully ? (res.data?.items ?? []) : [],
         );
       },
       error: () => this.squads.set([]),
@@ -93,7 +92,7 @@ export class DepartmentsComponent implements OnInit {
     this.employeesService.getLookup().subscribe({
       next: (res) => {
         this.employees.set(
-          res.isCompletedSuccessfully ? (res.data ?? []) : [],
+          res.isCompletedSuccessfully ? (res.data?.items ?? []) : [],
         );
       },
       error: () => this.employees.set([]),

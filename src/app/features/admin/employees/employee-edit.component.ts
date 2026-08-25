@@ -18,9 +18,7 @@ import { AdminSquadsService } from '../../../core/services/admin-squads.service'
 import { AdminPositionsService } from '../../../core/services/admin-positions.service';
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { EmployeeResponse } from '../../../core/models/admin-employee-model';
-import { SquadLookupDto } from '../../../core/models/admin-squad-model';
-import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
-import { PositionRegistryLookupDto } from '../../../core/models/admin-position-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 import { toApiError, EmployeeErrors } from '@core/errors';
 
 @Component({
@@ -55,9 +53,9 @@ export class EmployeeEditComponent implements OnInit {
   readonly isEditing = signal(false);
   readonly isSaving = signal(false);
 
-  readonly departments = signal<DepartmentLookupDto[]>([]);
-  readonly squads = signal<SquadLookupDto[]>([]);
-  readonly positions = signal<PositionRegistryLookupDto[]>([]);
+  readonly departments = signal<LookupItemDto[]>([]);
+  readonly squads = signal<LookupItemDto[]>([]);
+  readonly positions = signal<LookupItemDto[]>([]);
 
   readonly form = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
@@ -81,11 +79,11 @@ export class EmployeeEditComponent implements OnInit {
 
   private loadLookups(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
     this.squadsService.getLookup().subscribe({
-      next: (res) => this.squads.set(res.data ?? []),
+      next: (res) => this.squads.set(res.data?.items ?? []),
       error: () => this.squads.set([]),
     });
   }
@@ -143,8 +141,8 @@ export class EmployeeEditComponent implements OnInit {
   }
 
   private loadPositions(departmentId?: string): void {
-    this.positionsService.getLookup(departmentId).subscribe({
-      next: (res) => this.positions.set(res.data ?? []),
+    this.positionsService.getLookup({ departmentId }).subscribe({
+      next: (res) => this.positions.set(res.data?.items ?? []),
       error: () => this.positions.set([]),
     });
   }

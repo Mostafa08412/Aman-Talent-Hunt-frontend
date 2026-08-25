@@ -81,7 +81,7 @@
               <p-select
                 inputId="emp-add-departmentId"
                 [options]="departments()"
-                optionLabel="name"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select a department"
                 styleClass="field-select"
@@ -97,7 +97,7 @@
               <p-select
                 inputId="emp-add-positionRegistryId"
                 [options]="positions()"
-                optionLabel="title"
+                optionLabel="viewText"
                 optionValue="id"
                 [placeholder]="'Select a position'"
                 [filter]="true"
@@ -119,7 +119,7 @@
               <p-select
                 inputId="emp-add-squadId"
                 [options]="squads()"
-                optionLabel="name"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select squad"
                 [showClear]="true"
@@ -150,7 +150,7 @@
                 name="userRole"
                 [checked]="selectedRole() === option.value" />
               <div>
-                <div class="role-title">{{ option.title }}</div>
+                <div class="role-title">{{ option.viewName }}</div>
                 <div class="role-desc">{{ option.description }}</div>
               </div>
             </label>

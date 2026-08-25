@@ -14,7 +14,7 @@ import {
 } from '../../../core/services/admin-positions.service';
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { PositionRegistryListItemDto } from '../../../core/models/admin-position-model';
-import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 import { SeniorityLevel } from '../../../core/models/enums';
 
 interface StatusOption {
@@ -47,7 +47,7 @@ export class PositionsComponent implements OnInit {
 
   positions = signal<PositionRegistryListItemDto[]>([]);
   isLoading = signal(false);
-  departments = signal<DepartmentLookupDto[]>([]);
+  departments = signal<LookupItemDto[]>([]);
   totalCount = signal(0);
 
   /** Guards against double-submitting a status change / delete on the same row. */
@@ -113,7 +113,7 @@ export class PositionsComponent implements OnInit {
 
   private loadDepartments(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
   }

@@ -18,8 +18,7 @@ import { AdminSquadsService } from '@core/services/admin-squads.service';
 import { AdminDepartmentsService } from '@core/services/admin-departments.service';
 import { AdminEmployeesService } from '@core/services/admin-employees.service';
 import { SquadMemberDto, SquadResponse } from '@core/models/admin-squad-model';
-import { DepartmentLookupDto } from '@core/models/admin-department-model';
-import { EmployeeLookupDto } from '@core/models/admin-employee-model';
+import { LookupItemDto } from '@core/models/lookup-model';
 
 @Component({
   selector: 'app-squad-detail',
@@ -57,8 +56,8 @@ export class SquadDetailComponent implements OnInit {
   isLoading = signal(true);
   squad = signal<SquadResponse | null>(null);
 
-  employeeOptions = signal<EmployeeLookupDto[]>([]);
-  departmentOptions = signal<DepartmentLookupDto[]>([]);
+  employeeOptions = signal<LookupItemDto[]>([]);
+  departmentOptions = signal<LookupItemDto[]>([]);
 
   // ── Edit name/description ──
   editDialogVisible = signal(false);
@@ -91,10 +90,10 @@ export class SquadDetailComponent implements OnInit {
   ngOnInit(): void {
     this.load();
     this.departmentsService.getLookup().subscribe({
-      next: (result) => this.departmentOptions.set(result.data ?? []),
+      next: (result) => this.departmentOptions.set(result.data?.items ?? []),
     });
     this.employeesService.getLookup().subscribe({
-      next: (result) => this.employeeOptions.set(result.data ?? []),
+      next: (result) => this.employeeOptions.set(result.data?.items ?? []),
     });
   }
 

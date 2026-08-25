@@ -1,6 +1,6 @@
 <div class="page">
   <p-toast />
-  <p-confirmDialog />
+  <p-confirmdialog />
 
   <a routerLink="/console/admin/squads" class="back-link">
     <i class="pi pi-arrow-left"></i>
@@ -8,117 +8,123 @@
   </a>
 
   @if (squad(); as sq) {
-    <!-- Header -->
-    <div class="squad-header">
-      <div>
-        <div class="header-top">
-          <h1>{{ sq.name }}</h1>
-          <span class="ref-chip">Ref: {{ shortRef(sq.id) }}</span>
-        </div>
-        <p class="description">{{ sq.description || 'No description provided.' }}</p>
-        <p class="created-at">Created {{ formatDate(sq.createdAtUTC) }}</p>
+  <!-- Header -->
+  <div class="squad-header">
+    <div>
+      <div class="header-top">
+        <h1>{{ sq.name }}</h1>
+        <span class="ref-chip">Ref: {{ (sq.referenceNumber) }}</span>
       </div>
-      <p-button label="Edit Details" icon="pi pi-pencil" [outlined]="true" (onClick)="openEditDialog()" />
+      <p class="description">{{ sq.description || 'No description provided.'
+        }}</p>
+      <p class="created-at">Created {{ formatDate(sq.createdAtUTC) }}</p>
     </div>
+    <p-button label="Edit Details" icon="pi pi-pencil" [outlined]="true"
+      (onClick)="openEditDialog()" />
+  </div>
 
-    <div class="detail-grid">
-      <!-- Leader card -->
-      <section class="panel leader-panel">
-        <div class="panel-heading">
-          <h2>Squad Leader</h2>
-          <p-button
-            [label]="sq.leader ? 'Change Leader' : 'Assign Leader'"
-            icon="pi pi-user-edit"
-            [text]="true"
-            (onClick)="openLeaderDialog()" />
-        </div>
-        @if (sq.leader; as leader) {
-          <div class="leader-card">
-            <div class="avatar">{{ (leader.employeeName || '?')[0] }}</div>
-            <div class="leader-info">
-              <p class="leader-name">{{ leader.employeeName }}</p>
-              <p class="leader-meta">{{ leader.jobTitle }}</p>
-              <p class="leader-meta">{{ leader.email }}</p>
-            </div>
-          </div>
-        } @else {
-          <div class="empty-state">
-            <i class="pi pi-user"></i>
-            <p>No leader assigned yet.</p>
-          </div>
-        }
-      </section>
-
-      <!-- Departments -->
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>Covered Departments</h2>
-          <p-button label="Map Departments" icon="pi pi-sitemap" [text]="true" (onClick)="openDepartmentsDialog()" />
-        </div>
-        @if (sq.departments && sq.departments.length > 0) {
-          <div class="chip-list">
-            @for (dept of sq.departments; track dept.id) {
-              <p-tag [value]="dept.name || 'Unnamed'" severity="info" />
-            }
-          </div>
-        } @else {
-          <div class="empty-state">
-            <i class="pi pi-sitemap"></i>
-            <p>No departments mapped yet.</p>
-          </div>
-        }
-      </section>
-    </div>
-
-    <!-- Members -->
-    <section class="panel members-panel">
+  <div class="detail-grid">
+    <!-- Leader card -->
+    <section class="panel leader-panel">
       <div class="panel-heading">
-        <h2>Members ({{ sq.members?.length || 0 }})</h2>
-        <p-button label="Add Member" icon="pi pi-user-plus" (onClick)="openAddMemberDialog()" />
+        <h2>Squad Leader</h2>
+        <p-button
+          [label]="sq.leader ? 'Change Leader' : 'Assign Leader'"
+          icon="pi pi-user-edit"
+          [text]="true"
+          (onClick)="openLeaderDialog()" />
       </div>
-
-      <p-table [value]="sq.members || []" dataKey="employeeId" styleClass="p-datatable-sm">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Name</th>
-            <th>Job Title</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th></th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-member>
-          <tr>
-            <td>{{ member.employeeName }}</td>
-            <td>{{ member.jobTitle }}</td>
-            <td>{{ member.email }}</td>
-            <td>
-              @if (member.isLeader) {
-                <p-tag value="Leader" severity="success" />
-              } @else {
-                <span class="muted">Member</span>
-              }
-            </td>
-            <td class="actions-cell">
-              <p-button
-                icon="pi pi-trash"
-                [text]="true"
-                severity="danger"
-                (onClick)="confirmRemoveMember(member)" />
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="5" class="empty-cell">No members yet.</td>
-          </tr>
-        </ng-template>
-      </p-table>
+      @if (sq.leader; as leader) {
+      <div class="leader-card">
+        <div class="avatar">{{ (leader.employeeName || '?')[0] }}</div>
+        <div class="leader-info">
+          <p class="leader-name">{{ leader.employeeName }}</p>
+          <p class="leader-meta">{{ leader.jobTitle }}</p>
+          <p class="leader-meta">{{ leader.email }}</p>
+        </div>
+      </div>
+      } @else {
+      <div class="empty-state">
+        <i class="pi pi-user"></i>
+        <p>No leader assigned yet.</p>
+      </div>
+      }
     </section>
+
+    <!-- Departments -->
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>Covered Departments</h2>
+        <p-button label="Map Departments" icon="pi pi-sitemap" [text]="true"
+          (onClick)="openDepartmentsDialog()" />
+      </div>
+      @if (sq.departments && sq.departments.length > 0) {
+      <div class="chip-list">
+        @for (dept of sq.departments; track dept.id) {
+        <p-tag [value]="dept.name || 'Unnamed'" severity="info" />
+        }
+      </div>
+      } @else {
+      <div class="empty-state">
+        <i class="pi pi-sitemap"></i>
+        <p>No departments mapped yet.</p>
+      </div>
+      }
+    </section>
+  </div>
+
+  <!-- Members -->
+  <section class="panel members-panel">
+    <div class="panel-heading">
+      <h2>Members ({{ sq.members?.length || 0 }})</h2>
+      <p-button label="Add Member" icon="pi pi-user-plus"
+        (onClick)="openAddMemberDialog()" />
+    </div>
+
+    <p-table [value]="sq.members || []" dataKey="employeeId"
+      styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Job Title</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-member>
+        <tr>
+          <td>{{ member.employeeName }}</td>
+          <td>{{ member.jobTitle }}</td>
+          <td>{{ member.email }}</td>
+          <td>
+            @if (member.isLeader) {
+            <p-tag value="Leader" severity="success" />
+            } @else {
+            <span class="muted">Member</span>
+            }
+          </td>
+          <td class="actions-cell">
+            <p-button
+              icon="pi pi-trash"
+              [text]="true"
+              severity="danger"
+              (onClick)="confirmRemoveMember(member)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="empty-cell">No members yet.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
   } @else if (isLoading()) {
-    <div class="loading-state"><i class="pi pi-spin pi-spinner"></i> Loading squad…</div>
+  <div class="loading-state"><i class="pi pi-spin pi-spinner"></i> Loading
+    squad…</div>
   } @else {
-    <div class="loading-state">Squad not found.</div>
+  <div class="loading-state">Squad not found.</div>
   }
 </div>
 
@@ -131,7 +137,8 @@
   [style]="{ width: 'min(38rem, 92vw)', height: 'min(22rem, 92vh)' }">
   <div class="form-field">
     <label for="editName">Name *</label>
-    <input pInputText id="editName" type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
+    <input pInputText id="editName" type="text" [ngModel]="editName()"
+      (ngModelChange)="editName.set($event)" />
   </div>
   <div class="form-field">
     <label for="editDescription">Description</label>
@@ -143,8 +150,10 @@
       (ngModelChange)="editDescription.set($event)"></textarea>
   </div>
   <div class="dialog-actions">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="editDialogVisible.set(false)" />
-    <p-button label="Save" icon="pi pi-check" [loading]="isSavingEdit()" (onClick)="saveEdit()" />
+    <p-button label="Cancel" [text]="true" severity="secondary"
+      (onClick)="editDialogVisible.set(false)" />
+    <p-button label="Save" icon="pi pi-check" [loading]="isSavingEdit()"
+      (onClick)="saveEdit()" />
   </div>
 </p-dialog>
 
@@ -160,11 +169,11 @@
     <p-select
       id="memberSelect"
       [options]="availableEmployees()"
-      optionLabel="fullName"
+      optionLabel="viewText"
       optionValue="id"
       placeholder="Select an employee"
       [filter]="true"
-      filterBy="fullName"
+      filterBy="viewText"
       [ngModel]="selectedEmployeeId()"
       (ngModelChange)="selectedEmployeeId.set($event)"
       styleClass="w-full" />
@@ -178,8 +187,10 @@
     <label for="makeLeader">Make this member the squad leader</label>
   </div>
   <div class="dialog-actions">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="addMemberDialogVisible.set(false)" />
-    <p-button label="Add" icon="pi pi-check" [loading]="isAddingMember()" (onClick)="addMember()" />
+    <p-button label="Cancel" [text]="true" severity="secondary"
+      (onClick)="addMemberDialogVisible.set(false)" />
+    <p-button label="Add" icon="pi pi-check" [loading]="isAddingMember()"
+      (onClick)="addMember()" />
   </div>
 </p-dialog>
 
@@ -206,8 +217,10 @@
   </div>
   <p class="hint">Only current squad members can be assigned as leader.</p>
   <div class="dialog-actions">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="leaderDialogVisible.set(false)" />
-    <p-button label="Assign" icon="pi pi-check" [loading]="isAssigningLeader()" (onClick)="assignLeader()" />
+    <p-button label="Cancel" [text]="true" severity="secondary"
+      (onClick)="leaderDialogVisible.set(false)" />
+    <p-button label="Assign" icon="pi pi-check" [loading]="isAssigningLeader()"
+      (onClick)="assignLeader()" />
   </div>
 </p-dialog>
 
@@ -220,22 +233,25 @@
   [style]="{ width: 'min(38rem, 92vw)', height: 'min(30rem, 92vh)' }">
   <div class="form-field">
     <label for="departmentsSelect">Departments covered by this squad</label>
-    <p-multiSelect
+    <p-multiselect
       id="departmentsSelect"
       [options]="departmentOptions()"
-      optionLabel="name"
+      optionLabel="viewText"
       optionValue="id"
       placeholder="Select departments"
       display="chip"
       [filter]="true"
-      filterBy="name"
+      filterBy="viewText"
       [ngModel]="selectedDepartmentIds()"
       (ngModelChange)="selectedDepartmentIds.set($event)"
       styleClass="w-full" />
   </div>
-  <p class="hint">This replaces the full list of departments mapped to this squad.</p>
+  <p class="hint">This replaces the full list of departments mapped to this
+    squad.</p>
   <div class="dialog-actions">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="departmentsDialogVisible.set(false)" />
-    <p-button label="Save" icon="pi pi-check" [loading]="isSavingDepartments()" (onClick)="saveDepartments()" />
+    <p-button label="Cancel" [text]="true" severity="secondary"
+      (onClick)="departmentsDialogVisible.set(false)" />
+    <p-button label="Save" icon="pi pi-check" [loading]="isSavingDepartments()"
+      (onClick)="saveDepartments()" />
   </div>
 </p-dialog>

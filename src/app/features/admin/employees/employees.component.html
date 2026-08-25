@@ -51,7 +51,7 @@
       <div class="filter-actions">
         <p-select
           [options]="squads()"
-          optionLabel="name"
+          optionLabel="viewText"
           optionValue="id"
           placeholder="Squad"
           [showClear]="true"
@@ -59,7 +59,7 @@
           [(ngModel)]="squadFilter" />
         <p-select
           [options]="positions()"
-          optionLabel="title"
+          optionLabel="viewText"
           optionValue="id"
           placeholder="Position"
           [showClear]="true"

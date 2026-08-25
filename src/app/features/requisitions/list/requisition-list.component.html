@@ -19,7 +19,7 @@
       <div class="filter-actions">
         <p-select
           [options]="departments()"
-          optionLabel="name"
+          optionLabel="viewText"
           optionValue="id"
           placeholder="Department"
           [showClear]="true"
@@ -27,7 +27,7 @@
           [(ngModel)]="departmentFilter" />
         <p-select
           [options]="squads()"
-          optionLabel="name"
+          optionLabel="viewText"
           optionValue="id"
           placeholder="Squad"
           [showClear]="true"
@@ -80,7 +80,7 @@
       @for (requisition of requisitions(); track requisition.id) {
         <div class="grid-row table-row" (click)="openRequisition(requisition)">
           <div class="cell-requisition">
-            <span class="req-number">{{ requisition.requisitionNumber || requisition.referenceNumber }}</span>
+            <span class="req-number">{{ requisition.referenceNumber }}</span>
             <span class="req-title">{{ requisition.positionTitle || 'Untitled position' }}</span>
           </div>
 

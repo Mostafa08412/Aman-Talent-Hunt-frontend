@@ -16,7 +16,7 @@ import {
   AdminManpowerPlansService,
 } from '../../core/services/admin-manpower-plans.service';
 import { AdminDepartmentsService } from '../../core/services/admin-departments.service';
-import { DepartmentLookupDto } from '../../core/models/admin-department-model';
+import { LookupItemDto } from '../../core/models/lookup-model';
 import { ManPowerPlanListItemDto } from '../../core/models/admin-manpower-plan-model';
 import { PlanQuarter, PlanStatus } from '../../core/models/enums';
 
@@ -50,7 +50,7 @@ export class ManpowerPlanComponent {
   private router = inject(Router);
 
   entries = signal<ManPowerPlanListItemDto[]>([]);
-  departments = signal<DepartmentLookupDto[]>([]);
+  departments = signal<LookupItemDto[]>([]);
 
   loading = signal(true);
   loadError = signal<string | null>(null);
@@ -160,7 +160,7 @@ export class ManpowerPlanComponent {
 
   private loadDepartments(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
   }

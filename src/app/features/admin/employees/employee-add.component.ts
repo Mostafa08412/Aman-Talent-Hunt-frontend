@@ -17,17 +17,10 @@ import { AdminEmployeesService } from '../../../core/services/admin-employees.se
 import { AdminSquadsService } from '../../../core/services/admin-squads.service';
 import { AdminPositionsService } from '../../../core/services/admin-positions.service';
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
-import { SquadLookupDto } from '../../../core/models/admin-squad-model';
-import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
-import { PositionRegistryLookupDto } from '../../../core/models/admin-position-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 import { Roles } from '../../../core/models/enums';
 import { toApiError, EmployeeErrors, SquadErrors, IdentityErrors } from '@core/errors';
-
-interface RoleOption {
-  value: Roles;
-  title: string;
-  description: string;
-}
+import { ROLE_DEFINITIONS } from '../../../core/roles/roles';
 
 @Component({
   selector: 'app-employee-add',
@@ -53,39 +46,16 @@ export class EmployeeAddComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
 
-  departments = signal<DepartmentLookupDto[]>([]);
-  squads = signal<SquadLookupDto[]>([]);
-  positions = signal<PositionRegistryLookupDto[]>([]);
+  departments = signal<LookupItemDto[]>([]);
+  squads = signal<LookupItemDto[]>([]);
+  positions = signal<LookupItemDto[]>([]);
 
   isSubmitting = false;
   selectedRole = signal<Roles>(Roles.HRManager);
 
-  readonly roleOptions: RoleOption[] = [
-    {
-      value: Roles.HRManager,
-      title: 'HR Manager',
-      description:
-        'Full access to recruitment, manpower planning, and position registry.',
-    },
-    {
-      value: Roles.Recruiter,
-      title: 'Recruiter',
-      description:
-        'Can manage job postings, view candidates, and process applications.',
-    },
-    {
-      value: Roles.DepartmentHead,
-      title: 'Department Head',
-      description:
-        'Can view departmental requisitions and approve manpower requests.',
-    },
-    {
-      value: Roles.HiringManager,
-      title: 'Hiring Manager',
-      description:
-        'Can interview candidates and submit feedback for specific requisitions.',
-    },
-  ];
+  readonly roleOptions = ROLE_DEFINITIONS.filter(
+    (r) => r.value !== Roles.SuperAdmin,
+  );
 
   readonly roles = Roles;
 
@@ -104,12 +74,12 @@ export class EmployeeAddComponent implements OnInit {
 
   ngOnInit(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
 
     this.squadsService.getLookup().subscribe({
-      next: (res) => this.squads.set(res.data ?? []),
+      next: (res) => this.squads.set(res.data?.items ?? []),
       error: () => this.squads.set([]),
     });
 
@@ -119,8 +89,8 @@ export class EmployeeAddComponent implements OnInit {
   loadPositions(): void {
     const departmentId = this.form.controls.departmentId.value || undefined;
 
-    this.positionsService.getLookup(departmentId).subscribe({
-      next: (res) => this.positions.set(res.data ?? []),
+    this.positionsService.getLookup({ departmentId }).subscribe({
+      next: (res) => this.positions.set(res.data?.items ?? []),
       error: () => this.positions.set([]),
     });
   }
