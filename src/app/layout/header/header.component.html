@@ -1,6 +1,7 @@
 <header class="topbar">
   <div class="topbar-left">
-    <button class="icon-btn" (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
+    <button class="icon-btn" (click)="toggleSidebar.emit()"
+      aria-label="Toggle sidebar">
       <i class="pi pi-bars"></i>
     </button>
     <span class="topbar-title">AMAN Console</span>
@@ -16,9 +17,11 @@
       <i class="pi pi-search"></i>
     </button>
 
-    <button class="icon-btn" routerLink="/console/approvals" aria-label="Pending approvals">
+    <button class="icon-btn" routerLink="/console/approvals"
+      aria-label="Pending approvals">
       @if (pendingApprovals() > 0) {
-      <i class="pi pi-bell" pBadge [value]="pendingApprovals()" severity="danger"></i>
+      <i class="pi pi-bell" pBadge [value]="pendingApprovals()"
+        severity="danger"></i>
       } @else {
       <i class="pi pi-bell"></i>
       }
@@ -33,6 +36,7 @@
       </div>
       <i class="pi pi-chevron-down user-chevron"></i>
     </button>
-    <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
+    <p-menu #userMenu [model]="userMenuItems" [popup]="true"
+      class="admin-user-menu" styleClass="user-popup-menu" />
   </div>
 </header>

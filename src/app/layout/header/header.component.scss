@@ -17,6 +17,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+
 }
 
 .topbar-title {
@@ -59,6 +60,7 @@
 }
 
 .user-btn {
+
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -71,6 +73,9 @@
   &:hover {
     background: var(--p-surface-200);
   }
+}
+.admin-popup-menu{
+  margin-right: 120px;
 }
 
 .user-info {
