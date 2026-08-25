@@ -78,7 +78,7 @@ export class JobDetailsComponent {
 
   constructor() {
     this.loadJobDetails();
-    if (this.isLoggedIn()) {
+    if (this.isLoggedIn() && this.isUserCandidate) {
       this.loadCandidateResume();
     }
   }
