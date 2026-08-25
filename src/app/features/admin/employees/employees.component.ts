@@ -14,8 +14,7 @@ import {
 import { AdminSquadsService } from '../../../core/services/admin-squads.service';
 import { AdminPositionsService } from '../../../core/services/admin-positions.service';
 import { EmployeeListItemDto } from '../../../core/models/admin-employee-model';
-import { SquadLookupDto } from '../../../core/models/admin-squad-model';
-import { PositionRegistryLookupDto } from '../../../core/models/admin-position-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 
 interface StatusOption {
   label: string;
@@ -42,8 +41,8 @@ export class EmployeesComponent implements OnInit {
   employees = signal<EmployeeListItemDto[]>([]);
   departing = signal<EmployeeListItemDto[]>([]);
   isLoading = signal(false);
-  squads = signal<SquadLookupDto[]>([]);
-  positions = signal<PositionRegistryLookupDto[]>([]);
+  squads = signal<LookupItemDto[]>([]);
+  positions = signal<LookupItemDto[]>([]);
   totalCount = signal(0);
   overallTotal = signal(0);
 
@@ -143,11 +142,11 @@ export class EmployeesComponent implements OnInit {
 
   private loadLookups(): void {
     this.squadsService.getLookup().subscribe({
-      next: (res) => this.squads.set(res.data ?? []),
+      next: (res) => this.squads.set(res.data?.items ?? []),
       error: () => this.squads.set([]),
     });
     this.positionsService.getLookup().subscribe({
-      next: (res) => this.positions.set(res.data ?? []),
+      next: (res) => this.positions.set(res.data?.items ?? []),
       error: () => this.positions.set([]),
     });
   }

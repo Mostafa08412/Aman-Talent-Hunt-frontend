@@ -4,26 +4,18 @@ import type { DepartmentSummaryDto } from './admin-department-model';
 export interface SquadListItemDto {
   id: string;
   referenceNumber: string | null;
+  viewText: string | null;
   name: string | null;
   description: string | null;
   leaderId: string | null;
   leaderReferenceNumber: string | null;
   leaderName: string | null;
-  leaderReference: string | null;
   membersCount: number;
   coveredDepartmentsCount: number;
   createdAtUTC: string;
 }
 
 export type SquadListItemDtoIReadOnlyListResult = ResultWithData<SquadListItemDto[]>;
-
-export interface SquadLookupDto {
-  id: string;
-  referenceNumber: string | null;
-  name: string | null;
-}
-
-export type SquadLookupDtoIReadOnlyListResult = ResultWithData<SquadLookupDto[]>;
 
 export interface SquadSummaryDto {
   id: string;
@@ -35,7 +27,6 @@ export interface SquadMemberDto {
   employeeId: string;
   employeeReferenceNumber: string | null;
   employeeName: string | null;
-  employeeReference: string | null;
   jobTitle: string | null;
   email: string | null;
   isLeader: boolean;
@@ -44,6 +35,7 @@ export interface SquadMemberDto {
 export interface SquadResponse {
   id: string;
   referenceNumber: string | null;
+  viewText: string | null;
   name: string | null;
   description: string | null;
   leader: SquadMemberDto | null;

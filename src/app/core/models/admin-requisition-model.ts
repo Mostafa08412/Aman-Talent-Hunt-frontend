@@ -4,7 +4,6 @@ import type { HiringType, Location, RequisitionAction, RequisitionStatus, Senior
 export interface JobRequisitionListItemDto {
   id: string;
   referenceNumber: string | null;
-  requisitionNumber: string | null;
   positionTitle: string | null;
   hiringType: HiringType;
   status: RequisitionStatus;
@@ -24,7 +23,6 @@ export type JobRequisitionListItemDtoPagedResultResult = ResultWithData<JobRequi
 export interface JobRequisitionDetailDto {
   id: string;
   referenceNumber: string | null;
-  requisitionNumber: string | null;
   positionTitle: string | null;
   hiringType: HiringType;
   status: RequisitionStatus;

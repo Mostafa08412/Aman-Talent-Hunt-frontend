@@ -40,7 +40,7 @@
 
         <p-select
           [options]="squads()"
-          optionLabel="name"
+          optionLabel="viewText"
           optionValue="id"
           placeholder="Squad"
           [showClear]="true"
@@ -264,12 +264,12 @@
       <p-select
         inputId="department-head"
         [options]="employees()"
-        optionLabel="fullName"
+        optionLabel="viewText"
         optionValue="id"
         formControlName="headEmployeeId"
         placeholder="Select head employee"
         [filter]="true"
-        filterBy="fullName,referenceNumber"
+        filterBy="viewText,secondaryText"
         [showClear]="true"
         styleClass="field-select" />
 

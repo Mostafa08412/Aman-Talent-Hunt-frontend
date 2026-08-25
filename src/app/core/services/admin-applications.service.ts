@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { Result } from '@core/models/common';
 import { ApplicationSource, ApplicationStatus } from '@core/models/enums';
 import {
+  ApplicationStatusCountDtoIReadOnlyListResult,
   ApplicantDetailDtoResult,
   ApplicantListItemDtoPagedResultResult,
   ChangeApplicationStatusRequest,
@@ -34,6 +35,13 @@ export class AdminApplicationsService {
     return this.http.get<ApplicantListItemDtoPagedResultResult>(`${this.base}/api/admin/applications`, {
       params: toHttpParams(params as Record<string, unknown>),
     });
+  }
+
+  getCounts(jobPostId: string): Observable<ApplicationStatusCountDtoIReadOnlyListResult> {
+    return this.http.get<ApplicationStatusCountDtoIReadOnlyListResult>(
+      `${this.base}/api/admin/applications/counts`,
+      { params: toHttpParams({ jobPostId }) },
+    );
   }
 
   getById(id: string): Observable<ApplicantDetailDtoResult> {

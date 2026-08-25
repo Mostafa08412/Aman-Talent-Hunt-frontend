@@ -18,8 +18,7 @@ import { MessageService } from 'primeng/api';
 import { AdminManpowerPlansService } from '../../core/services/admin-manpower-plans.service';
 import { AdminDepartmentsService } from '../../core/services/admin-departments.service';
 import { AdminPositionsService } from '../../core/services/admin-positions.service';
-import { DepartmentLookupDto } from '../../core/models/admin-department-model';
-import { PositionRegistryLookupDto } from '../../core/models/admin-position-model';
+import { LookupItemDto } from '../../core/models/lookup-model';
 import { CreateManPowerPlanRequest } from '../../core/models/admin-manpower-plan-model';
 import { PlanQuarter, SeniorityLevel } from '../../core/models/enums';
 import { firstValueFrom } from 'rxjs';
@@ -63,8 +62,8 @@ export class ManpowerPlanAddComponent {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
 
-  departments = signal<DepartmentLookupDto[]>([]);
-  positions = signal<PositionRegistryLookupDto[]>([]);
+  departments = signal<LookupItemDto[]>([]);
+  positions = signal<LookupItemDto[]>([]);
 
   positionMode = signal<PositionMode>('existing');
   isSubmitting = signal(false);
@@ -116,8 +115,8 @@ export class ManpowerPlanAddComponent {
   }
 
   onDepartmentChanged(): void {
-    this.positionsService.getLookup(this.form.controls.departmentId.value || undefined).subscribe({
-      next: (res) => this.positions.set(res.data ?? []),
+    this.positionsService.getLookup({ departmentId: this.form.controls.departmentId.value || undefined }).subscribe({
+      next: (res) => this.positions.set(res.data?.items ?? []),
       error: () => this.positions.set([]),
     });
     this.form.controls.positionRegistryId.reset();
@@ -219,7 +218,7 @@ export class ManpowerPlanAddComponent {
   }
   private loadDepartments(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
   }

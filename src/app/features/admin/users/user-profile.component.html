@@ -1,0 +1,224 @@
+<p-toast />
+
+<div class="profile-page">
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      @if (!isLoading()) {
+      <div class="avatar">
+        <span>{{ initials() }}</span>
+      </div>
+      <div class="hero-text">
+        <h1>{{ currentUser()?.fullName }}</h1>
+        <p class="hero-email">{{ currentUser()?.email }}</p>
+        <span class="role-badge">{{ currentUser()?.role }}</span>
+      </div>
+      } @else {
+      <div class="avatar skeleton-avatar"></div>
+      <div class="hero-text">
+        <div class="skeleton-line w-48"></div>
+        <div class="skeleton-line w-32"></div>
+      </div>
+      }
+    </div>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none">
+        <path
+          d="M0 120L60 105C120 90 240 60 360 52.5C480 45 600 60 720 67.5C840 75 960 75 1080 67.5C1200 60 1320 45 1380 37.5L1440 30V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+          fill="var(--p-surface-50, #f9f9f9)" />
+      </svg>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    Loading profile...
+  </div>
+  } @else {
+
+  <!-- Content -->
+  <div class="content">
+    <div class="content-grid">
+
+      <!-- Left Column: Personal Details -->
+      <div class="details-card">
+        <div class="details-top">
+          <div class="details-icon">
+            <i class="pi pi-user"></i>
+          </div>
+          <div class="details-head-text">
+            <h2>Personal Details</h2>
+            <p>Update your personal information</p>
+          </div>
+        </div>
+
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="details-body">
+            <!-- Name Row -->
+            <div class="field-row">
+              <div class="field">
+                <label>First Name <span class="req">*</span></label>
+                <input pInputText formControlName="firstName" type="text"
+                  placeholder="Tariq" />
+                @if (profileForm.controls.firstName.invalid &&
+                profileForm.controls.firstName.touched) {
+                <small class="error">Required (min 2 characters)</small>
+                }
+              </div>
+              <div class="field">
+                <label>Last Name <span class="req">*</span></label>
+                <input pInputText formControlName="lastName" type="text"
+                  placeholder="Al-Fayed" />
+                @if (profileForm.controls.lastName.invalid &&
+                profileForm.controls.lastName.touched) {
+                <small class="error">Required (min 2 characters)</small>
+                }
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="section-divider">
+              <i class="pi pi-phone"></i>
+              <span>Contact Information</span>
+            </div>
+
+            <!-- Phone -->
+            <div class="field single">
+              <label>Phone Number</label>
+              <div class="phone-input">
+                <span class="phone-prefix">+20</span>
+                <input pInputText formControlName="phoneNumber" type="tel"
+                  placeholder="50 123 4567" class="phone-field" />
+              </div>
+              <small class="hint">Optional. 9 digits without the country
+                code.</small>
+            </div>
+
+            <!-- Email (readonly) -->
+            <div class="field single disabled-field">
+              <div class="label-row">
+                <label>Corporate Email</label>
+                <span class="managed-badge">
+                  <i class="pi pi-lock"></i>
+                  Managed by IT
+                </span>
+              </div>
+              <div class="readonly-input">
+                <i class="pi pi-envelope ro-icon"></i>
+                <span class="ro-value">{{ currentUser()?.email }}</span>
+              </div>
+              <small class="hint">Contact system administrator to modify
+                email.</small>
+            </div>
+          </div>
+
+          <div class="details-footer">
+            <button type="button" pButton label="Reset" class="btn-ghost"
+              (click)="resetProfileForm()"></button>
+            <button type="submit" pButton label="Save Changes"
+              icon="pi pi-check"
+              [loading]="isSavingProfile()" class="btn-primary"></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column -->
+      <div class="side-column">
+
+        <!-- Security Card -->
+        <div class="security-card">
+          <div class="security-top">
+            <div class="security-icon">
+              <i class="pi pi-shield"></i>
+            </div>
+            <div class="security-head-text">
+              <h2>Security</h2>
+              <p>Manage your password</p>
+            </div>
+          </div>
+
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <div class="security-body">
+              <div class="pw-field">
+                <label>Current Password</label>
+                <p-password formControlName="currentPassword"
+                  placeholder="Enter current password"
+                  [feedback]="false" [toggleMask]="true" styleClass="w-full"
+                  inputStyleClass="w-full" />
+                @if (passwordForm.controls.currentPassword.invalid &&
+                passwordForm.controls.currentPassword.touched) {
+                <small class="error">Current password is required.</small>
+                }
+              </div>
+              <div class="pw-field">
+                <label>New Password</label>
+                <p-password formControlName="newPassword"
+                  placeholder="Enter new password"
+                  [feedback]="false" [toggleMask]="true" styleClass="w-full"
+                  inputStyleClass="w-full" />
+                @if (passwordForm.controls.newPassword.invalid &&
+                passwordForm.controls.newPassword.touched) {
+                @if (passwordForm.controls.newPassword.errors?.['required']) {
+                <small class="error">New password is required.</small>
+                } @else if
+                (passwordForm.controls.newPassword.errors?.['minlength']) {
+                <small class="error">Minimum 8 characters required.</small>
+                }
+                }
+              </div>
+              <div class="pw-field">
+                <label>Confirm Password</label>
+                <p-password formControlName="confirmPassword"
+                  placeholder="Confirm new password"
+                  [feedback]="false" [toggleMask]="true" styleClass="w-full"
+                  inputStyleClass="w-full" />
+                @if (passwordForm.controls.confirmPassword.invalid &&
+                passwordForm.controls.confirmPassword.touched) {
+                @if (passwordForm.controls.confirmPassword.errors?.['required'])
+                {
+                <small class="error">Please confirm your password.</small>
+                }
+                }
+                @if (passwordForm.hasError('passwordMismatch') &&
+                passwordForm.controls.confirmPassword.touched) {
+                <small class="error">Passwords do not match.</small>
+                }
+              </div>
+
+              <!-- Requirements -->
+              <div class="pw-requirements">
+                <div class="pw-req-title">
+                  <i class="pi pi-list"></i>
+                  Password Requirements
+                </div>
+                <div class="pw-req-grid">
+                  @for (req of passwordRequirements(); track req.label) {
+                  <div class="pw-req-item" [class.met]="req.met">
+                    <i class="pi"
+                      [ngClass]="req.met ? 'pi-check-circle' : 'pi-circle'"></i>
+                    <span>{{ req.label }}</span>
+                  </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="security-footer">
+              <button type="submit" pButton label="Update Password"
+                icon="pi pi-shield"
+                [loading]="isSavingPassword()" class="btn-security"></button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  }
+</div>

@@ -8,11 +8,12 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../../core/services/auth.service';
 import { Role } from '@core/models/role.model';
+import { Toast } from "primeng/toast";
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, InputTextModule, PasswordModule, ButtonModule, MessageModule, RouterLink],
+  imports: [ReactiveFormsModule, InputTextModule, PasswordModule, ButtonModule, MessageModule, RouterLink, Toast],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

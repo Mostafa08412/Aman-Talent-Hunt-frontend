@@ -23,7 +23,7 @@ import { AdminDepartmentsService } from '../../../core/services/admin-department
 import { AdminEmployeesService } from '../../../core/services/admin-employees.service';
 
 import { DepartmentResponse } from '../../../core/models/admin-department-model';
-import { EmployeeLookupDto } from '../../../core/models/admin-employee-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 
 @Component({
   selector: 'app-department-detail',
@@ -58,7 +58,7 @@ export class DepartmentDetailComponent implements OnInit {
     null,
   );
 
-  readonly employees = signal<EmployeeLookupDto[]>([]);
+  readonly employees = signal<LookupItemDto[]>([]);
 
   readonly isLoading = signal(true);
   readonly isEditing = signal(false);
@@ -87,7 +87,7 @@ export class DepartmentDetailComponent implements OnInit {
       next: (res) => {
         this.employees.set(
           res.isCompletedSuccessfully
-            ? (res.data ?? [])
+            ? (res.data?.items ?? [])
             : [],
         );
       },

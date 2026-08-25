@@ -7,6 +7,7 @@ import {
   CandidateListItemDtoPagedResultResult,
   CandidateProfileDtoResult,
 } from '@core/models/admin-candidate-model';
+import { BaseLookupParams, LookupItemDtoPagedResultResult } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminCandidatesQueryParams {
@@ -23,6 +24,12 @@ export interface AdminCandidatesQueryParams {
 export class AdminCandidatesService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
+
+  getLookup(params?: BaseLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/candidates`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
+  }
 
   getList(params?: AdminCandidatesQueryParams): Observable<CandidateListItemDtoPagedResultResult> {
     return this.http.get<CandidateListItemDtoPagedResultResult>(`${this.base}/api/admin/candidates`, {

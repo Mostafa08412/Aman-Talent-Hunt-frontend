@@ -1,91 +1,264 @@
 <div class="page">
-  <p-toast />
 
   <div class="page-header">
-    <div>
+    <div class="page-header-text">
       <h1>Squads</h1>
-      <p class="page-subtitle">Cross-functional teams and their department coverage.</p>
+      <p>
+        Cross-functional teams and their department coverage.
+      </p>
     </div>
-    <p-button label="Create Squad" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+
+    <p-button
+      label="Create Squad"
+      icon="pi pi-plus"
+      styleClass="btn-create-squad"
+      (onClick)="openCreateDialog()" />
   </div>
 
-  <div class="toolbar">
-    <p-iconfield iconPosition="left" class="search-field">
-      <p-inputicon class="pi pi-search" />
-      <input
-        pInputText
-        type="text"
-        placeholder="Search by name…"
-        [ngModel]="searchTerm()"
-        (ngModelChange)="searchTerm.set($event)" />
-    </p-iconfield>
-  </div>
+  <div class="directory">
 
-  <p-table
-    [value]="filteredSquads()"
-    [loading]="isLoading()"
-    [rows]="10"
-    [paginator]="true"
-    dataKey="id"
-    styleClass="p-datatable-sm"
-    [rowHover]="true">
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Reference</th>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Leader</th>
-        <th>Members</th>
-        <th>Departments</th>
-        <th>Created</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-squad>
-      <tr class="clickable-row" (click)="openSquad(squad)">
-        <td><span class="ref-chip">{{ shortRef(squad.id) }}</span></td>
-        <td class="name-cell">{{ squad.name }}</td>
-        <td class="desc-cell">{{ squad.description || '—' }}</td>
-        <td>{{ squad.leaderName || 'Unassigned' }}</td>
-        <td>{{ squad.membersCount }}</td>
-        <td>{{ squad.coveredDepartmentsCount }}</td>
-        <td>{{ formatDate(squad.createdAtUTC) }}</td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="7" class="empty-cell">No squads found.</td>
-      </tr>
-    </ng-template>
-  </p-table>
+    <div class="filter-bar">
+
+      <div class="search-box">
+        <button
+          class="search-btn"
+          type="button"
+          aria-label="Search"
+          (click)="applyFilters()">
+
+          <i class="pi pi-search"></i>
+        </button>
+
+        <input
+          type="text"
+          placeholder="Search by squad name..."
+          [(ngModel)]="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
+
+      <div class="filter-actions">
+
+        <button
+          class="clear-btn"
+          type="button"
+          (click)="clearFilters()">
+
+          <i class="pi pi-filter-slash"></i>
+          Clear Filters
+        </button>
+
+      </div>
+    </div>
+
+    <div
+      class="table-wrap"
+      [class.loading]="isLoading()">
+
+      <div class="table-head grid-row">
+        <span class="col-reference">Reference</span>
+        <span class="col-name">Squad</span>
+        <span class="col-leader">Leader</span>
+        <span class="col-members">Members</span>
+        <span class="col-departments">Departments</span>
+        <span class="col-created">Created At</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      @for (squad of paginatedSquads(); track squad.id) {
+
+        <div
+          class="grid-row table-row squad-row"
+          role="button"
+          tabindex="0"
+          (click)="openSquad(squad)"
+          (keyup.enter)="openSquad(squad)">
+
+          <div class="cell-reference">
+            <span class="ref-code">
+              {{ referenceCode(squad) }}
+            </span>
+          </div>
+
+          <div class="cell-name">
+            <span class="squad-name">
+              {{ squad.name || 'Unnamed squad' }}
+            </span>
+            @if (squad.description) {
+              <span class="squad-desc">
+                {{ squad.description }}
+              </span>
+            }
+          </div>
+
+          <div class="cell-leader">
+            @if (squad.leaderName) {
+              <div class="leader-cell">
+                <span class="leader-name">
+                  {{ squad.leaderName }}
+                </span>
+
+                @if (squad.leaderReferenceNumber) {
+                  <span class="leader-ref">
+                    {{ squad.leaderReferenceNumber }}
+                  </span>
+                }
+              </div>
+            } @else {
+              <span class="muted">No leader assigned</span>
+            }
+          </div>
+
+          <div class="cell-members">
+            {{ squad.membersCount }}
+          </div>
+
+          <div class="cell-departments">
+            {{ squad.coveredDepartmentsCount }}
+          </div>
+
+          <div class="cell-created muted">
+            {{
+              squad.createdAtUTC
+                | date: 'MMM d, y' : 'UTC'
+            }}
+          </div>
+
+          <div class="cell-actions">
+
+            <button
+              class="row-menu-btn"
+              type="button"
+              aria-label="View squad"
+              (click)="$event.stopPropagation(); openSquad(squad)">
+
+              <i class="pi pi-eye"></i>
+            </button>
+
+          </div>
+        </div>
+
+      } @empty {
+
+        <div class="empty-state">
+          @if (isLoading()) {
+            Loading squads...
+          } @else {
+            No squads found
+          }
+        </div>
+
+      }
+
+    </div>
+
+    <div class="table-foot">
+
+      <span class="foot-info">
+        Showing
+        <strong>{{ rangeStart }}</strong>
+        to
+        <strong>{{ rangeEnd }}</strong>
+        of
+        <strong>{{ filteredSquads().length | number }}</strong>
+        entries
+      </span>
+
+      <div class="pager">
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="previousPage()">
+
+          <i class="pi pi-chevron-left"></i>
+        </button>
+
+        @for (pageNumber of visiblePages; track pageNumber) {
+
+          <button
+            class="page-btn"
+            type="button"
+            [class.current]="pageNumber === page()"
+            (click)="goToPage(pageNumber)">
+
+            {{ pageNumber }}
+          </button>
+
+        }
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() >= totalPages"
+          (click)="nextPage()">
+
+          <i class="pi pi-chevron-right"></i>
+        </button>
+
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Create squad dialog -->
+
 <p-dialog
   header="Create Squad"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
   [visible]="createDialogVisible()"
   (visibleChange)="createDialogVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: 'min(28rem, 92vw)' }">
+  [style]="{ width: '32rem', maxWidth: '95vw' }">
+
   <div class="form-field">
-    <label for="squadName">Name *</label>
+    <label for="squadName">
+      Squad Name
+    </label>
+
     <input
       pInputText
       id="squadName"
       type="text"
       [ngModel]="newName()"
-      (ngModelChange)="newName.set($event)" />
+      (ngModelChange)="newName.set($event)"
+      placeholder="Enter squad name" />
+
+    <small class="field-hint">
+      Required
+    </small>
   </div>
+
   <div class="form-field">
-    <label for="squadDescription">Description</label>
+    <label for="squadDescription">
+      Description
+    </label>
+
     <textarea
       pTextarea
       id="squadDescription"
       rows="3"
       [ngModel]="newDescription()"
-      (ngModelChange)="newDescription.set($event)"></textarea>
+      (ngModelChange)="newDescription.set($event)"
+      placeholder="Enter description (optional)"></textarea>
   </div>
+
   <div class="dialog-actions">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="createDialogVisible.set(false)" />
-    <p-button label="Create" icon="pi pi-check" [loading]="isCreating()" (onClick)="createSquad()" />
+
+    <p-button
+      type="button"
+      label="Cancel"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="createDialogVisible.set(false)" />
+
+    <p-button
+      label="Create Squad"
+      icon="pi pi-plus"
+      [loading]="isCreating()"
+      (onClick)="createSquad()" />
+
   </div>
 </p-dialog>
+
+<p-toast />

@@ -14,8 +14,7 @@ import { MessageService } from 'primeng/api';
 import { AdminPositionsService } from '../../../core/services/admin-positions.service';
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { AdminJobDescriptionsService } from '../../../core/services/admin-job-descriptions.service';
-import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
-import { JobDescriptionLookupDto } from '../../../core/models/admin-job-description-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 import { SeniorityLevel, JobDescriptionStatus } from '../../../core/models/enums';
 
 interface SeniorityOption {
@@ -46,11 +45,11 @@ export class PositionAddComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
 
-  departments = signal<DepartmentLookupDto[]>([]);
+  departments = signal<LookupItemDto[]>([]);
   isSubmitting = false;
 
   /* Only Approved job descriptions may be linked to a new position. */
-  jobDescriptions = signal<JobDescriptionLookupDto[]>([]);
+  jobDescriptions = signal<LookupItemDto[]>([]);
   jdLoading = signal(false);
 
   readonly seniorityOptions: SeniorityOption[] = [
@@ -69,7 +68,7 @@ export class PositionAddComponent implements OnInit {
 
   ngOnInit(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
 
@@ -78,9 +77,9 @@ export class PositionAddComponent implements OnInit {
 
   private loadJobDescriptions(): void {
     this.jdLoading.set(true);
-    this.jobDescriptionsService.getLookup(JobDescriptionStatus.Approved).subscribe({
+    this.jobDescriptionsService.getLookup({}).subscribe({
       next: (res) => {
-        this.jobDescriptions.set(res.data ?? []);
+        this.jobDescriptions.set(res.data?.items ?? []);
         this.jdLoading.set(false);
       },
       error: () => {

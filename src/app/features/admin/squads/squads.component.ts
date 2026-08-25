@@ -2,13 +2,10 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AdminSquadsService } from '@core/services/admin-squads.service';
@@ -20,13 +17,10 @@ import { SquadListItemDto } from '@core/models/admin-squad-model';
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
     ButtonModule,
     DialogModule,
     InputTextModule,
     TextareaModule,
-    IconFieldModule,
-    InputIconModule,
     ToastModule,
   ],
   providers: [MessageService],
@@ -40,18 +34,56 @@ export class SquadsComponent implements OnInit {
 
   isLoading = signal(true);
   squads = signal<SquadListItemDto[]>([]);
-  searchTerm = signal('');
 
-  filteredSquads = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-    if (!term) return this.squads();
-    return this.squads().filter((s) => (s.name ?? '').toLowerCase().includes(term));
-  });
+  search = '';
+  private appliedSearch = '';
+
+  readonly page = signal(1);
+  readonly pageSize = 10;
 
   createDialogVisible = signal(false);
   isCreating = signal(false);
   newName = signal('');
   newDescription = signal('');
+
+  filteredSquads = computed(() => {
+    const term = this.appliedSearch.trim().toLowerCase();
+    if (!term) return this.squads();
+    return this.squads().filter((s) => (s.name ?? '').toLowerCase().includes(term));
+  });
+
+  paginatedSquads = computed(() => {
+    const start = (this.page() - 1) * this.pageSize;
+    return this.filteredSquads().slice(start, start + this.pageSize);
+  });
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredSquads().length / this.pageSize));
+  }
+
+  get rangeStart(): number {
+    if (this.filteredSquads().length === 0) return 0;
+    return (this.page() - 1) * this.pageSize + 1;
+  }
+
+  get rangeEnd(): number {
+    return Math.min(this.page() * this.pageSize, this.filteredSquads().length);
+  }
+
+  get visiblePages(): number[] {
+    const total = this.totalPages;
+    const current = this.page();
+
+    if (total <= 6) {
+      return Array.from({ length: total }, (_, index) => index + 1);
+    }
+
+    const wanted = [current - 1, current, current + 1, total].filter(
+      (pageNumber) => pageNumber >= 1 && pageNumber <= total,
+    );
+
+    return [...new Set([1, ...wanted])].sort((a, b) => a - b);
+  }
 
   ngOnInit(): void {
     this.load();
@@ -73,6 +105,31 @@ export class SquadsComponent implements OnInit {
         });
       },
     });
+  }
+
+  applyFilters(): void {
+    this.appliedSearch = this.search.trim();
+    this.page.set(1);
+  }
+
+  clearFilters(): void {
+    this.search = '';
+    this.appliedSearch = '';
+    this.page.set(1);
+  }
+
+  goToPage(pageNumber: number): void {
+    const clamped = Math.min(Math.max(1, pageNumber), this.totalPages);
+    if (clamped === this.page()) return;
+    this.page.set(clamped);
+  }
+
+  previousPage(): void {
+    this.goToPage(this.page() - 1);
+  }
+
+  nextPage(): void {
+    this.goToPage(this.page() + 1);
   }
 
   openCreateDialog(): void {
@@ -110,13 +167,11 @@ export class SquadsComponent implements OnInit {
     this.router.navigate(['/console/admin/squads', squad.id]);
   }
 
-  formatDate(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  referenceCode(squad: SquadListItemDto): string {
+    return squad.referenceNumber || squad.id.slice(0, 8).toUpperCase();
   }
 
-  shortRef(id: string): string {
-    return id.slice(0, 8);
+  private showError(detail: string): void {
+    this.message.add({ severity: 'error', summary: 'Error', detail });
   }
 }

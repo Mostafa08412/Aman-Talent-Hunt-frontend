@@ -3,22 +3,21 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GuidResult, Result } from '@core/models/common';
-import { PlanQuarter, PlanStatus } from '@core/models/enums';
 import {
   CreateManPowerPlanRequest,
   ManPowerPlanListItemDtoPagedResultResult,
-  ManPowerPlanLookupDtoIReadOnlyListResult,
   ManPowerPlanResponseResult,
   PromotePositionRequest,
   RejectManPowerPlanRequest,
 } from '@core/models/admin-manpower-plan-model';
+import { LookupItemDtoPagedResultResult, ManpowerPlansLookupParams } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminManpowerPlansQueryParams {
   FiscalYear?: number;
-  Quarter?: PlanQuarter;
+  Quarter?: string;
   DepartmentId?: string;
-  Status?: PlanStatus;
+  Status?: string;
   Page?: number;
   PageSize?: number;
   Search?: string;
@@ -37,11 +36,10 @@ export class AdminManpowerPlansService {
     });
   }
 
-  getLookup(positionId?: string): Observable<ManPowerPlanLookupDtoIReadOnlyListResult> {
-    return this.http.get<ManPowerPlanLookupDtoIReadOnlyListResult>(
-      `${this.base}/api/admin/manpower-plans/lookup`,
-      { params: toHttpParams({ positionId }) },
-    );
+  getLookup(params?: ManpowerPlansLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/manpower-plans`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
   }
 
   create(request: CreateManPowerPlanRequest): Observable<GuidResult> {

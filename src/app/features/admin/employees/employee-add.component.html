@@ -53,7 +53,11 @@
               <small class="field-hint">This will be used for login and cannot
                 be easily changed later.</small>
               @if (form.controls.email.invalid && form.controls.email.touched) {
+              @if (form.controls.email.hasError('taken')) {
+              <small class="field-error">This email is already in use</small>
+              } @else {
               <small class="field-error">A valid email is required</small>
+              }
               }
             </div>
             <div class="form-field">
@@ -77,7 +81,7 @@
               <p-select
                 inputId="emp-add-departmentId"
                 [options]="departments()"
-                optionLabel="name"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select a department"
                 styleClass="field-select"
@@ -93,7 +97,7 @@
               <p-select
                 inputId="emp-add-positionRegistryId"
                 [options]="positions()"
-                optionLabel="title"
+                optionLabel="viewText"
                 optionValue="id"
                 [placeholder]="'Select a position'"
                 [filter]="true"
@@ -103,7 +107,11 @@
               <small class="field-hint">Depends on selected department.</small>
               @if (form.controls.positionRegistryId.invalid &&
               form.controls.positionRegistryId.touched) {
+              @if (form.controls.positionRegistryId.hasError('invalidPosition')) {
+              <small class="field-error">Selected position does not exist</small>
+              } @else {
               <small class="field-error">Position is required</small>
+              }
               }
             </div>
             <div class="form-field">
@@ -111,12 +119,15 @@
               <p-select
                 inputId="emp-add-squadId"
                 [options]="squads()"
-                optionLabel="name"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select squad"
                 [showClear]="true"
                 styleClass="field-select"
                 formControlName="squadId" />
+              @if (form.controls.squadId.hasError('invalidSquad')) {
+              <small class="field-error">Selected squad does not exist</small>
+              }
             </div>
           </div>
         </section>
@@ -139,7 +150,7 @@
                 name="userRole"
                 [checked]="selectedRole() === option.value" />
               <div>
-                <div class="role-title">{{ option.title }}</div>
+                <div class="role-title">{{ option.viewName }}</div>
                 <div class="role-desc">{{ option.description }}</div>
               </div>
             </label>

@@ -125,6 +125,12 @@ export const routes: Routes = [
       },
 
       {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/admin/users/user-profile.component').then((m) => m.UserProfileComponent),
+      },
+
+      {
         path: 'requisitions',
         loadComponent: () =>
           import('./features/requisitions/list/requisition-list.component').then((m) => m.RequisitionListComponent),
@@ -233,6 +239,12 @@ export const routes: Routes = [
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
         loadComponent: () =>
           import('./features/admin/users/user-add.component').then((m) => m.UserAddComponent),
+      },
+      {
+        path: 'admin/users/:id/edit',
+        canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/users/user-edit.component').then((m) => m.UserEditComponent),
       },
       {
         path: 'admin/squads',

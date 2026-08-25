@@ -27,6 +27,7 @@ export type ApplicantListItemDtoPagedResultResult = ResultWithData<ApplicantList
 
 export interface ApplicantDetailDto {
   id: string;
+  referenceNumber: string | null;
   candidateFirstName: string | null;
   candidateLastName: string | null;
   candidateEmail: string | null;
@@ -42,6 +43,13 @@ export interface ApplicantDetailDto {
 }
 
 export type ApplicantDetailDtoResult = ResultWithData<ApplicantDetailDto>;
+
+export interface ApplicationStatusCountDto {
+  status: ApplicationStatus;
+  count: number;
+}
+
+export type ApplicationStatusCountDtoIReadOnlyListResult = ResultWithData<ApplicationStatusCountDto[]>;
 
 export interface ChangeApplicationStatusRequest {
   status: ApplicationStatus;

@@ -153,13 +153,13 @@
                   <p-select
                     inputId="department-detail-head"
                     [options]="employees()"
-                    optionLabel="fullName"
+                    optionLabel="viewText"
                     optionValue="id"
                     formControlName="headEmployeeId"
                     placeholder="No head assigned"
                     [showClear]="true"
                     [filter]="true"
-                    filterBy="fullName,referenceNumber"
+                    filterBy="viewText,secondaryText"
                     styleClass="field-select" />
 
 

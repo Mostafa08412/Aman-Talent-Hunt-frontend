@@ -12,8 +12,10 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../core/services/auth.service';
 import { CandidateProfileService } from '../../../core/services/candidate-profile.service';
+import { CandidateApplicationsService } from '../../../core/services/candidate-applications.service';
 import { JobDetailsService } from '../../../core/services/job-details.service';
 import { PublicJobPostDetailDto, ScreeningQuestionDto } from '../../../core/models/job-post-model';
+import { ApplicationSource } from '../../../core/models/enums';
 
 @Component({
   selector: 'app-job-details',
@@ -40,6 +42,7 @@ export class JobDetailsComponent {
   private router = inject(Router);
   private auth = inject(AuthService);
   private profileService = inject(CandidateProfileService);
+  private applicationsService = inject(CandidateApplicationsService);
   private route = inject(ActivatedRoute);
   private jobDetailsService = inject(JobDetailsService);
 
@@ -50,17 +53,16 @@ export class JobDetailsComponent {
   loadError = signal(false);
 
   currentResume = { name: 'No resume uploaded', meta: 'Current resume' };
+  selectedFile = signal<File | null>(null);
   uploadVisible = signal(false);
   showUpload = signal(false);
   isSubmitting = signal(false);
   successVisible = signal(false);
 
   sourceOptions = [
-    { label: 'LinkedIn', value: 'linkedin' },
-    { label: 'Referral', value: 'referral' },
-    { label: 'Job Board', value: 'job-board' },
-    { label: 'Company Website', value: 'website' },
-    { label: 'Other', value: 'other' },
+    { label: 'LinkedIn', value: ApplicationSource.LinkedIn },
+    { label: 'Referral', value: ApplicationSource.Wuzzuf },
+    { label: 'Other', value: ApplicationSource.Portal },
   ];
 
   form = this.fb.nonNullable.group({
@@ -146,6 +148,7 @@ export class JobDetailsComponent {
   onResumeSelected(event: { files: File[] }): void {
     const file = event.files[0];
     if (!file) return;
+    this.selectedFile.set(file);
     this.currentResume.name = file.name;
     this.message.add({
       severity: 'success',
@@ -160,11 +163,35 @@ export class JobDetailsComponent {
       this.message.add({ severity: 'warn', summary: 'Incomplete', detail: 'Please complete all required fields.' });
       return;
     }
+
+    const j = this.job();
+    if (!j) return;
+
     this.isSubmitting.set(true);
-    // Dummy submit — replace with applications service call.
-    setTimeout(() => {
-      this.isSubmitting.set(false);
-      this.successVisible.set(true);
-    }, 1200);
+
+    const answers = this.screeningQuestions.map((q, i) => ({
+      screeningQuestionId: q.id,
+      answer: this.answers.at(i)?.value ?? '',
+    }));
+
+    this.applicationsService.submit({
+      jobPostId: j.id,
+      source: this.form.getRawValue().source as ApplicationSource,
+      resume: this.selectedFile(),
+      answers,
+    }).subscribe({
+      next: (res) => {
+        this.isSubmitting.set(false);
+        if (!res.isCompletedSuccessfully) {
+          this.message.add({ severity: 'error', summary: 'Submission failed', detail: res.message || 'Please try again.' });
+          return;
+        }
+        this.successVisible.set(true);
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+        this.message.add({ severity: 'error', summary: 'Submission failed', detail: 'Something went wrong. Please try again.' });
+      },
+    });
   }
 }

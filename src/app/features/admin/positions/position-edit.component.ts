@@ -17,8 +17,7 @@ import { AdminPositionsService } from '../../../core/services/admin-positions.se
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { AdminJobDescriptionsService } from '../../../core/services/admin-job-descriptions.service';
 import { PositionRegistryResponse } from '../../../core/models/admin-position-model';
-import { DepartmentLookupDto } from '../../../core/models/admin-department-model';
-import { JobDescriptionLookupDto } from '../../../core/models/admin-job-description-model';
+import { LookupItemDto } from '../../../core/models/lookup-model';
 import { SeniorityLevel, JobDescriptionStatus } from '../../../core/models/enums';
 
 interface SeniorityOption {
@@ -63,8 +62,8 @@ export class PositionEditComponent implements OnInit {
   readonly isStatusPending = signal(false);
   readonly isDeleting = signal(false);
 
-  readonly departments = signal<DepartmentLookupDto[]>([]);
-  readonly jobDescriptions = signal<JobDescriptionLookupDto[]>([]);
+  readonly departments = signal<LookupItemDto[]>([]);
+  readonly jobDescriptions = signal<LookupItemDto[]>([]);
 
   readonly seniorityOptions: SeniorityOption[] = [
     { label: 'Intern', value: SeniorityLevel.Intern },
@@ -93,11 +92,11 @@ export class PositionEditComponent implements OnInit {
 
   private loadLookups(): void {
     this.departmentsService.getLookup().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
-    this.jobDescriptionsService.getLookup(JobDescriptionStatus.Approved).subscribe({
-      next: (res) => this.jobDescriptions.set(res.data ?? []),
+    this.jobDescriptionsService.getLookup({}).subscribe({
+      next: (res) => this.jobDescriptions.set(res.data?.items ?? []),
       error: () => this.jobDescriptions.set([]),
     });
   }

@@ -1,149 +1,232 @@
-<p-toast />
-<p-confirmDialog />
-
 <div class="page">
-  <!-- ── Header ── -->
+
   <div class="page-header">
-    <h1>User Accounts &amp; RBAC</h1>
+    <div class="page-header-text">
+      <h1>Users</h1>
+      <p>Manage console access and permissions.</p>
+    </div>
+
     <p-button
-      label="Create User"
+      label="Add User"
       icon="pi pi-plus"
-      severity="success"
-      routerLink="/console/admin/users/new"
-    />
+      styleClass="btn-create-user"
+      routerLink="/console/admin/users/new" />
   </div>
 
-  <!-- ── Search Bar ── -->
-  <div class="search-bar">
-    <p-iconfield>
-      <p-inputicon styleClass="pi pi-search" />
-      <input
-        pInputText
-        type="text"
-        placeholder="Search users..."
-        [(ngModel)]="searchValue"
-        class="search-input"
-      />
-    </p-iconfield>
-  </div>
+  <div class="directory">
 
-  <!-- ── Table ── -->
-  <p-table
-    [value]="users()"
-    [globalFilterFields]="['fullName', 'email']"
-    [paginator]="true"
-    [rows]="10"
-    [rowHover]="true"
-    [showGridlines]="false"
-    [stripedRows]="true"
-    styleClass="p-datatable-sm"
-    dataKey="id"
-  >
-    <ng-template #header>
-      <tr>
-        <th pSortableColumn="fullName">Name <p-sortIcon field="fullName" /></th>
-        <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
-        <th>Roles</th>
-        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
-        <th style="width: 10rem">Actions</th>
-      </tr>
-    </ng-template>
+    <div class="filter-bar">
 
-    <ng-template #body let-user>
-      <tr>
-        <td>
-          <div class="user-name-cell">
-            <div class="avatar-mini">{{ getInitials(user.fullName) }}</div>
-            <span>{{ user.fullName }}</span>
+      <div class="search-box">
+        <button
+          class="search-btn"
+          type="button"
+          aria-label="Search"
+          (click)="applyFilters()">
+
+          <i class="pi pi-search"></i>
+        </button>
+
+        <input
+          type="text"
+          placeholder="Search by name, email, or phone..."
+          [(ngModel)]="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
+
+      <div class="filter-actions">
+
+        <p-select
+          [options]="roleOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Roles"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="roleFilter"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Statuses"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="statusFilter"
+          (onChange)="applyFilters()" />
+
+      </div>
+    </div>
+
+    <div
+      class="table-wrap"
+      [class.loading]="isLoading()">
+
+      <div class="table-head grid-row">
+        <span class="col-user">User</span>
+        <span class="col-phone">Phone</span>
+        <span class="col-status">Status</span>
+        <span class="col-roles">Role</span>
+        <span class="col-last-login">Last Login</span>
+        <span class="col-created">Created At</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      @for (user of users(); track user.id) {
+
+      <div
+        class="grid-row table-row user-row"
+        [class.locked]="user.isLocked"
+        role="button"
+        tabindex="0"
+        (click)="openUser(user)"
+        (keyup.enter)="openUser(user)">
+
+        <div class="cell-user">
+          <div class="user-avatar">{{ getInitials(user) }}</div>
+          <div class="user-meta">
+            <span class="user-name">{{ fullName(user) }}</span>
+            <span class="user-email">{{ user.email }}</span>
           </div>
-        </td>
-        <td>{{ user.email }}</td>
-        <td>
-          @for (role of user.roles; track role) {
-            <p-tag [value]="role" [severity]="getRoleSeverity(role)" [rounded]="true" class="role-tag" />
+        </div>
+
+        <div class="cell-phone muted">
+          {{ user.phoneNumber ? user.phoneNumber : '--' }}
+        </div>
+
+        <div class="cell-status">
+          <span class="status-pill" [class]="'status-' + statusSeverity(user)">
+            <span class="dot"></span>
+            {{ statusLabel(user) }}
+          </span>
+        </div>
+
+        <div class="cell-roles">
+          @for (role of user.userRolesNames ?? []; track role) {
+          <span class="role-pill" [class]="'role-' + roleSeverity(role)">
+            {{ resolveRoleName(role) }}
+          </span>
           }
-        </td>
-        <td>
-          <p-tag
-            [value]="user.status"
-            [severity]="getStatusSeverity(user.status)"
-            [rounded]="true"
-            class="clickable-tag"
-            (click)="toggleStatus(user)"
-          />
-        </td>
-        <td>
-          <div class="action-buttons">
-            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEditDialog(user)" />
-            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="confirmDelete(user)" />
-          </div>
-        </td>
-      </tr>
-    </ng-template>
+        </div>
 
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="5">
-          <div class="empty-state">
-            <i class="pi pi-users"></i>
-            <p>No users found.</p>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+        <div class="cell-last-login muted">
+          {{ formatDateTime(user.lastLoginUTC) }}
+        </div>
+
+        <div class="cell-created muted">
+          {{ formatDate(user.createdAtUTC) }}
+        </div>
+
+        <div class="cell-actions">
+
+          <button
+            class="row-menu-btn"
+            type="button"
+            aria-label="View user"
+            title="View"
+            (click)="$event.stopPropagation(); openUser(user)">
+
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <button
+            class="row-menu-btn"
+            type="button"
+            aria-label="Edit user"
+            title="Edit"
+            (click)="editUser(user, $event)">
+
+            <i class="pi pi-pencil"></i>
+          </button>
+
+          <button
+            class="row-menu-btn"
+            type="button"
+            aria-label="Reset password"
+            title="Reset Password"
+            (click)="resetPassword(user, $event)">
+
+            <i class="pi pi-key"></i>
+          </button>
+
+          <button
+            class="row-menu-btn"
+            [class.danger]="!user.isLocked"
+            type="button"
+            [attr.aria-label]="user.isLocked ? 'Unlock user' : 'Lock user'"
+            [title]="user.isLocked ? 'Unlock' : 'Lock'"
+            (click)="toggleLock(user, $event)">
+
+            <i class="pi"
+              [class]="user.isLocked ? 'pi-lock-open' : 'pi-lock'"></i>
+          </button>
+
+        </div>
+      </div>
+
+      } @empty {
+
+      <div class="empty-state">
+        @if (isLoading()) {
+        Loading users...
+        } @else {
+        No users found
+        }
+      </div>
+
+      }
+
+    </div>
+
+    <div class="table-foot">
+
+      <span class="foot-info">
+        Showing
+        <strong>{{ rangeStart }}</strong>
+        to
+        <strong>{{ rangeEnd }}</strong>
+        of
+        <strong>{{ totalCount() | number }}</strong>
+        entries
+      </span>
+
+      <div class="pager">
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="previousPage()">
+
+          <i class="pi pi-chevron-left"></i>
+        </button>
+
+        @for (pageNumber of visiblePages; track pageNumber) {
+
+        <button
+          class="page-btn"
+          type="button"
+          [class.current]="pageNumber === page()"
+          (click)="goToPage(pageNumber)">
+
+          {{ pageNumber }}
+        </button>
+
+        }
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() >= totalPages"
+          (click)="nextPage()">
+
+          <i class="pi pi-chevron-right"></i>
+        </button>
+
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- ── Create / Edit Dialog ── -->
-<p-dialog
-  [header]="dialogMode() === 'create' ? 'Create New User' : 'Edit User'"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '480px' }"
-  [draggable]="false"
-  [resizable]="false"
->
-  <div class="dialog-form">
-    <div class="form-field">
-      <label for="usr-mgmt-fullName">Full Name</label>
-      <input pInputText id="usr-mgmt-fullName" [(ngModel)]="formFullName" placeholder="e.g. Sara Ali" />
-    </div>
-
-    <div class="form-field">
-      <label for="usr-mgmt-email">Email</label>
-      <input pInputText id="usr-mgmt-email" [(ngModel)]="formEmail" placeholder="e.g. sara@ath.com" type="email" />
-    </div>
-
-    @if (dialogMode() === 'create') {
-      <div class="form-field">
-        <label for="usr-mgmt-password">Password</label>
-        <input pInputText id="usr-mgmt-password" [(ngModel)]="formPassword" type="password" placeholder="Min 8 characters" />
-      </div>
-    }
-
-    <div class="form-field">
-      <label for="usr-mgmt-role">Role</label>
-      <p-select
-        id="usr-mgmt-role"
-        [options]="roleOptions"
-        [(ngModel)]="formRole"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Select a role"
-        [style]="{ width: '100%' }"
-      />
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <div class="dialog-footer">
-      <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="dialogVisible.set(false)" />
-      <p-button
-        [label]="dialogMode() === 'create' ? 'Create User' : 'Save Changes'"
-        icon="pi pi-check"
-        (onClick)="saveUser()"
-        [disabled]="!formFullName || !formEmail || (dialogMode() === 'create' && !formPassword)"
-      />
-    </div>
-  </ng-template>
-</p-dialog>
+<p-toast />

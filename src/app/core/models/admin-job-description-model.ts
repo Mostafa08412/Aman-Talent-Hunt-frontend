@@ -42,15 +42,6 @@ export interface JobDescriptionSummaryDto {
   status: JobDescriptionStatus;
 }
 
-export interface JobDescriptionLookupDto {
-  id: string;
-  referenceNumber: string | null;
-  title: string | null;
-  status: JobDescriptionStatus;
-}
-
-export type JobDescriptionLookupDtoIReadOnlyListResult = ResultWithData<JobDescriptionLookupDto[]>;
-
 export interface CreateJobDescriptionRequest {
   title: string | null;
   summary: string | null;

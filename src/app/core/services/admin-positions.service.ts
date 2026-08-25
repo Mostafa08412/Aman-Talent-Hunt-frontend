@@ -7,11 +7,11 @@ import {
   CreatePositionRegistryRequest,
   PositionRegistryListItemDtoListResult,
   PositionRegistryListItemDtoPagedResultResult,
-  PositionRegistryLookupDtoIReadOnlyListResult,
   PositionRegistryResponseResult,
   PositionStatusRequest,
   UpdatePositionRegistryRequest,
 } from '@core/models/admin-position-model';
+import { LookupItemDtoPagedResultResult, PositionsLookupParams } from '@core/models/lookup-model';
 import { toHttpParams } from './http-params.util';
 
 export interface AdminPositionsQueryParams {
@@ -29,9 +29,9 @@ export class AdminPositionsService {
   private http = inject(HttpClient);
   private base = environment.apiBase;
 
-  getLookup(departmentId?: string, search?: string): Observable<PositionRegistryLookupDtoIReadOnlyListResult> {
-    return this.http.get<PositionRegistryLookupDtoIReadOnlyListResult>(`${this.base}/api/admin/positions/lookup`, {
-      params: toHttpParams({ departmentId, search }),
+  getLookup(params?: PositionsLookupParams): Observable<LookupItemDtoPagedResultResult> {
+    return this.http.get<LookupItemDtoPagedResultResult>(`${this.base}/api/admin/lookups/positions`, {
+      params: toHttpParams(params as Record<string, unknown>),
     });
   }
 

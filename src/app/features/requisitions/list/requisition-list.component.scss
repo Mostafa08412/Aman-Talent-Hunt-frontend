@@ -13,7 +13,7 @@
   color: var(--p-surface-500);
 }
 
-:host ::ng-deep .btn-create-user.p-button {
+:host ::ng-deep .btn-add-requisition.p-button {
   background: var(--ath-teal);
   border-color: var(--ath-teal);
   font-weight: 600;
@@ -44,53 +44,6 @@
   background: var(--p-surface-100);
 }
 
-.search-box {
-  flex: 1;
-  min-width: 240px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
-  background: var(--p-surface-0);
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-
-  i {
-    color: var(--p-surface-400);
-    font-size: 0.875rem;
-  }
-
-  input {
-    width: 100%;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 0.875rem;
-    color: var(--p-surface-900);
-  }
-}
-
-.search-btn {
-  display: grid;
-  place-items: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  border: none;
-  border-radius: 0.4rem;
-  background: var(--ath-teal);
-  color: #fff;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background: var(--p-primary-600, #008fa3);
-
-    i {
-      color: #fff;
-    }
-  }
-}
-
 .filter-actions {
   display: flex;
   align-items: center;
@@ -100,10 +53,46 @@
 
 :host ::ng-deep .filter-select.p-select {
   height: 2.4rem;
-  min-width: 9rem;
+  min-width: 9.5rem;
   background: var(--p-surface-0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   font-size: 0.875rem;
+}
+
+.apply-btn,
+.clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.4rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.apply-btn {
+  background: var(--ath-teal);
+  color: #fff;
+
+  &:hover {
+    background: var(--p-primary-600, #008fa3);
+  }
+}
+
+.clear-btn {
+  background: transparent;
+  color: var(--p-surface-500);
+
+  &:hover {
+    background: var(--p-surface-200);
+    color: var(--p-surface-900);
+  }
 }
 
 /* Table */
@@ -118,37 +107,26 @@
 
 .grid-row {
   display: grid;
-  grid-template-columns: 2.2fr 1.2fr 1fr 1.2fr 1.4fr 1fr 140px;
+  grid-template-columns: 2fr 1.3fr 1.1fr 1.1fr 0.8fr 1.4fr 1.5fr 1fr;
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
+  min-width: 900px;
 
-  @media (max-width: 1100px) {
-    grid-template-columns: 2fr 1.2fr 1fr 1.2fr 140px;
+  @media (max-width: 1200px) {
+    grid-template-columns: 2fr 1.4fr 1.6fr 1fr;
 
-    .col-last-login,
-    .cell-last-login,
+    .col-department,
+    .col-type,
+    .col-headcount,
     .col-created,
+    .cell-department,
+    .cell-type,
+    .cell-headcount,
     .cell-created {
       display: none;
     }
   }
-
-  @media (max-width: 760px) {
-    grid-template-columns: 2fr 1fr 140px;
-
-    .col-phone,
-    .cell-phone,
-    .col-roles,
-    .cell-roles {
-      display: none;
-    }
-  }
-}
-
-.col-actions,
-.cell-actions {
-  justify-self: center;
 }
 
 .table-head span {
@@ -166,51 +144,21 @@
 
   &:hover {
     background: var(--ath-console-bg, #f9f9f9);
-
-    .row-menu-btn {
-      opacity: 1;
-    }
-  }
-
-  &.locked {
-    opacity: 0.6;
-
-    .user-name {
-      text-decoration: line-through;
-    }
   }
 }
 
-/* User cell */
-.cell-user {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.user-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: rgba(0, 174, 199, 0.12);
-  color: var(--ath-teal);
-  font-size: 0.8125rem;
-  font-weight: 700;
-}
-
-.user-meta {
+.cell-requisition {
   display: flex;
   flex-direction: column;
   min-width: 0;
   line-height: 1.25;
 }
-
-.user-name {
+.req-number {
+  font-family: monospace;
+  font-size: 0.6875rem;
+  color: var(--p-surface-400);
+}
+.req-title {
   font-weight: 600;
   color: var(--p-surface-900);
   white-space: nowrap;
@@ -218,24 +166,20 @@
   text-overflow: ellipsis;
 }
 
-.user-email {
-  font-size: 0.6875rem;
-  font-family: monospace;
-  color: var(--p-surface-400);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.squad-name {
+  font-weight: 600;
+  color: var(--ath-teal);
 }
 
 .muted {
   color: var(--p-surface-500);
 }
 
-/* Status pill */
 .status-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
+  width: fit-content;
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
@@ -247,7 +191,6 @@
     border-radius: 50%;
   }
 }
-
 .status-success {
   background: rgba(34, 197, 94, 0.15);
   color: #16a34a;
@@ -256,7 +199,6 @@
     background: #22c55e;
   }
 }
-
 .status-danger {
   background: rgba(239, 68, 68, 0.15);
   color: #dc2626;
@@ -265,91 +207,29 @@
     background: #ef4444;
   }
 }
-
-/* Role pill */
-.cell-roles {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.role-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  white-space: nowrap;
-  width: 100%;
-  text-align: center;
-}
-
-.role-danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-}
-
-.role-warn {
-  background: rgba(245, 158, 11, 0.14);
+.status-warning {
+  background: rgba(245, 158, 11, 0.15);
   color: #d97706;
-}
 
-.role-info {
+  .dot {
+    background: #f59e0b;
+  }
+}
+.status-info {
   background: rgba(0, 174, 199, 0.12);
   color: var(--ath-teal);
-}
 
-.role-success {
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
+  .dot {
+    background: var(--ath-teal);
+  }
 }
-
-.role-contrast {
-  background: var(--p-surface-200);
-  color: var(--p-surface-700);
-}
-
-.role-secondary {
+.status-neutral {
   background: var(--p-surface-200);
   color: var(--p-surface-600);
-}
 
-/* Row action buttons */
-.row-menu-btn {
-  opacity: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 0.375rem;
-  background: transparent;
-  color: var(--p-surface-500);
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    opacity 0.15s ease;
-
-  &:hover {
-    background: var(--p-surface-200);
-    color: var(--ath-teal);
+  .dot {
+    background: var(--p-surface-400);
   }
-
-  &.danger:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--p-red-500);
-  }
-}
-
-.cell-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
 }
 
 .empty-state {

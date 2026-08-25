@@ -96,7 +96,7 @@
               <p-select
                 inputId="emp-edit-departmentId"
                 [options]="departments()"
-                optionLabel="name"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select a department"
                 styleClass="field-select"
@@ -108,7 +108,7 @@
               <p-select
                 inputId="emp-edit-positionRegistryId"
                 [options]="positions()"
-                optionLabel="title"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select a position"
                 [filter]="true"
@@ -118,7 +118,11 @@
               <small class="field-hint">Depends on selected department.</small>
               @if (isEditing() && form.controls.positionRegistryId.invalid &&
               form.controls.positionRegistryId.touched) {
+              @if (form.controls.positionRegistryId.hasError('invalidPosition')) {
+              <small class="field-error">Selected position does not exist</small>
+              } @else {
               <small class="field-error">Position is required</small>
+              }
               }
             </div>
             <div class="form-field">
@@ -126,7 +130,7 @@
               <p-select
                 inputId="emp-edit-squadId"
                 [options]="squads()"
-                optionLabel="name"
+                optionLabel="viewText"
                 optionValue="id"
                 placeholder="Select squad"
                 styleClass="field-select"
