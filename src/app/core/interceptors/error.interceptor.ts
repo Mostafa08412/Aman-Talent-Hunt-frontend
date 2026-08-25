@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse, HttpRequest } from '@angular/common/http';
 import { inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { BehaviorSubject, catchError, filter, finalize, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { toApiError, IdentityErrors } from '@core/errors';
@@ -12,14 +13,13 @@ const TOKEN_ERRORS: Set<string> = new Set([
   IdentityErrors.InvalidToken,
 ]);
 
+// Server-down status codes that should force logout.
+const SERVER_DOWN_STATUSES = new Set([0, 502, 503, 504]);
+
 // Auth endpoints must never be retried with a refreshed token.
 const AUTH_ENDPOINTS = ['/api/Authentication/'];
 
 // ── Concurrent refresh coordination ──────────────────────────────────
-// `isRefreshing` is a signal — simple synchronous flag, like a bool property.
-// `refreshedToken$` MUST stay RxJS — queued requests need filter+take(1)
-// to async-wait until the refresh observable emits the new token.
-// ─────────────────────────────────────────────────────────────────────
 const isRefreshing = signal(false);
 const refreshedToken$ = new BehaviorSubject<string | null>(null);
 
@@ -31,6 +31,10 @@ function isTokenError(errorTitle: string): boolean {
   return TOKEN_ERRORS.has(errorTitle);
 }
 
+function isServerError(err: HttpErrorResponse): boolean {
+  return SERVER_DOWN_STATUSES.has(err.status);
+}
+
 function cloneWithToken(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
   return req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 }
@@ -38,6 +42,7 @@ function cloneWithToken(req: HttpRequest<unknown>, token: string): HttpRequest<u
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const auth = inject(AuthService);
+  const messageService = inject(MessageService);
 
   // Skip auth endpoints — never refresh on login/register/etc.
   if (isAuthEndpoint(req.url)) {
@@ -46,6 +51,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
+      // Server down — force logout immediately.
+      if (isServerError(err)) {
+
+        auth.logout();
+        router.navigate(['/login']);
+        messageService.add({
+          severity: 'error',
+          summary: 'Service Unavailable',
+          detail: 'The server is not responding. Please try again later.',
+        });
+        return throwError(() => err);
+      }
+
       const { title } = toApiError(err);
 
       // Not a token error — let component-level handlers deal with it.

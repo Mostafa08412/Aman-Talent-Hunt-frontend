@@ -100,3 +100,9 @@ p {
   top: calc(var(--ath-header-height, 64px) + 1rem) !important;
 }
 
+/* ── User popup menu — right-aligned under the trigger ── */
+.user-popup-menu.p-menu {
+  left: auto !important;
+  right: 1rem !important;
+}
+

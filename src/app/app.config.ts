@@ -3,6 +3,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -15,11 +16,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    MessageService,
     providePrimeNG({
       theme: {
         preset: AmanPreset,
         options: {
-          darkModeSelector: '[data-theme="dark"]', // matches the sidebar's dark-mode toggle
+          darkModeSelector: '[data-theme="dark"]',
           cssLayer: { name: 'primeng', order: 'reset, primeng' },
         },
       },
