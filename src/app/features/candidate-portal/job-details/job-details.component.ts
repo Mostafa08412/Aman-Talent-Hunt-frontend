@@ -16,7 +16,10 @@ import { CandidateApplicationsService } from '../../../core/services/candidate-a
 import { JobDetailsService } from '../../../core/services/job-details.service';
 import { PublicJobPostDetailDto, ScreeningQuestionDto } from '../../../core/models/job-post-model';
 import { ApplicationSource } from '../../../core/models/enums';
-
+import { Role } from '@core/models/role.model';
+import { PanelModule } from 'primeng/panel';
+import { HttpErrorResponse } from '@angular/common/http';
+import { toApiError } from '@core/errors';
 @Component({
   selector: 'app-job-details',
   standalone: true,
@@ -31,6 +34,7 @@ import { ApplicationSource } from '../../../core/models/enums';
     FileUploadModule,
     DialogModule,
     ToastModule,
+    PanelModule
   ],
   providers: [MessageService],
   templateUrl: './job-details.component.html',
@@ -45,6 +49,8 @@ export class JobDetailsComponent {
   private applicationsService = inject(CandidateApplicationsService);
   private route = inject(ActivatedRoute);
   private jobDetailsService = inject(JobDetailsService);
+
+  isUserCandidate = this.auth.hasRole(Role.Candidate);
 
   isLoggedIn = this.auth.isLoggedIn;
 
@@ -182,15 +188,16 @@ export class JobDetailsComponent {
     }).subscribe({
       next: (res) => {
         this.isSubmitting.set(false);
-        if (!res.isCompletedSuccessfully) {
+        if (res.isCompletedSuccessfully) {
           this.message.add({ severity: 'error', summary: 'Submission failed', detail: res.message || 'Please try again.' });
           return;
         }
         this.successVisible.set(true);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
+        const error = toApiError(err);
         this.isSubmitting.set(false);
-        this.message.add({ severity: 'error', summary: 'Submission failed', detail: 'Something went wrong. Please try again.' });
+        this.message.add({ severity: 'error', summary: 'Submission failed', detail: error.detail ?? 'Something went wrong. Please try again.' });
       },
     });
   }

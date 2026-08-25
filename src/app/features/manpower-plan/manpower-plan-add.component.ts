@@ -175,15 +175,8 @@ export class ManpowerPlanAddComponent {
           detail: 'Manpower plan submitted for approval.',
         });
         this.navigateAfterCreate(planId);
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Created as Draft',
-          detail: 'Plan created but could not be submitted for approval automatically.',
-        });
-        this.navigateAfterCreate(planId);
-      },
+      }
+
     });
   }
 
@@ -194,11 +187,7 @@ export class ManpowerPlanAddComponent {
 
   private onCreateFailed(): void {
     this.isSubmitting.set(false);
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to create the manpower plan.',
-    });
+
   }
 
   private buildPeriodOptions(): PeriodOption[] {

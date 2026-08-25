@@ -9,13 +9,14 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { AmanPreset } from '../theme/aman-preset';
+import { apiErrorInterceptor } from '@core/interceptors/api-error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor, apiErrorInterceptor])),
     MessageService,
     providePrimeNG({
       theme: {

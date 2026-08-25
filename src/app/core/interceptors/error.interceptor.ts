@@ -1,7 +1,6 @@
 import { HttpInterceptorFn, HttpErrorResponse, HttpRequest } from '@angular/common/http';
 import { inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
 import { BehaviorSubject, catchError, filter, finalize, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { toApiError, IdentityErrors } from '@core/errors';
@@ -21,7 +20,7 @@ const AUTH_ENDPOINTS = ['/api/Authentication/'];
 
 // ── Concurrent refresh coordination ──────────────────────────────────
 const isRefreshing = signal(false);
-const refreshedToken$ = new BehaviorSubject<string | null>(null);
+const refreshedToken$ = new BehaviorSubject<string | false | null>(null);
 
 function isAuthEndpoint(url: string): boolean {
   return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
@@ -42,7 +41,6 @@ function cloneWithToken(req: HttpRequest<unknown>, token: string): HttpRequest<u
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const auth = inject(AuthService);
-  const messageService = inject(MessageService);
 
   // Skip auth endpoints — never refresh on login/register/etc.
   if (isAuthEndpoint(req.url)) {
@@ -51,16 +49,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      // Server down — force logout immediately.
+      // Server down — force logout immediately (toast handled by apiErrorInterceptor).
       if (isServerError(err)) {
-
         auth.logout();
         router.navigate(['/login']);
-        messageService.add({
-          severity: 'error',
-          summary: 'Service Unavailable',
-          detail: 'The server is not responding. Please try again later.',
-        });
         return throwError(() => err);
       }
 
@@ -80,9 +72,16 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           switchMap((res) => {
             const newToken = res.data?.accessToken ?? null;
             refreshedToken$.next(newToken);
-            return next(newToken ? cloneWithToken(req, newToken) : req);
+            if (newToken) {
+              return next(cloneWithToken(req, newToken));
+            }
+            // Refresh succeeded but returned no token — treat as invalid session.
+            auth.logout();
+            router.navigate(['/login']);
+            return throwError(() => err);
           }),
           catchError(() => {
+            refreshedToken$.next(false);
             auth.logout();
             router.navigate(['/login']);
             return throwError(() => err);
@@ -97,7 +96,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       return refreshedToken$.pipe(
         filter((token) => token !== null),
         take(1),
-        switchMap((token) => next(cloneWithToken(req, token!))),
+        switchMap((token) => {
+          if (token === false) {
+            return throwError(() => err);
+          }
+          return next(cloneWithToken(req, token));
+        }),
       );
     }),
   );

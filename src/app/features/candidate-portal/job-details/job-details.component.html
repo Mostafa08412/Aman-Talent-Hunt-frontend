@@ -1,298 +1,320 @@
 <p-toast styleClass="ath-toast" />
 
 @if (loading()) {
-  <div class="job-details-state">Loading job details...</div>
+<div class="job-details-state">Loading job details...</div>
 } @else if (loadError()) {
-  <div class="job-details-state">Unable to load job details.</div>
+<div class="job-details-state">Unable to load job details.</div>
 } @else {
-  @if (job(); as jobData) {
-    <div class="job-details">
+@if (job(); as jobData) {
+<div class="job-details">
 
-      <!-- Breadcrumb -->
-      <div class="breadcrumb">
-        <a routerLink="/jobs" class="back-link">
-          <i class="pi pi-arrow-left"></i>
-          Back to Jobs
-        </a>
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a routerLink="/jobs" class="back-link">
+      <i class="pi pi-arrow-left"></i>
+      Back to Jobs
+    </a>
 
-        <span class="crumb-sep">/</span>
-        <span class="crumb">{{ jobData.jobType }}</span>
+    <span class="crumb-sep">/</span>
+    <span class="crumb">{{ jobData.jobType }}</span>
 
-        <span class="crumb-sep">/</span>
-        <span class="crumb current">{{ jobData.title }}</span>
-      </div>
+    <span class="crumb-sep">/</span>
+    <span class="crumb current">{{ jobData.title }}</span>
+  </div>
 
-      <div class="details-layout">
+  <div class="details-layout">
 
-        <!-- Main column -->
-        <div class="main-col">
+    <!-- Main column -->
+    <div class="main-col">
 
-          <div class="job-header">
+      <div class="job-header">
 
-            <div class="job-tags">
-              <p-tag
-                [value]="jobData.employmentType"
-                styleClass="job-tag"
-              />
+        <div class="job-tags">
+          <p-tag
+            [value]="jobData.employmentType"
+            styleClass="job-tag" />
 
-              <p-tag
-                [value]="jobData.jobType"
-                styleClass="job-tag"
-              />
-            </div>
-
-            <h1>{{ jobData.title }}</h1>
-
-            <div class="job-meta">
-              <span>
-                <i class="pi pi-briefcase"></i>
-                {{ jobData.seniorityLevel }}
-              </span>
-
-              <span>
-                <i class="pi pi-map-marker"></i>
-                {{ jobData.location }}
-              </span>
-
-              <span>
-                <i class="pi pi-clock"></i>
-                {{ jobData.createdAtUTC | date: 'mediumDate' }}
-              </span>
-            </div>
-
-          </div>
-
-          <div class="prose">
-
-            <section>
-              <h2>About The Role</h2>
-
-              @for (
-                paragraph of toList(jobData.description);
-                track paragraph
-              ) {
-                <p>{{ paragraph }}</p>
-              }
-            </section>
-
-            <section>
-              <h2>Key Responsibilities</h2>
-
-              <ul>
-                @for (
-                  item of toList(jobData.requirements);
-                  track item
-                ) {
-                  <li>{{ item }}</li>
-                }
-              </ul>
-            </section>
-
-            <section>
-              <h2>Qualifications</h2>
-
-              <ul>
-                @for (
-                  item of toList(jobData.qualifications);
-                  track item
-                ) {
-                  <li>{{ item }}</li>
-                }
-              </ul>
-            </section>
-
-          </div>
-
+          <p-tag
+            [value]="jobData.jobType"
+            styleClass="job-tag" />
         </div>
 
-        <!-- Apply sidebar -->
-        <aside class="apply-col">
-          <div class="apply-card">
+        <h1>{{ jobData.title }}</h1>
 
-            @if (!isLoggedIn()) {
-              <div class="apply-heading">
-                <h3>Sign in to apply</h3>
-                <p>You need to sign in to apply for this position.</p>
-              </div>
+        <div class="job-meta">
+          <span>
+            <i class="pi pi-briefcase"></i>
+            {{ jobData.seniorityLevel }}
+          </span>
 
-              <p-button
-                label="Sign In to Apply"
-                icon="pi pi-sign-in"
-                styleClass="submit-btn"
-                (onClick)="signInToApply()"
-              />
+          <span>
+            <i class="pi pi-map-marker"></i>
+            {{ jobData.location }}
+          </span>
 
-            } @else {
+          <span>
+            <i class="pi pi-clock"></i>
+            {{ jobData.createdAtUTC | date: 'mediumDate' }}
+          </span>
+        </div>
 
-              <div class="apply-heading">
-                <h3>Apply for this role</h3>
-                <p>
-                  Please complete the form below to submit your application.
-                </p>
-              </div>
+      </div>
 
-              <form
-                class="apply-form"
-                [formGroup]="form"
-                (ngSubmit)="submit()"
-              >
+      <div class="prose">
 
-                <!-- Resume -->
-                <div class="form-group">
-                  <label>Resume / CV *</label>
+        <section>
+          <h2>About The Role</h2>
 
-                  <div class="resume-option">
-                    <div class="resume-info">
+          @for (
+          paragraph of toList(jobData.description);
+          track paragraph
+          ) {
+          <p>{{ paragraph }}</p>
+          }
+        </section>
 
-                      <div class="resume-icon">
-                        <i class="pi pi-file-pdf"></i>
-                      </div>
+        <section>
+          <h2>Key Responsibilities</h2>
 
-                      <div>
-                        <p class="resume-name">
-                          {{ currentResume.name }}
-                        </p>
+          <ul>
+            @for (
+            item of toList(jobData.requirements);
+            track item
+            ) {
+            <li>{{ item }}</li>
+            }
+          </ul>
+        </section>
 
-                        <p class="resume-meta">
-                          {{ currentResume.meta }}
-                        </p>
-                      </div>
+        <section>
+          <h2>Qualifications</h2>
 
-                    </div>
+          <ul>
+            @for (
+            item of toList(jobData.qualifications);
+            track item
+            ) {
+            <li>{{ item }}</li>
+            }
+          </ul>
+        </section>
 
-                    <span class="selected">
-                      <i class="pi pi-check-circle"></i>
-                      Selected
-                    </span>
-                  </div>
+      </div>
 
-                  <button
-                    type="button"
-                    class="upload-toggle"
-                    (click)="showUpload.set(!showUpload())"
-                  >
-                    <i class="pi pi-plus-circle"></i>
+    </div>
 
-                    {{
-                      showUpload()
-                        ? 'Hide upload'
-                        : 'Upload new resume'
-                    }}
-                  </button>
+    <!-- Apply sidebar -->
+    <aside class="apply-col">
+      <div class="apply-card">
 
-                  @if (showUpload()) {
-                    <div class="upload-drop">
+        @if (!isLoggedIn()) {
+        <div class="apply-heading">
+          <h3>Sign in to apply</h3>
+          <p>You need to sign in to apply for this position.</p>
+        </div>
 
-                      <i
-                        class="pi pi-cloud-upload upload-cloud"
-                      ></i>
+        <p-button
+          label="Sign In to Apply"
+          icon="pi pi-sign-in"
+          styleClass="submit-btn"
+          (onClick)="signInToApply()" />
 
-                      <p class="upload-title">
-                        Click to upload or drag and drop
-                      </p>
+        }
+        @else {
+        @if(isUserCandidate){
+        <div class="apply-heading">
+          <h3>Apply for this role</h3>
+          <p>
+            Please complete the form below to submit your application.
+          </p>
+        </div>
 
-                      <p class="upload-hint">
-                        PDF, DOCX up to 10MB
-                      </p>
+        <form
+          class="apply-form"
+          [formGroup]="form"
+          (ngSubmit)="submit()">
 
-                      <p-fileupload
-                        mode="basic"
-                        name="resume"
-                        accept=".pdf,.doc,.docx"
-                        maxFileSize="10000000"
-                        chooseLabel="Choose resume"
-                        (onSelect)="onResumeSelected($event)"
-                      />
+          <!-- Resume -->
+          <div class="form-group">
+            <label>Resume / CV *</label>
 
-                    </div>
-                  }
+            <div class="resume-option">
+              <div class="resume-info">
+
+                <div class="resume-icon">
+                  <i class="pi pi-file-pdf"></i>
                 </div>
 
-                <!-- Screening questions -->
-                @for (
-                  question of screeningQuestions;
-                  track question.id;
-                  let questionIndex = $index
-                ) {
+                <div>
+                  <p class="resume-name">
+                    {{ currentResume.name }}
+                  </p>
 
-                  <div class="form-group">
-
-                    <label
-                      [for]="'screening-question-' + questionIndex"
-                    >
-                      {{ question.question }} *
-                    </label>
-
-                    <textarea
-                      pTextarea
-                      [id]="'screening-question-' + questionIndex"
-                      [formControl]="answers.at(questionIndex)"
-                      rows="4"
-                      placeholder="Share your experience..."
-                    ></textarea>
-
-                    @if (
-                      answers.at(questionIndex).invalid &&
-                      answers.at(questionIndex).touched
-                    ) {
-                      <small class="field-error">
-                        This question is required.
-                      </small>
-                    }
-
-                  </div>
-
-                }
-
-                <!-- Source -->
-                <div class="form-group">
-
-                  <label for="source">
-                    How did you hear about this role? *
-                  </label>
-
-                  <p-select
-                    id="source"
-                    formControlName="source"
-                    [options]="sourceOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="e.g. LinkedIn, Referral..."
-                  />
-
-                  @if (
-                    form.controls.source.invalid &&
-                    form.controls.source.touched
-                  ) {
-                    <small class="field-error">
-                      Please select a source.
-                    </small>
-                  }
-
+                  <p class="resume-meta">
+                    {{ currentResume.meta }}
+                  </p>
                 </div>
 
-                <p-button
-                  type="submit"
-                  label="Submit Application"
-                  icon="pi pi-arrow-right"
-                  iconPos="right"
-                  [loading]="isSubmitting()"
-                  styleClass="submit-btn"
-                />
+              </div>
 
-                <p class="privacy-note">
-                  By submitting, you agree to our Privacy Policy.
-                </p>
+              <span class="selected">
+                <i class="pi pi-check-circle"></i>
+                Selected
+              </span>
+            </div>
 
-              </form>
+            <button
+              type="button"
+              class="upload-toggle"
+              (click)="showUpload.set(!showUpload())">
+              <i class="pi pi-plus-circle"></i>
+
+              {{
+              showUpload()
+              ? 'Hide upload'
+              : 'Upload new resume'
+              }}
+            </button>
+
+            @if (showUpload()) {
+            <div class="upload-drop">
+
+              <i
+                class="pi pi-cloud-upload upload-cloud"></i>
+
+              <p class="upload-title">
+                Click to upload or drag and drop
+              </p>
+
+              <p class="upload-hint">
+                PDF, DOCX up to 10MB
+              </p>
+
+              <p-fileupload
+                mode="basic"
+                name="resume"
+                accept=".pdf,.doc,.docx"
+                maxFileSize="10000000"
+                chooseLabel="Choose resume"
+                (onSelect)="onResumeSelected($event)" />
+
+            </div>
+            }
+          </div>
+
+          <!-- Screening questions -->
+          @for (
+          question of screeningQuestions;
+          track question.id;
+          let questionIndex = $index
+          ) {
+
+          <div class="form-group">
+
+            <label
+              [for]="'screening-question-' + questionIndex">
+              {{ question.question }} *
+            </label>
+
+            <textarea
+              pTextarea
+              [id]="'screening-question-' + questionIndex"
+              [formControl]="answers.at(questionIndex)"
+              rows="4"
+              placeholder="Share your experience..."></textarea>
+
+            @if (
+            answers.at(questionIndex).invalid &&
+            answers.at(questionIndex).touched
+            ) {
+            <small class="field-error">
+              This question is required.
+            </small>
             }
 
           </div>
-        </aside>
+
+          }
+
+          <!-- Source -->
+          <div class="form-group">
+
+            <label for="source">
+              How did you hear about this role? *
+            </label>
+
+            <p-select
+              id="source"
+              formControlName="source"
+              [options]="sourceOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="e.g. LinkedIn, Referral..." />
+
+            @if (
+            form.controls.source.invalid &&
+            form.controls.source.touched
+            ) {
+            <small class="field-error">
+              Please select a source.
+            </small>
+            }
+
+          </div>
+
+          <p-button
+            type="submit"
+            label="Submit Application"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            [loading]="isSubmitting()"
+            styleClass="submit-btn" />
+
+          <p class="privacy-note">
+            By submitting, you agree to our Privacy Policy.
+          </p>
+
+        </form>
+        }
+        @else {
+        <div class="apply-heading">
+          <h3>Internal User</h3>
+          <p>
+            Review the screening questions and applicants for this position.
+          </p>
+        </div>
+
+        <!-- Screening questions -->
+        @for (
+        question of screeningQuestions;
+        track question.id;
+        let questionIndex = $index
+        ) {
+        <p-panel
+          [header]="'Question ' + (questionIndex + 1)"
+          styleClass="screening-question-panel">
+          <p>
+            {{ question.question }}
+          </p>
+        </p-panel>
+        }
+        <div style="margin-top:15px; display: flex; justify-content: center;">
+          <p-button
+            label="View Applicants"
+            icon="pi pi-users"
+            styleClass="submit-btn"
+            routerLink="/jobs/{{ jobData.id }}/applicants" />
+        </div>
+
+        }
+        }
 
       </div>
-    </div>
-  }
+    </aside>
+
+  </div>
+</div>
+}
 }
 
 <!-- Success dialog -->
@@ -303,8 +325,7 @@
   [style]="{ width: 'min(26rem, 92vw)' }"
   [modal]="true"
   [closable]="true"
-  [dismissableMask]="true"
->
+  [dismissableMask]="true">
   <div class="success-body">
     <div class="success-icon">
       <i class="pi pi-check"></i>
@@ -322,7 +343,6 @@
       [outlined]="true"
       severity="secondary"
       routerLink="/jobs"
-      (onClick)="successVisible.set(false)"
-    />
+      (onClick)="successVisible.set(false)" />
   </div>
 </p-dialog>

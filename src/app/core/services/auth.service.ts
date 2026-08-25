@@ -203,10 +203,10 @@ export class AuthService {
     // even if the call fails (e.g. token already expired).
     this.http
       .post<Result>(`${this.base}/api/Authentication/logout`, {})
-      .pipe(finalize(() => this.clearSession()))
+      .pipe(finalize(() => { this.clearSession();  this.router.navigate(['/login']); }))
       .subscribe({
         error: () => this.clearSession(),
       });
-    this.router.navigate(['/login']);
+
   }
 }

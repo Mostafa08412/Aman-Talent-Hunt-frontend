@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Location } from '@core/models';
 import { JobPostService } from '@core/services/job-post.service';
+import { AdminDepartmentsService } from '@core/services/admin-departments.service';
 
 export interface JobsSearchPayload {
   search: string;
@@ -32,6 +33,8 @@ export class JobsSearchComponent implements OnInit {
 
   private jobPostService = inject(JobPostService);
 
+  private departmentService = inject(AdminDepartmentsService)
+
   keyword = '';
   selectedLocation: Location | null = null;
   selectedDepartmentId: string | null = null;
@@ -40,10 +43,10 @@ export class JobsSearchComponent implements OnInit {
   departmentOptions: { label: string; value: string }[] = [];
 
   ngOnInit(): void {
-    this.jobPostService.getDepartmentLookup().subscribe({
+    this.departmentService.getLookup().subscribe({
       next: (result) => {
-        this.departmentOptions = (result.data ?? []).map((d) => ({
-          label: d.name ?? d.id,
+        this.departmentOptions = (result.data?.items ?? []).map((d) => ({
+          label: d.viewText!,
           value: d.id,
         }));
       },

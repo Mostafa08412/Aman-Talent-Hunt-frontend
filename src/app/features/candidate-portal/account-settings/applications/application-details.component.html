@@ -6,113 +6,111 @@
   </a>
 
   @if (detail(); as app) {
-    <!-- Header -->
-    <div class="detail-card">
-      <div class="card-glow"></div>
+  <!-- Header -->
+  <div class="detail-card">
+    <div class="card-glow"></div>
 
-      <div class="detail-heading">
-        <div class="heading-main">
-          <h1>{{ app.title }}</h1>
-          <p-tag
-            [value]="statusLabel(app.status)"
-            [severity]="statusSeverity(app.status)"
-            styleClass="status-tag" />
-        </div>
-        <div class="heading-meta">
-          <span><i class="pi pi-calendar"></i> Applied {{ app.appliedAt }}</span>
-          <span><i class="pi pi-share-alt"></i> Via {{ app.source }}</span>
-        </div>
+    <div class="detail-heading">
+      <div class="heading-main">
+        <h1>{{ app.title }}</h1>
+        <p-tag
+          [value]="statusLabel(app.status)"
+          [severity]="statusSeverity(app.status)"
+          styleClass="status-tag" />
       </div>
+      <div class="heading-meta">
+        <span><i class="pi pi-calendar"></i> Applied {{ app.appliedAt }}</span>
+        <span><i class="pi pi-share-alt"></i> Via {{ app.source }}</span>
+      </div>
+    </div>
 
-      <div class="detail-grid">
-        <!-- Timeline -->
-        <section class="timeline-col">
-          <h2>Application Timeline</h2>
-          <p-timeline [value]="app.timeline" align="left">
-            <ng-template pTemplate="marker" let-event>
-              <span class="marker" [class.done]="event.done" [class.current]="event.current">
-                <i class="pi" [ngClass]="event.done ? 'pi-check' : 'pi-circle'"></i>
-              </span>
-            </ng-template>
-            <ng-template pTemplate="content" let-event>
-              <div class="event" [class.current]="event.current">
-                <p class="event-title">{{ event.title }}</p>
-                <p class="event-date">{{ event.date }}</p>
-                @if (event.note) {
-                  <p class="event-note">{{ event.note }}</p>
-                }
+    <div class="detail-grid">
+      <!-- Timeline -->
+      <section class="timeline-col">
+        <h2>Application Timeline</h2>
+        <p-timeline [value]="app.timeline" align="left">
+          <ng-template pTemplate="marker" let-event>
+            <span class="marker" [class.done]="event.done"
+              [class.current]="event.current">
+              <i class="pi"
+                [ngClass]="event.done ? 'pi-check' : 'pi-circle'"></i>
+            </span>
+          </ng-template>
+          <ng-template pTemplate="content" let-event>
+            <div class="event" [class.current]="event.current">
+              <p class="event-title">{{ event.title }}</p>
+              <p class="event-date">{{ event.date }}</p>
+              @if (event.note) {
+              <p class="event-note">{{ event.note }}</p>
+              }
+            </div>
+          </ng-template>
+        </p-timeline>
+      </section>
+
+      <!-- Interviews + actions -->
+      <aside class="side-col">
+        <section class="panel">
+          <h2>Interviews</h2>
+          @if (app.interviews.length > 0) {
+          <div class="interview-list">
+            @for (interview of app.interviews; track interview.round) {
+            <div class="interview-card">
+              <div class="interview-head">
+                <p class="interview-round">{{ interview.round }}</p>
+                <p-tag
+                  [value]="interview.status"
+                  severity="warn"
+                  styleClass="mini-tag" />
               </div>
-            </ng-template>
-          </p-timeline>
+              <p class="interview-date"><i class="pi pi-clock"></i> {{
+                interview.date }}</p>
+              <p class="interview-meta"><i class="pi pi-video"></i> {{
+                interview.format }}</p>
+              <p class="interview-meta"><i class="pi pi-map-marker"></i> {{
+                interview.location }}</p>
+            </div>
+            }
+          </div>
+          } @else {
+          <div class="empty-state">
+            <i class="pi pi-calendar-times"></i>
+            <p>No interviews scheduled yet.</p>
+          </div>
+          }
         </section>
 
-        <!-- Interviews + actions -->
-        <aside class="side-col">
-          <section class="panel">
-            <h2>Interviews</h2>
-            @if (app.interviews.length > 0) {
-              <div class="interview-list">
-                @for (interview of app.interviews; track interview.round) {
-                  <div class="interview-card">
-                    <div class="interview-head">
-                      <p class="interview-round">{{ interview.round }}</p>
-                      <p-tag
-                        [value]="interview.status"
-                        severity="warn"
-                        styleClass="mini-tag" />
-                    </div>
-                    <p class="interview-date"><i class="pi pi-clock"></i> {{ interview.date }}</p>
-                    <p class="interview-meta"><i class="pi pi-video"></i> {{ interview.format }}</p>
-                    <p class="interview-meta"><i class="pi pi-map-marker"></i> {{ interview.location }}</p>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="empty-state">
-                <i class="pi pi-calendar-times"></i>
-                <p>No interviews scheduled yet.</p>
-              </div>
-            }
-          </section>
-
-          <section class="panel">
-            <h2>Application Details</h2>
-            <div class="detail-rows">
-              <div class="row">
-                <span class="row-label">Status</span>
-                <span class="row-value">{{ statusLabel(app.status) }}</span>
-              </div>
-              <div class="row">
-                <span class="row-label">Applied On</span>
-                <span class="row-value">{{ app.appliedAt }}</span>
-              </div>
-              <div class="row">
-                <span class="row-label">Source</span>
-                <span class="row-value">{{ app.source }}</span>
-              </div>
+        <section class="panel">
+          <h2>Application Details</h2>
+          <div class="detail-rows">
+            <div class="row">
+              <span class="row-label">Status</span>
+              <span class="row-value">{{ statusLabel(app.status) }}</span>
             </div>
+            <div class="row">
+              <span class="row-label">Applied On</span>
+              <span class="row-value">{{ app.appliedAt }}</span>
+            </div>
+            <div class="row">
+              <span class="row-label">Source</span>
+              <span class="row-value">{{ app.source }}</span>
+            </div>
+          </div>
 
-            @if (canWithdraw(app.status)) {
-              <p-button
-                label="Withdraw Application"
-                icon="pi pi-times"
-                [text]="true"
-                severity="danger"
-                (onClick)="withdraw()" />
-            }
-          </section>
-        </aside>
-      </div>
+        </section>
+      </aside>
     </div>
+  </div>
   } @else if (isLoading()) {
-    <div class="detail-card">
-      <div class="card-glow"></div>
-      <p class="loading-state"><i class="pi pi-spin pi-spinner"></i> Loading application…</p>
-    </div>
+  <div class="detail-card">
+    <div class="card-glow"></div>
+    <p class="loading-state"><i class="pi pi-spin pi-spinner"></i> Loading
+      application…</p>
+  </div>
   } @else {
-    <div class="detail-card">
-      <div class="card-glow"></div>
-      <p class="loading-state">We couldn't find this application.</p>
-    </div>
+  <div class="detail-card">
+    <div class="card-glow"></div>
+    <p class="loading-state">We couldn't find this application.</p>
+  </div>
   }
 </div>
