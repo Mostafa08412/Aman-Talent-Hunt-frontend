@@ -51,8 +51,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: HttpErrorResponse) => {
       // Server down — force logout immediately (toast handled by apiErrorInterceptor).
       if (isServerError(err)) {
-        auth.logout();
-        router.navigate(['/login']);
+        // auth.logout();
+        // router.navigate(['/login']);
         return throwError(() => err);
       }
 

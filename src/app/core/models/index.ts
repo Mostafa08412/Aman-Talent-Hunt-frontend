@@ -58,3 +58,6 @@ export type * from './admin-user-model';
 
 // Interviews
 export type * from './interview-model';
+
+// Employee Self-Service
+export type * from './employee-profile-model';

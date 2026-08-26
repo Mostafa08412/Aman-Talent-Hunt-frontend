@@ -4,6 +4,7 @@ export interface NavItem {
   label: string;
   icon: string; // PrimeIcons class, e.g. 'pi pi-home'
   route: string;
+  exact?: boolean; // true = active class only on exact route match (default: prefix match)
   roles?: Role[]; // omit = visible to every internal role
   badge?: 'pendingApprovals'; // hook for live counts, see header.component.ts pattern
 }
@@ -17,7 +18,7 @@ export const NAV_CONFIG: NavGroup[] = [
   {
     label: '',
     items: [
-      { label: 'Dashboard', icon: 'pi pi-home', route: '/console' },
+      { label: 'Dashboard', icon: 'pi pi-home', route: '/console', exact: true },
       {
         label: 'HM Workstation',
         icon: 'pi pi-briefcase',
@@ -34,6 +35,12 @@ export const NAV_CONFIG: NavGroup[] = [
         icon: 'pi pi-file-edit',
         route: '/console/requisitions',
         roles: [Role.HiringManager, Role.HRManager, Role.Admin, Role.SuperAdmin],
+      },
+      {
+        label: 'Job Requisitions',
+        icon: 'pi pi-list-check',
+        route: '/console/job-requisitions',
+        roles: [Role.HiringManager, Role.DepartmentHead, Role.HRManager, Role.Recruiter, Role.SuperAdmin],
       },
       {
         label: 'Approvals',
@@ -58,13 +65,6 @@ export const NAV_CONFIG: NavGroup[] = [
         label: 'Interviews',
         icon: 'pi pi-calendar',
         route: '/console/interviews',
-        roles: [Role.Recruiter, Role.HiringManager, Role.HRManager, Role.SuperAdmin],
-      },
-      {
-        label: 'Offers',
-        icon: 'pi pi-send',
-        route: '/console/offers',
-        roles: [Role.Recruiter, Role.HRManager, Role.SuperAdmin],
       },
     ],
   },

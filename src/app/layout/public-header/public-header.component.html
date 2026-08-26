@@ -9,7 +9,7 @@
     <!-- Desktop Navigation -->
     <nav class="nav-desktop">
       <a routerLink="/jobs" routerLinkActive="active" class="nav-link">Jobs</a>
-      @if (isLoggedIn() && isUserCandidate) {
+      @if (isLoggedIn() && isUserCandidate()) {
       <a routerLink="/account/applications" routerLinkActive="active"
         class="nav-link">My applications</a>
       }
@@ -68,7 +68,7 @@
   <nav class="nav-mobile">
     <a routerLink="/jobs" routerLinkActive="active" class="mobile-link"
       (click)="mobileMenuVisible.set(false)">Jobs</a>
-    @if (isLoggedIn() && isUserCandidate) {
+    @if (isLoggedIn() && isUserCandidate()) {
     <a routerLink="/account" routerLinkActive="active"
       class="mobile-link" (click)="mobileMenuVisible.set(false)">Profile</a>
     <a routerLink="/account/applications" routerLinkActive="active"

@@ -17,6 +17,7 @@
             class="nav-item"
             [routerLink]="item.route"
             routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
             [pTooltip]="collapsed() ? item.label : ''"
             tooltipPosition="right"
           >
