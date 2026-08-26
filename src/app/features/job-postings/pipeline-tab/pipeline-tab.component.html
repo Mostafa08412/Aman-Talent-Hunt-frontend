@@ -1,0 +1,123 @@
+<div class="pipeline-tab">
+
+  <!-- Counts strip / toolbar -->
+  <div class="board-toolbar" [formGroup]="filterForm">
+    <div class="search-box">
+      <button class="search-btn" type="button" aria-label="Search board" (click)="applyFilters()">
+        <i class="pi pi-search"></i>
+      </button>
+      <input
+        type="text"
+        placeholder="Search candidates on the board..."
+        formControlName="search"
+        (keyup.enter)="applyFilters()" />
+    </div>
+
+    <p-select
+      [options]="sourceOptions"
+      placeholder="Source"
+      [showClear]="true"
+      styleClass="filter-select"
+      formControlName="source"
+      (onChange)="applyFilters()" />
+
+    <button
+      class="rejected-chip"
+      type="button"
+      (click)="openRejectedDrawer()">
+      View Rejected ({{ rejectedCount() }})
+    </button>
+  </div>
+
+  <!-- Kanban columns -->
+  <div class="board" [class.loading]="isLoading()">
+    @for (col of columnDefs; track col.status) {
+
+      <div class="kanban-col">
+        <div class="col-head">
+          <span class="col-title">{{ col.label }}</span>
+          <span class="col-count">{{ countFor(col.status) }}</span>
+        </div>
+
+        <div class="col-cards">
+          @for (row of cardsFor(col.status); track $index) {
+
+            <div
+              class="applicant-card"
+              role="button"
+              tabindex="0"
+              (click)="drawer().open(row.id)"
+              (keyup.enter)="drawer().open(row.id)">
+
+              <div class="card-top">
+                <span class="avatar">{{ initials(row) }}</span>
+                <div class="who">
+                  <span class="name">{{ candidateName(row) }}</span>
+                  @if (row.referenceNumber) {
+                    <span class="ref">{{ row.referenceNumber }}</span>
+                  }
+                </div>
+
+                <p-menu #cardMenu [model]="cardMenuItems()" [popup]="true" appendTo="body" />
+                <button
+                  class="menu-btn"
+                  type="button"
+                  aria-label="Card actions"
+                  (click)="$event.stopPropagation(); openCardMenu(row, $event, cardMenu)">
+                  <i class="pi pi-ellipsis-h"></i>
+                </button>
+              </div>
+
+              <div class="card-meta">
+                <app-status-badge [value]="row.source" kind="visibility" />
+                <span class="time muted">{{ row.createdAtUTC | relativeTime }}</span>
+              </div>
+
+
+            </div>
+
+          } @empty {
+            <div class="col-empty">No applicants</div>
+          }
+        </div>
+      </div>
+
+    }
+  </div>
+</div>
+
+<!-- Schedule interview dialog -->
+<app-schedule-interview-dialog
+  [rounds]="rounds()"
+  [applicantId]="scheduleApplicantId"
+  [applicantName]="scheduleApplicantName"
+  (scheduled)="onScheduled($event)" />
+
+<!-- Applicant profile drawer -->
+<app-applicant-detail-drawer />
+
+<!-- Rejected drawer -->
+<p-drawer
+  header="Rejected / Withdrawn / Offer Declined"
+  position="right"
+  [modal]="true"
+  [visible]="rejectedVisible()"
+  (visibleChange)="rejectedVisible.set($event)"
+  [style]="{ width: '26rem', baseZIndex: 1000 }">
+
+  @if (rejectedLoading()) {
+    <div class="drawer-loading"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+  } @else if (rejectedItems().length === 0) {
+    <div class="drawer-loading">No rejected applications.</div>
+  }
+
+  @for (row of rejectedItems(); track $index) {
+    <div class="rejected-row">
+      <div class="who">
+        <span class="name">{{ candidateName(row) }}</span>
+        <span class="muted ref">{{ row.referenceNumber }}</span>
+      </div>
+      <app-status-badge [value]="row.status" kind="application" />
+    </div>
+  }
+</p-drawer>

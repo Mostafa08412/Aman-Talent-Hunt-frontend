@@ -1,0 +1,56 @@
+<p-dialog
+  header="Submit Result — {{ context()?.candidateName }}"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  [style]="{ width: '30rem', maxWidth: '95vw' }">
+
+  <div class="result-form" [formGroup]="form">
+    <div class="form-field">
+      <label>Round</label>
+      <span class="round-chip">{{ context()?.roundName ?? ('Round ' + context()?.roundNumber) }}</span>
+    </div>
+
+    <div class="form-field">
+      <label>Verdict</label>
+      <p-selectbutton
+        [options]="decisionOptions"
+        formControlName="decision"
+        optionLabel="label"
+        optionValue="value" />
+    </div>
+
+    <div class="form-field">
+      <label>Comment <span class="required">*</span></label>
+      <textarea
+        pInputTextarea
+        rows="4"
+        placeholder="Required feedback for this round"
+        formControlName="comment"></textarea>
+      @if (form.controls.comment.invalid && form.controls.comment.touched) {
+        <small class="field-error">Comment is required.</small>
+      }
+    </div>
+
+    <div class="dialog-actions">
+      <p-button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()" />
+
+      <p-button
+        type="button"
+        label="Submit Result"
+        icon="pi pi-check"
+        [loading]="submitting()"
+        [disabled]="form.invalid"
+        (onClick)="submit()" />
+    </div>
+  </div>
+</p-dialog>
+
+

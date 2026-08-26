@@ -1,0 +1,138 @@
+<p-drawer
+  header="Applicant Profile"
+  position="right"
+  [modal]="true"
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [style]="{ width: '30rem', baseZIndex: 1000 }">
+
+  @if (loading()) {
+    <div class="drawer-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      Loading applicant…
+    </div>
+  } @else {
+    @if (detail(); as d) {
+
+    <div class="profile-head">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="who">
+        <h3>{{ fullName() }}</h3>
+        <span class="ref">{{ d.referenceNumber ?? '—' }}</span>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <app-status-badge [value]="d.status" kind="application" />
+      <app-status-badge [value]="d.source" kind="application" />
+      <span class="applied">Applied {{ d.createdAtUTC | relativeTime }}</span>
+    </div>
+
+    <div class="section">
+      <h4>Contact</h4>
+      <div class="kv"><span>Email</span><strong>{{ d.candidateEmail || '—' }}</strong></div>
+      <div class="kv"><span>Phone</span><strong>{{ d.candidatePhoneNumber || '—' }}</strong></div>
+      <div class="kv"><span>Military Status</span><strong>{{ humanize(d.militaryStatus) }}</strong></div>
+      @if (d.linkedInProfile) {
+        <div class="kv">
+          <span>LinkedIn</span>
+          <a [href]="d.linkedInProfile" target="_blank" rel="noopener">Open profile</a>
+        </div>
+      }
+      <div class="kv"><span>Applied to</span><strong>{{ d.jobPostTitle || '—' }}</strong></div>
+    </div>
+
+    @if (hasAnswers()) {
+      <div class="section">
+        <h4>Screening Answers</h4>
+        @for (a of answers(); track a.screeningQuestionId) {
+          <div class="qa">
+            <p class="q">{{ a.question || 'Question' }}</p>
+            <p class="a">{{ a.answer || '—' }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="section">
+      <div class="section-head">
+        <h4>Interview Timeline</h4>
+        @if (interviews().length === 0) {
+          <span class="muted-note">No interviews yet</span>
+        }
+      </div>
+
+      @for (iv of interviews(); track iv.id) {
+        <div class="timeline-item">
+          <div class="tl-head">
+            <span class="round-name">{{ iv.roundName ?? ('Round ' + iv.roundNumber) }}</span>
+            <span class="badges">
+              <app-status-badge [value]="iv.status" kind="interviewStatus" />
+              <app-status-badge [value]="iv.result" kind="interviewResult" />
+            </span>
+          </div>
+          <div class="kv">
+            <span>Scheduled</span>
+            <strong>{{ iv.scheduledDate ? (iv.scheduledDate | date: 'MMM d, y — h:mm a') : '—' }}</strong>
+          </div>
+          <div class="kv"><span>Interviewer</span><strong>{{ iv.interviewerName || '—' }}</strong></div>
+          @if (iv.comment) {
+            <div class="kv"><span>Comment</span><em>{{ iv.comment }}</em></div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (resumeFileName()) {
+      <div class="section">
+        <h4>Resume</h4>
+        <div class="resume-actions">
+          <p-button
+            type="button"
+            label="Preview"
+            icon="pi pi-eye"
+            [outlined]="true"
+            size="small"
+            [loading]="previewLoading()"
+            (onClick)="previewCv()" />
+          <p-button
+            type="button"
+            label="Download"
+            icon="pi pi-download"
+            [outlined]="true"
+            size="small"
+            [loading]="downloadingCv()"
+            (onClick)="downloadCv()" />
+          <span class="cv-filename">{{ resumeFileName() }}</span>
+        </div>
+      </div>
+    }
+
+    <ng-template pTemplate="footer">
+      @if (actionsTemplate()) {
+        <ng-container [ngTemplateOutlet]="actionsTemplate()"></ng-container>
+      }
+    </ng-template>
+    }
+  }
+</p-drawer>
+
+@if (previewVisible()) {
+  <div class="cv-overlay" (click)="closePreview()">
+    <div class="cv-overlay-header" (click)="$event.stopPropagation()">
+      <span class="cv-overlay-title">{{ resumeFileName() }}</span>
+      <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" (onClick)="closePreview()" />
+    </div>
+    @if (previewLoading()) {
+      <div class="cv-overlay-loading">
+        <i class="pi pi-spin pi-spinner"></i> Loading preview…
+      </div>
+    }
+    <iframe
+      *ngIf="previewUrl() as url"
+      [src]="url"
+      class="cv-overlay-iframe"
+      title="Resume preview"></iframe>
+  </div>
+}
+

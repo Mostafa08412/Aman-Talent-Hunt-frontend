@@ -1,0 +1,116 @@
+<p-dialog
+  [header]="applicantName() ? 'Schedule Interview — ' + applicantName() : 'Schedule Interview'"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  [style]="{ width: '44rem', maxWidth: '95vw' }">
+
+  <div class="schedule-form" [formGroup]="form">
+    <div class="form-field">
+      <label>Round</label>
+      <p-select
+        inputId="round"
+        [options]="roundOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select round"
+        formControlName="roundId"
+        (onChange)="onRoundChange()"
+        appendTo="body" />
+
+      @if (selectedRound()) {
+      <small class="field-hint">
+        {{ humanize(selectedRound()!.format) }}
+        · {{ selectedRound()!.estimatedDurationInMinutes }} min
+      </small>
+      }
+      @if (form.controls.roundId.invalid && form.controls.roundId.touched) {
+      <small class="p-error">A round must be selected.</small>
+      }
+    </div>
+
+    <div class="form-field">
+      <label>Interviewer</label>
+      <p-select
+        inputId="interviewer"
+        [options]="interviewers()"
+        optionLabel="viewText"
+        optionValue="id"
+        placeholder="{{ interviewerLoading() ? 'Loading…' : 'Select interviewer' }}"
+        [filter]="true"
+        filterBy="viewText,secondaryText"
+        (onFilter)="onInterviewerFilter($event)"
+        [loading]="interviewerLoading()"
+        formControlName="interviewerId"
+        appendTo="body" />
+      @if (form.controls.interviewerId.invalid &&
+      form.controls.interviewerId.touched) {
+      <small class="p-error">An interviewer must be selected.</small>
+      }
+    </div>
+
+    <div class="form-field">
+      <label>Date &amp; Time</label>
+      <p-datepicker
+        inputId="scheduledDate"
+        formControlName="scheduledDate"
+        [showTime]="true"
+        [hourFormat]="'12'"
+        [showIcon]="true"
+        [minDate]="minDate"
+        [readonlyInput]="true"
+        placeholder="Pick a future date/time"
+        [stepMinute]="15"
+        appendTo="body" />
+      @if (form.controls.scheduledDate.invalid &&
+      form.controls.scheduledDate.touched) {
+      <small class="p-error">A future date/time is required.</small>
+      }
+    </div>
+
+    @if (requiresMeetingLink()) {
+    <div class="form-field">
+      <label>Meeting Link</label>
+      <input
+        pInputText
+        id="meetingLink"
+        type="text"
+        placeholder="https://meet.example.com/room"
+        formControlName="meetingLink" />
+    </div>
+    }
+
+    @if (requiresLocation()) {
+    <div class="form-field">
+      <label>Location Details</label>
+      <input
+        pInputText
+        id="locationDetails"
+        type="text"
+        placeholder="e.g. HQ — Room 402"
+        formControlName="locationDetails" />
+    </div>
+    }
+
+    <div class="dialog-actions">
+      <p-button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()" />
+
+      <p-button
+        type="button"
+        label="Schedule"
+        icon="pi pi-calendar-plus"
+        [loading]="submitting()"
+        [disabled]="form.invalid"
+        (onClick)="submit()" />
+    </div>
+  </div>
+</p-dialog>
+
+

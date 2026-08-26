@@ -1,0 +1,113 @@
+<div class="submitted-tab">
+
+  <div class="tab-toolbar" [formGroup]="filterForm">
+    <div class="search-box">
+      <button class="search-btn" type="button" aria-label="Search" (click)="applyFilters()">
+        <i class="pi pi-search"></i>
+      </button>
+      <input
+        type="text"
+        placeholder="Search by candidate name, email or phone..."
+        formControlName="search"
+        (keyup.enter)="applyFilters()" />
+    </div>
+
+    <p-select
+      [options]="sourceOptions"
+      placeholder="Source"
+      [showClear]="true"
+      styleClass="filter-select"
+      formControlName="source"
+      (onChange)="applyFilters()" />
+
+    <button class="clear-btn" type="button" (click)="clearFilters()">
+      <i class="pi pi-filter-slash"></i>
+      Clear
+    </button>
+  </div>
+
+  <div class="table-wrap" [class.loading]="isLoading()">
+
+    <div class="table-head grid-row">
+      <span class="col-candidate">Candidate</span>
+      <span class="col-email">Email</span>
+      <span class="col-source">Source</span>
+      <span class="col-applied">Applied</span>
+      <span class="col-actions">Actions</span>
+    </div>
+
+    @for (row of applicants(); track $index) {
+
+      <div
+        class="grid-row table-row applicant-row"
+        role="button"
+        tabindex="0"
+        (click)="openProfile(row)"
+        (keyup.enter)="openProfile(row)">
+
+        <div class="cell-candidate">
+          {{ candidateName(row) }}
+          @if (row.referenceNumber) {
+            <span class="ref-code">{{ row.referenceNumber }}</span>
+          }
+        </div>
+
+        <div class="cell-email muted">{{ row.candidateEmail || '—' }}</div>
+
+        <div class="cell-source">
+          <app-status-badge [value]="row.source" kind="visibility" />
+        </div>
+
+        <div class="cell-applied muted">{{ row.createdAtUTC | relativeTime }}</div>
+
+        <div class="cell-actions" (click)="$event.stopPropagation()">
+          <p-menu #rowMenu [model]="rowMenuItems()" [popup]="true" appendTo="body" />
+          <button
+            class="icon-btn"
+            type="button"
+            aria-label="Row actions"
+            (click)="openRowMenu(row, $event, rowMenu)">
+            <i class="pi pi-ellipsis-h"></i>
+          </button>
+        </div>
+      </div>
+
+    } @empty {
+
+      <div class="empty-state">
+        @if (isLoading()) {
+          Loading submissions...
+        } @else {
+          No submitted applications
+        }
+      </div>
+    }
+  </div>
+
+  <div class="table-foot">
+    <span class="foot-info">
+      Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd }}</strong> of
+      <strong>{{ totalCount() }}</strong> submissions
+    </span>
+
+    <div class="pager">
+      <button
+        class="page-btn"
+        type="button"
+        [disabled]="page() <= 1"
+        (click)="goToPage(page() - 1)">
+        <i class="pi pi-chevron-left"></i>
+      </button>
+      <span class="page-indicator">{{ page() }} / {{ totalPages }}</span>
+      <button
+        class="page-btn"
+        type="button"
+        [disabled]="page() >= totalPages"
+        (click)="goToPage(page() + 1)">
+        <i class="pi pi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-applicant-detail-drawer />
