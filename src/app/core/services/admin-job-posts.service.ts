@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Result } from '@core/models/common';
-import { EmploymentType, JobPostStatus, JobType, Location, SeniorityLevel } from '@core/models/enums';
+import { EmploymentType, JobPostStatus, JobType, Location, PostingVisibility, SeniorityLevel } from '@core/models/enums';
 import {
   AdminJobPostDetailDtoResult,
   AdminJobPostListItemDtoPagedResultResult,
@@ -26,6 +26,7 @@ export interface AdminJobPostsQueryParams {
   Location?: Location;
   DatePosted?: string;
   JobType?: JobType;
+  Visibility?: PostingVisibility;
   Page?: number;
   PageSize?: number;
   Search?: string;
@@ -72,6 +73,10 @@ export class AdminJobPostsService {
 
   hold(id: string): Observable<Result> {
     return this.http.post<Result>(`${this.base}/api/admin/job-posts/${id}/hold`, null);
+  }
+
+  resume(id: string): Observable<Result> {
+    return this.http.post<Result>(`${this.base}/api/admin/job-posts/${id}/resume`, null);
   }
 
   close(id: string): Observable<Result> {

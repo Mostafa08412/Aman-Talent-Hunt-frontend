@@ -1,0 +1,94 @@
+<p-dialog
+  header="Create Job Post"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="visible"
+  [style]="{ width: '36rem', maxWidth: '95vw' }">
+
+  <div class="create-form" [formGroup]="form">
+    <div class="form-field">
+      <label>Approved Requisition <span class="required">*</span></label>
+      <p-select
+        inputId="requisition"
+        [options]="requisitions()"
+        optionLabel="viewText"
+        optionValue="id"
+        placeholder="{{ reqLoading() ? 'Searching…' : 'Type at least 2 characters to search' }}"
+        [filter]="true"
+        filterBy="viewText,secondaryText"
+        (onFilter)="onRequisitionFilter($event)"
+        [loading]="reqLoading()"
+        formControlName="requisitionId"
+        (onChange)="onRequisitionChange()" />
+
+      @if (selectedRequisition(); as r) {
+        <small class="field-hint">
+          {{ r.referenceNumber }} — {{ r.secondaryText }}
+        </small>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>Job Type <span class="required">*</span></label>
+        <p-select
+          inputId="jobType"
+          [options]="jobTypeOptions"
+          formControlName="jobType"
+          placeholder="Select job type" />
+      </div>
+
+      <div class="form-field">
+        <label>Number of Openings <span class="required">*</span></label>
+        <input
+          pInputText
+          id="openings"
+          type="number"
+          min="1"
+          formControlName="numberOfOpenings" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>Visibility <span class="required">*</span></label>
+        <p-select
+          inputId="visibility"
+          [options]="visibilityOptions"
+          formControlName="visibility"
+          placeholder="Select visibility" />
+      </div>
+
+      <div class="form-field">
+        <label>Deadline</label>
+        <p-datepicker
+          inputId="deadline"
+          formControlName="deadline"
+          [showIcon]="true"
+          [readonlyInput]="true"
+          [minDate]="minDate"
+          placeholder="Application deadline" />
+        <small class="field-hint">Optional</small>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()" />
+
+      <p-button
+        type="submit"
+        label="Create Job Post"
+        icon="pi pi-plus"
+        [loading]="creating()"
+        (onClick)="create()" />
+    </div>
+  </div>
+</p-dialog>
+
+<p-toast />

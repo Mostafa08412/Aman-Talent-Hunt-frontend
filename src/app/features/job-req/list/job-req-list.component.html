@@ -1,0 +1,143 @@
+<div class="page">
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Job Requisitions</h1>
+      <p>One pipeline from draft to fulfilled — your queues, your approvals</p>
+    </div>
+    <p-button
+      label="New Requisition"
+      icon="pi pi-plus"
+      styleClass="btn-add-requisition"
+      routerLink="/console/job-requisitions/new" />
+  </div>
+
+  <!-- View tabs -->
+  <div class="view-tabs">
+    @for (tab of viewTabs; track tab.value) {
+      <button class="view-tab" type="button" [class.active]="activeView() === tab.value"
+        (click)="switchView(tab.value)">
+        <i class="pi" [class]="'pi ' + tab.icon"></i>
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Data directory -->
+  <div class="directory">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="filter-actions">
+        <input pInputText type="text" class="search-input" placeholder="Search title, ref, employee..."
+          [ngModel]="searchFilter" (ngModelChange)="searchFilter = $event" (keyup.enter)="applyFilters()" />
+        <p-multi-select
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Status"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="statusFilter" />
+        <p-select
+          [options]="departments()"
+          optionLabel="viewText"
+          optionValue="id"
+          placeholder="Department"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="departmentFilter" />
+        <p-select
+          [options]="hiringTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Hiring Type"
+          [showClear]="true"
+          styleClass="filter-select"
+          [(ngModel)]="hiringTypeFilter" />
+        <button class="apply-btn" type="button" (click)="applyFilters()">
+          <i class="pi pi-filter"></i> Apply
+        </button>
+        <button class="clear-btn" type="button" (click)="clearFilters()">Reset</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" [class.loading]="isLoading()">
+      <div class="grid-row table-head">
+        <span class="col-requisition">Requisition</span>
+        <span class="col-type">Type</span>
+        <span class="col-department">Department</span>
+        <span class="col-headcount">Openings</span>
+        <span class="col-manager">Hiring Manager</span>
+        <span class="col-approver">With</span>
+        <span class="col-status">Status</span>
+        <span class="col-updated">Updated</span>
+      </div>
+
+      @for (requisition of requisitions(); track requisition.id) {
+        <div class="grid-row table-row" (click)="openRequisition(requisition)">
+          <div class="cell-requisition">
+            <span class="req-number">{{ requisition.referenceNumber }}</span>
+            <span class="req-title">{{ requisition.proposedJobTitle }}</span>
+          </div>
+
+          <div class="cell-type muted">
+            {{ typeLabel(requisition.requisitionType) }}
+          </div>
+
+          <div class="cell-department muted">
+            {{ requisition.departmentName }}
+          </div>
+
+          <div class="cell-headcount muted">
+            {{ requisition.requestedHeadcount }}
+          </div>
+
+          <div class="cell-manager muted">
+            {{ requisition.hiringManagerName }}
+          </div>
+
+          <div class="cell-approver muted">
+            {{ approverLabel(requisition) }}
+          </div>
+
+          <div class="cell-status">
+            <span class="status-pill" [class]="'status-' + statusSeverity(requisition.status)">
+              <span class="dot"></span> {{ statusLabel(requisition.status) }}
+            </span>
+          </div>
+
+          <div class="cell-updated muted">
+            {{ requisition.updatedAtUTC | date: 'MMM d' }}
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">No requisitions in this view</div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    <div class="table-foot">
+      <span class="foot-info">
+        Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd }}</strong>
+        of <strong>{{ totalCount() | number }}</strong> entries
+      </span>
+      <div class="pager">
+        <button class="page-btn" type="button" [disabled]="page() <= 1" (click)="goToPage(page() - 1)"
+          aria-label="Previous page">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        @for (p of visiblePages; track p) {
+          <button class="page-btn" type="button" [class.current]="p === page()"
+            (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="page-btn" type="button" [disabled]="page() >= totalPages" (click)="goToPage(page() + 1)"
+          aria-label="Next page">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast />

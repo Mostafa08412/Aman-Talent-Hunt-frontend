@@ -7,6 +7,8 @@ import type { InterviewFormat, InterviewResult, InterviewStatus } from './enums'
 
 export interface InterviewListItemDto {
   id: string;
+  /** Applicant this interview belongs to (used for pipeline chip maps). */
+  applicantId: string;
   roundName: string | null;
   roundNumber: number;
   interviewerName: string | null;

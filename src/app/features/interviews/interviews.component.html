@@ -1,0 +1,109 @@
+<div class="interviews-page">
+
+  <div class="page-header">
+    <h1>My Interviews</h1>
+  </div>
+
+  <div class="tab-toolbar" [formGroup]="filterForm">
+    <div class="search-box">
+      <button class="search-btn" type="button" aria-label="Search" (click)="applyFilters()">
+        <i class="pi pi-search"></i>
+      </button>
+      <input
+        type="text"
+        placeholder="Search by candidate, round..."
+        formControlName="search"
+        (keyup.enter)="applyFilters()" />
+    </div>
+
+    <p-select
+      [options]="statusOptions"
+      placeholder="Status"
+      [showClear]="true"
+      styleClass="filter-select"
+      formControlName="status"
+      (onChange)="applyFilters()" />
+
+    <p-select
+      [options]="formatOptions"
+      placeholder="Format"
+      [showClear]="true"
+      styleClass="filter-select"
+      formControlName="format"
+      (onChange)="applyFilters()" />
+
+    <button class="clear-btn" type="button" (click)="clearFilters()">
+      <i class="pi pi-filter-slash"></i>
+      Clear
+    </button>
+  </div>
+
+  <div class="table-wrap" [class.loading]="isLoading()">
+
+    <div class="table-head grid-row">
+      <span class="col-candidate">Candidate</span>
+      <span class="col-round">Round</span>
+      <span class="col-date">Scheduled</span>
+      <span class="col-format">Format</span>
+      <span class="col-status">Status</span>
+      <span class="col-result">Result</span>
+      <span class="col-actions"></span>
+    </div>
+
+    @for (row of interviews(); track row.id) {
+
+    <div
+      class="grid-row table-row clickable"
+      role="button"
+      tabindex="0"
+      (click)="openDetail(row)"
+      (keyup.enter)="openDetail(row)">
+
+      <div class="cell-candidate">
+        {{ candidateName(row) }}
+      </div>
+
+      <div class="cell-round">{{ roundLabel(row) }}</div>
+
+      <div class="cell-date muted">
+        {{ row.scheduledDate ? (row.scheduledDate | date: 'MMM d, y — h:mm a') : '—' }}
+      </div>
+
+      <div class="cell-format">
+        <app-status-badge [value]="row.formatSnapshot" kind="visibility" />
+      </div>
+
+      <div class="cell-status">
+        <app-status-badge [value]="row.status" kind="interviewStatus" />
+      </div>
+
+      <div class="cell-result">
+        <app-status-badge [value]="row.result" kind="interviewResult" />
+      </div>
+
+      <div class="cell-actions" (click)="$event.stopPropagation()">
+        <p-menu #rowMenu [model]="actionMenuItems()" [popup]="true" appendTo="body" />
+        <button
+          class="icon-btn"
+          type="button"
+          aria-label="Row actions"
+          (click)="openRowMenu(row, $event, rowMenu)">
+          <i class="pi pi-ellipsis-h"></i>
+        </button>
+      </div>
+    </div>
+
+    } @empty {
+
+    <div class="empty-state">
+      @if (isLoading()) {
+      Loading interviews...
+      } @else {
+      No interviews assigned to you
+      }
+    </div>
+    }
+  </div>
+</div>
+
+<p-toast />

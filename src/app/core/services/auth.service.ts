@@ -78,6 +78,43 @@ export class AuthService {
     return !!r && roles.includes(r);
   }
 
+  /** Patch the locally stored session user (e.g. after a self-service profile rename). */
+  updateLocalUser(patch: Partial<CurrentUser>): void {
+    const current = this._currentUser();
+    if (!current) return;
+    const updated: CurrentUser = { ...current, ...patch };
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    this._currentUser.set(updated);
+  }
+
+  /** Sync resume info from profile API into the local session. */
+  updateLocalResume(resumeId: string | null | undefined, resumeFileName: string | null | undefined): void {
+    this.updateLocalUser({
+      resumeId: resumeId ?? undefined,
+      resumeFileName: resumeFileName ?? undefined,
+    });
+  }
+
+  /** Resume info from the cached session (avoids extra API call). */
+  getResumeId(): string | undefined {
+    return this._currentUser()?.resumeId;
+  }
+
+  getResumeFileName(): string | undefined {
+    return this._currentUser()?.resumeFileName;
+  }
+
+hasResume(): boolean {
+    const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
+    const u = this._currentUser();
+
+    const resumeId = u?.resumeId;
+    const hasValidId = resumeId && resumeId.toLowerCase() !== EMPTY_GUID;
+    const hasFileName = !!u?.resumeFileName;
+
+    return !!(hasValidId || hasFileName);
+  }
+
   /* ── Session helpers ── */
 
   getToken(): string | null {

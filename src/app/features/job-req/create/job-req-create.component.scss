@@ -1,0 +1,212 @@
+:host {
+  display: block;
+}
+
+/* ── Wizard step indicator ── */
+.wizard-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.wizard-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--p-surface-200);
+  border-radius: 2rem;
+  background: var(--p-surface-0);
+  color: var(--p-surface-500);
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  .index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--p-surface-200);
+    color: var(--p-surface-600);
+    font-size: 0.6875rem;
+  }
+
+  &.active {
+    border-color: var(--ath-teal);
+    color: var(--ath-teal);
+
+    .index {
+      background: var(--ath-teal);
+      color: #fff;
+    }
+  }
+
+  &.done {
+    color: var(--p-surface-700);
+
+    .index {
+      background: rgba(0, 174, 199, 0.15);
+      color: var(--ath-teal);
+    }
+  }
+}
+
+.wizard-line {
+  flex: 0 1 3rem;
+  height: 2px;
+  background: var(--p-surface-200);
+
+  &.done {
+    background: rgba(0, 174, 199, 0.5);
+  }
+}
+
+/* ── Step 1: type cards ── */
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--p-surface-200);
+  border-radius: 0.75rem;
+  background: var(--p-surface-0);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--ath-teal);
+  }
+
+  &.selected {
+    border-color: var(--ath-teal);
+    box-shadow: 0 0 0 1px var(--ath-teal), 0 4px 12px rgba(0, 174, 199, 0.12);
+  }
+
+  .card-icon {
+    font-size: 1.25rem;
+    color: var(--ath-teal);
+  }
+
+  .card-label {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: var(--p-surface-900);
+  }
+
+  .card-description {
+    font-size: 0.8125rem;
+    color: var(--p-surface-500);
+    line-height: 1.45;
+  }
+}
+
+/* ── Forms ── */
+form,
+p-card {
+  display: block;
+}
+
+form p-card + p-card {
+  margin-top: 1.25rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+
+  &.span-2 {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--p-surface-700);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+:host ::ng-deep .field textarea,
+:host ::ng-deep .field .p-inputtext {
+  width: 100%;
+}
+
+:host ::ng-deep .field .p-select,
+:host ::ng-deep .field .p-inputnumber {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+
+  :host ::ng-deep .p-button {
+    font-weight: 600;
+  }
+}
+
+/* ── Review ── */
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.detail-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--p-surface-400);
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  color: var(--p-surface-900);
+  overflow-wrap: anywhere;
+}
+
+.review-note {
+  margin-bottom: 1rem;
+}

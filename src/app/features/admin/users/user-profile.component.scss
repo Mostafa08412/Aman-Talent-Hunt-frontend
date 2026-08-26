@@ -101,6 +101,8 @@
 
 .role-badge {
   display: inline-flex;
+  align-items: center;
+  gap: 5px;
   align-self: flex-start;
   margin-top: 4px;
   padding: 2px 10px;
@@ -112,6 +114,35 @@
   border-radius: 9999px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+
+  .pi {
+    font-size: 11px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.job-badge {
+  background: rgba(0, 174, 199, 0.25);
+
+  .pi { color: rgba(255, 255, 255, 0.85); }
+}
+
+.squad-badge,
+.departing-badge {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.departing-badge {
+  background: rgba(220, 107, 47, 0.35);
+  border-color: rgba(220, 107, 47, 0.5);
 }
 
 .skeleton-line {
@@ -406,6 +437,55 @@
 
 .disabled-field {
   opacity: 0.7;
+}
+
+/* ── Work Information Grid ── */
+.work-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.work-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--p-surface-100);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.work-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--p-surface-400);
+}
+
+.work-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--p-surface-900);
+
+  &.mono {
+    font-family: monospace;
+    letter-spacing: 0.03em;
+  }
+}
+
+.work-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  .pi {
+    font-size: 11px;
+  }
 }
 
 /* ── Details Footer ── */

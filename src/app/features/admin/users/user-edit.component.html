@@ -91,10 +91,10 @@
           <div class="form-field">
             <label for="usr-edit-phoneNumber">Phone Number</label>
             <div class="phone-box">
-              <span class="phone-prefix"></span>
+              <span class="phone-prefix">+20</span>
               <input pInputText id="usr-edit-phoneNumber"
                 formControlName="phoneNumber"
-                type="tel" placeholder="50 123 4567"
+                type="tel" placeholder="1099111111"
                 [disabled]="!isEditMode()" />
             </div>
             @if (isEditMode() && profileForm.controls.phoneNumber.invalid &&
@@ -184,6 +184,13 @@
           <i class="pi pi-shield section-icon"></i>
           Role Assignment
         </h2>
+
+        @if (isCandidate()) {
+        <div class="candidate-notice">
+          <i class="pi pi-info-circle"></i>
+          <span>Candidate accounts do not have assignable roles.</span>
+        </div>
+        } @else {
         <p class="role-lead">Select roles to define system access levels for
           this user.</p>
 
@@ -224,6 +231,7 @@
             [loading]="isSavingRoles()"
             (onClick)="saveRoles()" />
         </div>
+        }
         }
       </section>
     </div>

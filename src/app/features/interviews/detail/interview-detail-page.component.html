@@ -1,0 +1,213 @@
+<div class="detail-page">
+
+  <div class="page-header">
+    <button class="back-btn" type="button" (click)="back()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <h1>Interview Details</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (error()) {
+    <p-message severity="error" [text]="error()!" styleClass="w-full" />
+  }
+
+  @if (detail(); as d) {
+
+    <!-- ── Info Card ── -->
+    <p-card styleClass="info-card">
+      <div class="info-grid">
+
+        <div class="info-section">
+          <h3>Candidate</h3>
+          <div class="info-rows">
+            <div class="info-row">
+              <span class="label">Name</span>
+              <span class="value">{{ candidateName(d) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Email</span>
+              <span class="value">{{ d.candidateEmail || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Application</span>
+              <span class="value">{{ d.applicationReferenceNumber || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>Interview</h3>
+          <div class="info-rows">
+            <div class="info-row">
+              <span class="label">Round</span>
+              <span class="value">{{ roundLabel(d) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Format</span>
+              <span class="value"><app-status-badge [value]="d.formatSnapshot" kind="visibility" /></span>
+            </div>
+            <div class="info-row">
+              <span class="label">Duration</span>
+              <span class="value">{{ d.estimatedDurationInMinutes }} min</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Status</span>
+              <span class="value"><app-status-badge [value]="d.status" kind="interviewStatus" /></span>
+            </div>
+            <div class="info-row">
+              <span class="label">Result</span>
+              <span class="value"><app-status-badge [value]="d.result" kind="interviewResult" /></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>Schedule</h3>
+          <div class="info-rows">
+            <div class="info-row">
+              <span class="label">Date & Time</span>
+              <span class="value">{{ formatDate(d.scheduledDate) }}</span>
+            </div>
+            @if (d.rescheduledFromDate) {
+            <div class="info-row">
+              <span class="label">Rescheduled From</span>
+              <span class="value">{{ formatDate(d.rescheduledFromDate) }}</span>
+            </div>
+            }
+            <div class="info-row">
+              <span class="label">Interviewer</span>
+              <span class="value">{{ d.interviewerName || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Scheduled By</span>
+              <span class="value">{{ d.scheduledByName || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        @if (d.meetingLink || d.locationDetails) {
+        <div class="info-section">
+          <h3>Location</h3>
+          <div class="info-rows">
+            @if (d.meetingLink) {
+            <div class="info-row">
+              <span class="label">Meeting Link</span>
+              <span class="value link-row">
+                <a [href]="d.meetingLink" target="_blank" rel="noopener">{{ d.meetingLink }}</a>
+                <button class="copy-btn" type="button" (click)="copyToClipboard(d.meetingLink)" pTooltip="Copy">
+                  <i class="pi pi-copy"></i>
+                </button>
+              </span>
+            </div>
+            }
+            @if (d.locationDetails) {
+            <div class="info-row">
+              <span class="label">Location</span>
+              <span class="value">{{ d.locationDetails }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if (d.reason || d.comment) {
+        <div class="info-section">
+          <h3>Notes</h3>
+          <div class="info-rows">
+            @if (d.reason) {
+            <div class="info-row">
+              <span class="label">Reason</span>
+              <span class="value">{{ d.reason }}</span>
+            </div>
+            }
+            @if (d.comment) {
+            <div class="info-row">
+              <span class="label">Comment</span>
+              <span class="value">{{ d.comment }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if (d.completedAt || d.canceledAt) {
+        <div class="info-section">
+          <h3>Timestamps</h3>
+          <div class="info-rows">
+            @if (d.completedAt) {
+            <div class="info-row">
+              <span class="label">Completed At</span>
+              <span class="value">{{ formatDate(d.completedAt) }}</span>
+            </div>
+            }
+            @if (d.canceledAt) {
+            <div class="info-row">
+              <span class="label">Cancelled At</span>
+              <span class="value">{{ formatDate(d.canceledAt) }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+      </div>
+    </p-card>
+
+    <!-- ── Scorecard (only for Scheduled / Rescheduled) ── -->
+    @if (canShowScorecard()) {
+      @if (submitted()) {
+      <p-card styleClass="scorecard-card">
+        <div class="submitted-state">
+          <i class="pi pi-check-circle"></i>
+          <p>Scorecard decision submitted successfully.</p>
+          <button pButton type="button" label="Back to Interviews" (click)="back()"></button>
+        </div>
+      </p-card>
+      } @else {
+      <p-card header="Submit Scorecard" styleClass="scorecard-card">
+        <div class="decision-options">
+          @for (option of [ScorecardDecision.Pass, ScorecardDecision.Reject, ScorecardDecision.Pending]; track option) {
+            <label class="decision-option">
+              <p-radioButton name="decision" [value]="option" [ngModel]="decision()" (ngModelChange)="decision.set($event)" />
+              <span>{{ option }}</span>
+            </label>
+          }
+        </div>
+
+        <div class="field">
+          <label for="feedback">Evaluation Feedback <span class="required">*</span></label>
+          <textarea
+            pTextarea
+            id="feedback"
+            rows="5"
+            placeholder="Summarize technical strengths, gaps, and reasoning for this decision..."
+            [ngModel]="feedback()"
+            (ngModelChange)="feedback.set($event)"
+          ></textarea>
+        </div>
+
+        @if (submitError()) {
+          <p-message severity="error" [text]="submitError()!" styleClass="w-full" />
+        }
+
+        <div class="form-actions">
+          <button
+            pButton
+            type="button"
+            label="Submit Scorecard"
+            icon="pi pi-check"
+            [disabled]="!canSubmit() || submitting()"
+            [loading]="submitting()"
+            (click)="submitScorecard()"
+          ></button>
+        </div>
+      </p-card>
+      }
+    }
+
+  }
+</div>

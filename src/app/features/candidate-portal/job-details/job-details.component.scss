@@ -54,7 +54,7 @@
   align-items: start;
 
   @media (min-width: 1024px) {
-    grid-template-columns: 7fr 5fr;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
 
@@ -144,8 +144,72 @@
   gap: 0.75rem;
 }
 
+/* ── Rich text (Quill-authored HTML) ── */
+.rich-text {
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  img,
+  video,
+  iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+}
+
+.rich-text > :first-child {
+  margin-top: 0;
+}
+
+.prose ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prose li {
+  margin: 0;
+}
+
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: #061d2e;
+}
+
+.prose strong {
+  font-weight: 700;
+  color: #061d2e;
+}
+
+.prose blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 3px solid var(--ath-teal, #00aec7);
+  background: #f4f9fa;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.prose a {
+  color: var(--ath-teal, #00879c);
+  text-decoration: underline;
+}
+
 /* ── Apply sidebar ── */
 .apply-col {
+  min-width: 0;
+
   @media (min-width: 1024px) {
     position: sticky;
     top: 6rem;
@@ -250,6 +314,16 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: #006878;
+  white-space: nowrap;
+}
+
+.upload-required {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #b45309;
   white-space: nowrap;
 }
 

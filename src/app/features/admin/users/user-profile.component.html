@@ -11,9 +11,23 @@
         <span>{{ initials() }}</span>
       </div>
       <div class="hero-text">
-        <h1>{{ currentUser()?.fullName }}</h1>
-        <p class="hero-email">{{ currentUser()?.email }}</p>
-        <span class="role-badge">{{ currentUser()?.role }}</span>
+        <h1>{{ fullName() }}</h1>
+        <p class="hero-email">{{ profile()?.email || currentUser()?.email }}</p>
+        <div class="hero-badges">
+          <span class="role-badge">{{ currentUser()?.role }}</span>
+          @if (profile()?.jobTitle) {
+          <span class="role-badge job-badge"><i class="pi pi-briefcase"></i>{{
+            profile()?.jobTitle }}</span>
+          }
+          @if (profile()?.squadName) {
+          <span class="role-badge squad-badge"><i class="pi pi-users"></i>{{
+            profile()?.squadName }}</span>
+          }
+          @if (profile()?.isDeparting) {
+          <span class="role-badge departing-badge"><i
+              class="pi pi-sign-out"></i>Departing</span>
+          }
+        </div>
       </div>
       } @else {
       <div class="avatar skeleton-avatar"></div>
@@ -94,9 +108,16 @@
                 <input pInputText formControlName="phoneNumber" type="tel"
                   placeholder="50 123 4567" class="phone-field" />
               </div>
-              <small class="hint">Optional. 9 digits without the country
-                code.</small>
-            </div>
+              @if (profileForm.controls.phoneNumber.invalid &&
+              profileForm.controls.phoneNumber.touched) {
+              <small class="error">Invalid phone number. Use digits, spaces or
+                dashes (7–20 characters).</small>
+              }
+              @if (profileForm.controls.phoneNumber.valid) {
+              <small class="hint">Optional. Include country code if outside
+                Egypt.</small>
+              }
+              </div>
 
             <!-- Email (readonly) -->
             <div class="field single disabled-field">
@@ -109,18 +130,53 @@
               </div>
               <div class="readonly-input">
                 <i class="pi pi-envelope ro-icon"></i>
-                <span class="ro-value">{{ currentUser()?.email }}</span>
+                <span class="ro-value">{{ profile()?.email ||
+                  currentUser()?.email }}</span>
               </div>
               <small class="hint">Contact system administrator to modify
                 email.</small>
             </div>
+
+            <!-- Work Information (readonly, admin-managed) -->
+            @if (profile()) {
+            <div class="section-divider">
+              <i class="pi pi-briefcase"></i>
+              <span>Work Information</span>
+            </div>
+
+            <div class="work-grid">
+              <div class="work-item">
+                <span class="work-label">Job Title</span>
+                <span class="work-value">{{ profile()?.jobTitle || '—' }}</span>
+              </div>
+              <div class="work-item">
+                <span class="work-label">Squad</span>
+                <span class="work-value">{{ profile()?.squadName || '—'
+                  }}</span>
+              </div>
+              <div class="work-item">
+                <span class="work-label">Employee Ref #</span>
+                <span class="work-value mono">{{ profile()?.referenceNumber ||
+                  '—' }}</span>
+              </div>
+              <div class="work-item">
+                <span class="work-label">Joined</span>
+                <span class="work-value">{{ profile()?.joinedAt ?
+                  (profile()?.joinedAt | date: 'MMM d, y') : '—' }}</span>
+              </div>
+            </div>
+            <small class="hint work-hint"><i class="pi pi-info-circle"></i>
+              Position,
+              squad and assignment are managed by HR.</small>
+            }
           </div>
 
           <div class="details-footer">
             <button type="button" pButton label="Reset" class="btn-ghost"
               (click)="resetProfileForm()"></button>
-            <button type="submit" pButton label="Save Changes"
+            <button type="button" pButton label="Save Changes"
               icon="pi pi-check"
+              (click)="saveProfile()"
               [loading]="isSavingProfile()" class="btn-primary"></button>
           </div>
         </form>

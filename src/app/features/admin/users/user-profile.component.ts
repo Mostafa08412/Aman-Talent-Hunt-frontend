@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -6,8 +6,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+
 import { AuthService } from '../../../core/services/auth.service';
-import { AdminUsersService } from '../../../core/services/admin-users.service';
+import { EmployeeProfileService } from '../../../core/services/employee-profile.service';
+import { EmployeeProfileDto } from '@core/models/employee-profile-model';
 
 @Component({
   selector: 'app-user-profile',
@@ -23,17 +25,25 @@ import { AdminUsersService } from '../../../core/services/admin-users.service';
   providers: [MessageService],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private message = inject(MessageService);
   private auth = inject(AuthService);
-  private usersService = inject(AdminUsersService);
+  private employeeService = inject(EmployeeProfileService);
 
   currentUser = this.auth.currentUser;
+  profile = signal<EmployeeProfileDto | null>(null);
+
+  fullName = computed(() => {
+    const p = this.profile();
+    if (!p) return this.currentUser()?.fullName ?? '';
+    return `${p.firstName} ${p.lastName}`.trim();
+  });
 
   initials = computed(() => {
-    const name = this.currentUser()?.fullName ?? '';
+    const name = this.fullName() || (this.currentUser()?.fullName ?? '');
     const parts = name.split(' ').filter(Boolean);
     if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     return name.substring(0, 2).toUpperCase() || '??';
@@ -43,12 +53,10 @@ export class UserProfileComponent implements OnInit {
   isSavingProfile = signal(false);
   isSavingPassword = signal(false);
 
-  userId = '';
-
   profileForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
     lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-    phoneNumber: ['', [Validators.pattern(/^\d{9}$/)]],
+    phoneNumber: ['', [Validators.pattern(/^\+?[0-9\s\-()]{7,20}$/)]],
   });
 
   passwordForm = this.fb.nonNullable.group({
@@ -71,29 +79,24 @@ export class UserProfileComponent implements OnInit {
     this.loadProfile();
   }
 
-  private loadProfile(): void {
-    const uid = this.currentUser()?.id;
-    if (!uid) {
-      this.isLoading.set(false);
-      return;
-    }
-    this.userId = uid;
-
-    this.usersService.getById(uid).subscribe({
+  private loadProfile(silent = false): void {
+    if (!silent) this.isLoading.set(true);
+    this.employeeService.getProfile().subscribe({
       next: (res) => {
-        if (!res.data) {
-          this.isLoading.set(false);
-          return;
-        }
-        const u = res.data;
-        this.profileForm.patchValue({
-          firstName: u.firstName ?? '',
-          lastName: u.lastName ?? '',
-          phoneNumber: u.phoneNumber ?? '',
-        });
+        const p = res.data ?? null;
+        this.profile.set(p);
+        this.patchFormFrom(p);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false),
+    });
+  }
+
+  private patchFormFrom(p: EmployeeProfileDto | null): void {
+    this.profileForm.patchValue({
+      firstName: p?.firstName ?? '',
+      lastName: p?.lastName ?? '',
+      phoneNumber: p?.phoneNumber ?? '',
     });
   }
 
@@ -105,28 +108,25 @@ export class UserProfileComponent implements OnInit {
     this.isSavingProfile.set(true);
     const v = this.profileForm.getRawValue();
 
-    this.usersService.update(this.userId, {
-      firstName: v.firstName,
-      lastName: v.lastName,
-      phoneNumber: v.phoneNumber || null,
+    this.employeeService.updateProfile({
+      firstName: v.firstName.trim(),
+      lastName: v.lastName.trim(),
+      phoneNumber: v.phoneNumber,
     }).subscribe({
-      next: (res) => {
+      next: () => {
         this.isSavingProfile.set(false);
-        if (!res.isCompletedSuccessfully) {
-          this.message.add({ severity: 'error', summary: 'Error', detail: res.message || 'Failed to update profile.' });
-          return;
-        }
         this.message.add({ severity: 'success', summary: 'Saved', detail: 'Profile updated successfully.' });
+        this.auth.updateLocalUser({
+          fullName: `${v.firstName.trim()} ${v.lastName.trim()}`.trim(),
+        });
+        this.loadProfile(true);
       },
-      error: () => {
-        this.isSavingProfile.set(false);
-        this.message.add({ severity: 'error', summary: 'Error', detail: 'Failed to update profile.' });
-      },
+      error: () => this.isSavingProfile.set(false),
     });
   }
 
   resetProfileForm(): void {
-    this.loadProfile();
+    this.loadProfile(true);
   }
 
   changePassword(): void {
@@ -152,7 +152,6 @@ export class UserProfileComponent implements OnInit {
       },
       error: () => {
         this.isSavingPassword.set(false);
-        this.message.add({ severity: 'error', summary: 'Error', detail: 'Failed to change password.' });
       },
     });
   }

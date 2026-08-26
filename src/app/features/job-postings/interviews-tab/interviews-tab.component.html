@@ -1,0 +1,342 @@
+<div class="interviews-tab">
+
+  <div class="tab-toolbar" [formGroup]="filterForm">
+    <div class="search-box">
+      <button class="search-btn" type="button" aria-label="Search"
+        (click)="applyFilters()">
+        <i class="pi pi-search"></i>
+      </button>
+      <input
+        type="text"
+        placeholder="Search by candidate or interviewer..."
+        formControlName="search"
+        (keyup.enter)="applyFilters()" />
+    </div>
+
+    <p-select
+      [options]="statusOptions"
+      placeholder="Status"
+      [showClear]="true"
+      styleClass="filter-select"
+      formControlName="status"
+      (onChange)="applyFilters()" />
+
+    <p-select
+      [options]="formatOptions"
+      placeholder="Format"
+      [showClear]="true"
+      styleClass="filter-select"
+      formControlName="format"
+      (onChange)="applyFilters()" />
+
+    <button class="clear-btn" type="button" (click)="clearFilters()">
+      <i class="pi pi-filter-slash"></i>
+      Clear
+    </button>
+  </div>
+
+  <div class="table-wrap" [class.loading]="isLoading()">
+
+    <div class="table-head grid-row">
+      <span class="col-candidate">Candidate</span>
+      <span class="col-round">Round</span>
+      <span class="col-interviewer">Interviewer</span>
+      <span class="col-date">Scheduled</span>
+      <span class="col-format">Format</span>
+      <span class="col-status">Status</span>
+      <span class="col-result">Result</span>
+      <span class="col-actions"></span>
+    </div>
+
+    @for (row of interviews(); track $index) {
+
+    <div class="grid-row table-row">
+
+      <div class="cell-candidate">
+        {{ candidateName(row) }}
+      </div>
+
+      <div class="cell-round">{{ roundLabel(row) }}</div>
+
+      <div class="cell-interviewer">{{ row.interviewerName || '—' }}</div>
+
+      <div class="cell-date muted">
+        {{ row.scheduledDate ? (row.scheduledDate | date: 'MMM d, y — h:mm a') :
+        '—' }}
+      </div>
+
+      <div class="cell-format">
+        <app-status-badge [value]="row.formatSnapshot" kind="visibility" />
+      </div>
+
+      <div class="cell-status">
+        <app-status-badge [value]="row.status" kind="interviewStatus" />
+      </div>
+
+      <div class="cell-result">
+        <app-status-badge [value]="row.result" kind="interviewResult" />
+      </div>
+
+      <div class="cell-actions">
+        <p-menu #rowMenu [model]="actionMenuItems()" [popup]="true"
+          appendTo="body" />
+        <button
+          class="icon-btn"
+          type="button"
+          aria-label="Row actions"
+          (click)="openRowMenu(row, $event, rowMenu)">
+          <i class="pi pi-ellipsis-h"></i>
+        </button>
+      </div>
+    </div>
+
+    } @empty {
+
+    <div class="empty-state">
+      @if (isLoading()) {
+      Loading interviews...
+      } @else {
+      No interviews found for this job post
+      }
+    </div>
+    }
+  </div>
+
+  <div class="table-foot">
+    <span class="foot-info">
+      Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd
+        }}</strong> of
+      <strong>{{ totalCount() }}</strong> interviews
+    </span>
+
+    <div class="pager">
+      <button
+        class="page-btn"
+        type="button"
+        [disabled]="page() <= 1"
+        (click)="goToPage(page() - 1)">
+        <i class="pi pi-chevron-left"></i>
+      </button>
+      <span class="page-indicator">{{ page() }} / {{ totalPages }}</span>
+      <button
+        class="page-btn"
+        type="button"
+        [disabled]="page() >= totalPages"
+        (click)="goToPage(page() + 1)">
+        <i class="pi pi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- View Details dialog -->
+<p-dialog
+  header="Interview Details"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="viewDialogVisible"
+  [style]="{ width: '32rem', maxWidth: '95vw' }">
+
+  @if (viewLoading) {
+    <div class="view-loading"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+  } @else if (viewTarget) {
+    <div class="detail-grid">
+
+      <div class="detail-row">
+        <span class="detail-label">Candidate</span>
+        <span class="detail-value">{{ candidateName(viewTarget) }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Email</span>
+        <span class="detail-value">{{ viewTarget.candidateEmail || '—' }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Round</span>
+        <span class="detail-value">{{ viewTarget.roundName || 'Round ' + viewTarget.roundNumber }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Interviewer</span>
+        <span class="detail-value">{{ viewTarget.interviewerName || '—' }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Scheduled Date</span>
+        <span class="detail-value">{{ viewDetailDate(viewTarget.scheduledDate) }}</span>
+      </div>
+
+      @if (viewTarget.rescheduledFromDate) {
+      <div class="detail-row">
+        <span class="detail-label">Rescheduled From</span>
+        <span class="detail-value">{{ viewDetailDate(viewTarget.rescheduledFromDate) }}</span>
+      </div>
+      }
+
+      <div class="detail-row">
+        <span class="detail-label">Format</span>
+        <span class="detail-value">
+          <app-status-badge [value]="viewTarget.formatSnapshot" kind="visibility" />
+        </span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Status</span>
+        <span class="detail-value">
+          <app-status-badge [value]="viewTarget.status" kind="interviewStatus" />
+        </span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Result</span>
+        <span class="detail-value">
+          <app-status-badge [value]="viewTarget.result" kind="interviewResult" />
+        </span>
+      </div>
+
+      @if (viewTarget.meetingLink) {
+      <div class="detail-row">
+        <span class="detail-label">Meeting Link</span>
+        <span class="detail-value detail-link">
+          <a [href]="viewTarget.meetingLink" target="_blank" rel="noopener">{{ viewTarget.meetingLink }}</a>
+          <button class="copy-btn" type="button" (click)="copyToClipboard(viewTarget.meetingLink)" pTooltip="Copy">
+            <i class="pi pi-copy"></i>
+          </button>
+        </span>
+      </div>
+      }
+
+      @if (viewTarget.locationDetails) {
+      <div class="detail-row">
+        <span class="detail-label">Location</span>
+        <span class="detail-value">{{ viewTarget.locationDetails }}</span>
+      </div>
+      }
+
+      @if (viewTarget.reason) {
+      <div class="detail-row">
+        <span class="detail-label">Reason</span>
+        <span class="detail-value">{{ viewTarget.reason }}</span>
+      </div>
+      }
+
+      @if (viewTarget.comment) {
+      <div class="detail-row">
+        <span class="detail-label">Comment</span>
+        <span class="detail-value">{{ viewTarget.comment }}</span>
+      </div>
+      }
+
+      <div class="detail-row">
+        <span class="detail-label">Scheduled By</span>
+        <span class="detail-value">{{ viewTarget.scheduledByName || '—' }}</span>
+      </div>
+
+      @if (viewTarget.completedAt) {
+      <div class="detail-row">
+        <span class="detail-label">Completed At</span>
+        <span class="detail-value">{{ viewDetailDate(viewTarget.completedAt) }}</span>
+      </div>
+      }
+
+      @if (viewTarget.canceledAt) {
+      <div class="detail-row">
+        <span class="detail-label">Cancelled At</span>
+        <span class="detail-value">{{ viewDetailDate(viewTarget.canceledAt) }}</span>
+      </div>
+      }
+
+    </div>
+  } @else {
+    <div class="view-loading">Could not load interview details.</div>
+  }
+
+  <div class="dialog-actions">
+    <p-button label="Close" severity="secondary" [outlined]="true" size="small" (onClick)="viewDialogVisible = false" />
+  </div>
+</p-dialog>
+
+<!-- Reschedule dialog -->
+<p-dialog
+  header="Reschedule Interview — {{ rescheduleTarget ? candidateName(rescheduleTarget) : '' }}"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="rescheduleDialogVisible"
+  [style]="{ width: '26rem', maxWidth: '95vw' }">
+
+  <div class="dialog-form" [formGroup]="rescheduleForm">
+    <div class="form-field">
+      <label>New Date &amp; Time</label>
+      <p-datepicker
+        formControlName="newDate"
+        [showTime]="true"
+        hourFormat="12"
+        [showIcon]="true"
+        [minDate]="minRescheduleDate"
+        [readonlyInput]="true"
+        placeholder="Pick a future date/time" />
+      @if (rescheduleForm.controls.newDate.invalid &&
+      rescheduleForm.controls.newDate.touched) {
+      <small class="p-error">A future date is required.</small>
+      }
+    </div>
+
+    @if (rescheduleTarget?.formatSnapshot === 'Video') {
+    <div class="form-field">
+      <label>Meeting Link</label>
+      <input pInputText type="text" formControlName="meetingLink"
+        placeholder="https://meet.example.com/room" />
+    </div>
+    } @else {
+    <div class="form-field">
+      <label>Location Details</label>
+      <input pInputText type="text" formControlName="locationDetails"
+        placeholder="e.g. HQ — Room 402" />
+    </div>
+    }
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [outlined]="true"
+        size="small" (onClick)="rescheduleDialogVisible = false" />
+      <p-button label="Reschedule" size="small"
+        [disabled]="rescheduleForm.invalid" (onClick)="confirmReschedule()" />
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Cancel dialog -->
+<p-dialog
+  header="Cancel Interview"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="cancelDialogVisible"
+  [style]="{ width: '24rem', maxWidth: '95vw' }">
+
+  <div class="dialog-form" [formGroup]="cancelForm">
+    <div class="form-field">
+      <label>Reason <span class="required">*</span></label>
+      <textarea pInputTextarea rows="3" formControlName="reason"
+        placeholder="Why is this interview being cancelled?"></textarea>
+      @if (cancelForm.controls.reason.invalid &&
+      cancelForm.controls.reason.touched) {
+      <small class="p-error">A cancellation reason is required.</small>
+      }
+    </div>
+    <div class="dialog-actions">
+      <p-button label="Keep Interview" severity="secondary" [outlined]="true"
+        size="small" (onClick)="cancelDialogVisible = false" />
+      <p-button
+        label="Cancel Interview"
+        severity="danger"
+        size="small"
+        [disabled]="cancelForm.invalid"
+        (onClick)="confirmCancel()" />
+    </div>
+  </div>
+</p-dialog>
+
+<p-toast />

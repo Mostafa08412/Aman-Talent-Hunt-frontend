@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Result } from '@core/models/common';
@@ -9,7 +9,6 @@ import {
   ApplicantDetailDtoResult,
   ApplicantListItemDtoPagedResultResult,
   ChangeApplicationStatusRequest,
-  ResumeDownloadResultResult,
 } from '@core/models/admin-application-model';
 import { toHttpParams } from './http-params.util';
 
@@ -52,7 +51,17 @@ export class AdminApplicationsService {
     return this.http.patch<Result>(`${this.base}/api/admin/applications/${id}/status`, request);
   }
 
-  getResume(id: string): Observable<ResumeDownloadResultResult> {
-    return this.http.get<ResumeDownloadResultResult>(`${this.base}/api/admin/applications/${id}/resume`);
+
+  /**
+   * The backend streams the CV as a binary file (not a Result envelope),
+   * so this returns the raw Blob for direct download.
+   */
+
+  downloadResume(id: string, inline = false): Observable<Blob> {
+    return this.http.get(`${this.base}/api/admin/applications/${id}/resume`, {
+      responseType: 'blob',
+      params: inline ? { inline: 'true' } : undefined,
+      headers: inline ? { 'X-Requested-With': 'XMLHttpRequest' } : undefined,
+    });
   }
 }

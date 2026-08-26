@@ -13,19 +13,10 @@
       <i [class]="isDark() ? 'pi pi-sun' : 'pi pi-moon'"></i>
     </button>
 
-    <button class="icon-btn" aria-label="Search">
-      <i class="pi pi-search"></i>
-    </button>
-
-    <button class="icon-btn" routerLink="/console/approvals"
-      aria-label="Pending approvals">
-      @if (pendingApprovals() > 0) {
-      <i class="pi pi-bell" pBadge [value]="pendingApprovals()"
-        severity="danger"></i>
-      } @else {
-      <i class="pi pi-bell"></i>
-      }
-    </button>
+    <a class="icon-btn" routerLink="/jobs" target="_blank" rel="noopener"
+      aria-label="Candidate Portal" pTooltip="Candidate Portal" tooltipPosition="bottom">
+      <i class="pi pi-external-link"></i>
+    </a>
 
     <div class="user-divider"></div>
 

@@ -135,6 +135,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/requisitions/list/requisition-list.component').then((m) => m.RequisitionListComponent),
       },
+      // Job Requisition module (/console/job-requisitions) — lazily routed so the fake
+      // JOB_REQUISITION_API provider ships inside its own chunk. See job-req.routes.ts.
+      {
+        path: 'job-requisitions',
+        canActivate: [roleGuard([Role.HiringManager, Role.DepartmentHead, Role.HRManager, Role.Recruiter, Role.SuperAdmin])],
+        loadChildren: () => import('./features/job-req/job-req.routes').then((m) => m.JOB_REQ_ROUTES),
+      },
       {
         path: 'requisitions/new',
         canActivate: [roleGuard([Role.HiringManager, Role.SuperAdmin])],
@@ -196,6 +203,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'postings/:id',
+        canActivate: [roleGuard([Role.Recruiter, Role.HRManager, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/job-postings/job-post-detail.component').then(
+            (m) => m.JobPostDetailComponent,
+          ),
+      },
+      {
         path: 'pipeline/:jobId',
         loadComponent: () => import('./features/pipeline/pipeline.component').then((m) => m.PipelineComponent),
       },
@@ -206,16 +221,17 @@ export const routes: Routes = [
       },
       {
         path: 'interviews/:id',
-        canActivate: [roleGuard([Role.HiringManager, Role.Recruiter])],
+        loadComponent: () =>
+          import('./features/interviews/detail/interview-detail-page.component').then(
+            (m) => m.InterviewDetailPageComponent,
+          ),
+      },
+      {
+        path: 'interviews/:id/scorecard',
         loadComponent: () =>
           import('./features/interviews/scorecard/interviews-scorecard.component').then(
             (m) => m.InterviewsScorecardComponent,
           ),
-      },
-      {
-        path: 'offers',
-        canActivate: [roleGuard([Role.Recruiter, Role.HRManager, Role.SuperAdmin])],
-        loadComponent: () => import('./features/offers/offers.component').then((m) => m.OffersComponent),
       },
       {
         path: 'onboarding',

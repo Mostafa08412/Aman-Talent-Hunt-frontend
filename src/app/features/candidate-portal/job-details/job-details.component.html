@@ -1,4 +1,4 @@
-<p-toast styleClass="ath-toast" />
+
 
 @if (loading()) {
 <div class="job-details-state">Loading job details...</div>
@@ -64,39 +64,17 @@
 
         <section>
           <h2>About The Role</h2>
-
-          @for (
-          paragraph of toList(jobData.description);
-          track paragraph
-          ) {
-          <p>{{ paragraph }}</p>
-          }
+          <div class="rich-text" [innerHTML]="jobData.description"></div>
         </section>
 
         <section>
           <h2>Key Responsibilities</h2>
-
-          <ul>
-            @for (
-            item of toList(jobData.requirements);
-            track item
-            ) {
-            <li>{{ item }}</li>
-            }
-          </ul>
+          <div class="rich-text" [innerHTML]="jobData.requirements"></div>
         </section>
 
         <section>
           <h2>Qualifications</h2>
-
-          <ul>
-            @for (
-            item of toList(jobData.qualifications);
-            track item
-            ) {
-            <li>{{ item }}</li>
-            }
-          </ul>
+          <div class="rich-text" [innerHTML]="jobData.qualifications"></div>
         </section>
 
       </div>
@@ -147,20 +125,44 @@
 
                 <div>
                   <p class="resume-name">
-                    {{ currentResume.name }}
+                    @if (hasExistingResume()) {
+                    {{ currentResume()?.name }}
+                    } @else if (selectedFile()) {
+                    {{ selectedFile()!.name }}
+                    } @else {
+                    No resume uploaded
+                    }
                   </p>
 
                   <p class="resume-meta">
-                    {{ currentResume.meta }}
+                    @if (hasExistingResume()) {
+                    Current resume
+                    } @else if (selectedFile()) {
+                    New file selected
+                    } @else {
+                    Upload a resume to apply
+                    }
                   </p>
                 </div>
 
               </div>
 
+              @if (hasExistingResume()) {
               <span class="selected">
                 <i class="pi pi-check-circle"></i>
                 Selected
               </span>
+              } @else if (selectedFile()) {
+              <span class="selected">
+                <i class="pi pi-check-circle"></i>
+                Selected
+              </span>
+              } @else {
+              <span class="upload-required">
+                <i class="pi pi-info-circle"></i>
+                Required
+              </span>
+              }
             </div>
 
             <button
@@ -172,7 +174,7 @@
               {{
               showUpload()
               ? 'Hide upload'
-              : 'Upload new resume'
+              : (hasExistingResume() ? 'Upload new resume' : 'Upload resume')
               }}
             </button>
 
@@ -268,6 +270,7 @@
             icon="pi pi-arrow-right"
             iconPos="right"
             [loading]="isSubmitting()"
+            [disabled]="!canSubmit()"
             styleClass="submit-btn" />
 
           <p class="privacy-note">
@@ -346,3 +349,4 @@
       (onClick)="successVisible.set(false)" />
   </div>
 </p-dialog>
+<p-toast />

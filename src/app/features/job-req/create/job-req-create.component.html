@@ -1,0 +1,172 @@
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>New Requisition</h1>
+      <p>Pick the hiring scenario, fill the details, review, then create a draft</p>
+    </div>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="wizard-steps">
+    <button class="wizard-step" type="button" [class.active]="step() === 1" [class.done]="step() > 1"
+      (click)="backToType()">
+      <span class="index">1</span> Type
+    </button>
+    <span class="wizard-line" [class.done]="step() > 1"></span>
+    <button class="wizard-step" type="button" [class.active]="step() === 2" [class.done]="step() > 2"
+      [disabled]="!selectedType()" (click)="selectedType() && backToDetails()">
+      <span class="index">2</span> Details
+    </button>
+    <span class="wizard-line" [class.done]="step() > 2"></span>
+    <div class="wizard-step" [class.active]="step() === 3">
+      <span class="index">3</span> Review
+    </div>
+  </div>
+
+  <!-- Step 1: requisition type -->
+  @if (step() === 1) {
+    <div class="type-grid">
+      @for (card of typeCards; track card.value) {
+        <button class="type-card" type="button" [class.selected]="selectedType() === card.value"
+          (click)="pickType(card.value)">
+          <i class="pi card-icon" [class]="'pi ' + card.icon"></i>
+          <span class="card-label">{{ card.label }}</span>
+          <span class="card-description">{{ card.description }}</span>
+        </button>
+      }
+    </div>
+    <div class="form-actions">
+      <button pButton type="button" label="Continue" icon="pi pi-arrow-right" iconPos="right"
+        [disabled]="!selectedType()" (click)="goToDetails()"></button>
+    </div>
+  }
+
+  <!-- Step 2: details form -->
+  @if (step() === 2) {
+    <form [formGroup]="form" (ngSubmit)="goToReview()">
+      <p-card header="Assignment">
+        <div class="form-grid">
+          <div class="field">
+            <label for="department">Department *</label>
+            <p-select inputId="department" formControlName="departmentId" [options]="departments()"
+              optionLabel="viewText" optionValue="id" placeholder="Select department" styleClass="w-full"
+              (onChange)="onDepartmentChanged()" />
+          </div>
+          <div class="field">
+            <label for="squad">Assigned Squad *</label>
+            <p-select inputId="squad" formControlName="assignedSquadId" [options]="squads()"
+              optionLabel="viewText" optionValue="id" placeholder="Select squad" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="hr-manager">HR Manager *</label>
+            <p-select inputId="hr-manager" formControlName="hrManagerId" [options]="hrManagers()"
+              optionLabel="viewText" optionValue="id" placeholder="Select HR manager" styleClass="w-full" />
+          </div>
+          @if (isGrowth()) {
+            <div class="field">
+              <label for="dept-head">Department Head</label>
+              <p-select inputId="dept-head" formControlName="departmentHeadId" [options]="departmentHeads()"
+                optionLabel="viewText" optionValue="id" placeholder="Select department head" [showClear]="true"
+                styleClass="w-full" />
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <p-card header="Position & Openings">
+        <div class="form-grid">
+          @if (isGrowth() || selectedType() === RequisitionType.PlannedAdHoc) {
+            <div class="field">
+              <label for="job-title">Proposed Job Title *</label>
+              <input id="job-title" pInputText formControlName="proposedJobTitle"
+                placeholder="e.g. Senior Platform Engineer" />
+            </div>
+            <div class="field">
+              <label for="seniority">Seniority *</label>
+              <p-select inputId="seniority" formControlName="proposedJobSeniorityLevel" [options]="seniorityLevels"
+                placeholder="Select seniority" styleClass="w-full" />
+            </div>
+          }
+
+          @if (selectedType() === RequisitionType.PlannedExisting) {
+            <div class="field span-2">
+              <label for="mpp">Manpower Plan *</label>
+              <p-select inputId="mpp" formControlName="manPowerPlanId" [options]="manpowerPlans()"
+                optionLabel="viewText" optionValue="id" placeholder="Select open manpower plan line"
+                styleClass="w-full" />
+            </div>
+          }
+
+          @if (selectedType() === RequisitionType.PlannedAdHoc) {
+            <div class="field span-2">
+              <label for="mpp-adhoc">Manpower Plan</label>
+              <p-select inputId="mpp-adhoc" formControlName="manPowerPlanId" [options]="manpowerPlans()"
+                optionLabel="viewText" optionValue="id" placeholder="Link an open plan line (optional)"
+                [showClear]="true" styleClass="w-full" />
+            </div>
+          }
+
+          @if (selectedType() === RequisitionType.Replacement) {
+            <div class="field">
+              <label for="departing">Departing Employee *</label>
+              <p-select inputId="departing" formControlName="departingEmployeeId" [options]="departingEmployees()"
+                optionLabel="viewText" optionValue="id" placeholder="Select departing employee" styleClass="w-full" />
+            </div>
+            <div class="field">
+              <label for="position">Position Registry *</label>
+              <p-select inputId="position" formControlName="positionRegistryId" [options]="positions()"
+                optionLabel="viewText" optionValue="id" placeholder="Select position" styleClass="w-full" />
+            </div>
+          }
+
+          <div class="field">
+            <label for="headcount">Requested Headcount *</label>
+            <p-inputnumber inputId="headcount" formControlName="requestedHeadcount" [min]="1" [max]="50"
+              styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="location">Location *</label>
+            <p-select inputId="location" formControlName="location" [options]="locations"
+              placeholder="Select location" styleClass="w-full" />
+          </div>
+
+          @if (isGrowth()) {
+            <div class="field span-2">
+              <label for="justification">Growth Justification @if (selectedType() === RequisitionType.GrowthAdHoc) {*}</label>
+              <textarea id="justification" pTextarea rows="3" formControlName="growthJustification"
+                placeholder="Why does this growth require the new headcount?"></textarea>
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <div class="form-actions">
+        <button pButton type="button" label="Back" severity="secondary" [text]="true" (click)="backToType()"></button>
+        <button pButton type="submit" label="Review" icon="pi pi-arrow-right" iconPos="right"></button>
+      </div>
+    </form>
+  }
+
+  <!-- Step 3: review -->
+  @if (step() === 3) {
+    <p-card header="Review">
+      <div class="review-grid">
+        @for (row of reviewRows(); track row.label) {
+          <div class="detail-item">
+            <span class="detail-label">{{ row.label }}</span>
+            <span class="detail-value">{{ row.value }}</span>
+          </div>
+        }
+      </div>
+      <p-message severity="info" styleClass="w-full review-note"
+        text="The requisition is created as a Draft. Submit it for budget approval when you are ready." />
+      <div class="form-actions">
+        <button pButton type="button" label="Back" severity="secondary" [text]="true" (click)="backToDetails()"></button>
+        <button pButton type="button" label="Create Draft" icon="pi pi-check" [loading]="isSubmitting()"
+          (click)="submit()"></button>
+      </div>
+    </p-card>
+  }
+</div>
+
+<p-toast />

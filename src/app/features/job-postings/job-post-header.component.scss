@@ -1,0 +1,108 @@
+.jph {
+  background: var(--p-surface-0);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 1rem 1.25rem;
+}
+
+.jph-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.back-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 0.15rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--p-surface-100);
+  color: var(--p-surface-700);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--p-surface-200);
+  }
+}
+
+.jph-title-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--p-surface-900);
+  }
+
+  .ref-code {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--p-surface-400);
+  }
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--p-surface-500);
+
+  i {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+  }
+}
+
+.jph-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+:host ::ng-deep .more-btn.p-button {
+  color: var(--p-surface-600);
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding-top: 0.5rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
