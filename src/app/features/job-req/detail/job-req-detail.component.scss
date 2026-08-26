@@ -1,0 +1,251 @@
+:host {
+  display: block;
+}
+
+/* ── Header ── */
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  h1 {
+    font-size: 1.375rem;
+    margin: 0;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--p-surface-500);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ath-teal);
+  }
+}
+
+.req-number {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--p-surface-400);
+}
+
+.header-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ── Stepper ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+
+  + p-message {
+    margin-top: 0.75rem;
+  }
+}
+
+.stepper-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--p-surface-200);
+    box-shadow: inset 0 0 0 1px var(--p-surface-300);
+  }
+
+  .label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--p-surface-400);
+  }
+
+  &.active .dot {
+    background: var(--ath-teal);
+    box-shadow: 0 0 0 3px rgba(0, 174, 199, 0.18);
+  }
+  &.active .label {
+    color: var(--ath-teal);
+  }
+
+  &.done .dot {
+    background: var(--ath-teal);
+    opacity: 0.55;
+  }
+  &.done .label {
+    color: var(--p-surface-600);
+  }
+}
+
+.stepper-line {
+  flex: 1 1 2rem;
+  min-width: 1.5rem;
+  height: 2px;
+  background: var(--p-surface-200);
+
+  &.done {
+    background: rgba(0, 174, 199, 0.5);
+  }
+}
+
+/* ── Modification banner ── */
+.modification-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+
+  .banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    strong {
+      color: #dc2626;
+      font-size: 0.875rem;
+    }
+
+    span {
+      font-size: 0.875rem;
+      color: var(--p-surface-700);
+    }
+
+    .muted {
+      color: var(--p-surface-500);
+      font-size: 0.8125rem;
+    }
+  }
+}
+
+/* ── Action bar ── */
+.control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+
+  :host ::ng-deep .p-button {
+    font-weight: 600;
+  }
+
+  :host ::ng-deep .p-button.p-button-outlined {
+    background: var(--p-surface-0);
+    border-color: var(--p-surface-300);
+    color: var(--p-surface-700);
+
+    &:hover {
+      border-color: var(--ath-teal);
+      color: var(--ath-teal);
+    }
+  }
+}
+
+/* ── Details grid ── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+
+  &.span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+.detail-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--p-surface-400);
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  color: var(--p-surface-900);
+  overflow-wrap: anywhere;
+
+  &.mono {
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+}
+
+.muted {
+  color: var(--p-surface-500);
+}
+
+/* ── State center (loading) ── */
+.state-center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+/* ── Dialogs ── */
+.dialog-subtitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--p-surface-600);
+}
+
+:host ::ng-deep .p-dialog label {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--p-surface-700);
+}
+
+:host ::ng-deep .p-dialog textarea,
+:host ::ng-deep .p-dialog .p-inputtext {
+  width: 100%;
+}
+
+:host ::ng-deep .p-dialog textarea {
+  resize: vertical;
+}
+
+:host ::ng-deep .p-dialog .p-select {
+  width: 100%;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    margin-top: 0.6rem;
+  }
+}
