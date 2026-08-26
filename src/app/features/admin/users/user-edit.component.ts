@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -48,12 +48,14 @@ export class UserEditComponent implements OnInit {
   user = signal<UserAdminDetailDto | null>(null);
   selectedRoles = signal<Set<Roles>>(new Set());
 
+  isCandidate = computed(() => this.selectedRoles().has(Roles.Candidate));
+
   readonly roleOptions = ROLE_DEFINITIONS;
 
   readonly profileForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
     lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-    phoneNumber: ['', [Validators.pattern(/^\d{9}$/)]],
+    phoneNumber: ['', [Validators.pattern(/^\d{11}$/)]],
   });
 
   private userId = '';
