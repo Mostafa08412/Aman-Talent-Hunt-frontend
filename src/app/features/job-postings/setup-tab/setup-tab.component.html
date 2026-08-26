@@ -1,0 +1,246 @@
+<div class="setup-tab">
+
+  <!-- ── Marketing ── -->
+  <section class="setup-section">
+    <div class="section-head">
+      <div>
+        <h3>Marketing Content</h3>
+        <p>Description, requirements and qualifications shown to candidates.</p>
+      </div>
+      @if (isRecruiter()) {
+        <p-button
+          label="Save Marketing"
+          icon="pi pi-save"
+          size="small"
+          [loading]="savingSection() === 'marketing'"
+          (onClick)="saveMarketing()" />
+      }
+    </div>
+
+    <form [formGroup]="marketingForm">
+      <div class="editor-field">
+        <label>Description</label>
+        <p-editor formControlName="description" [style]="{ height: '160px' }" />
+      </div>
+
+      <div class="editor-field">
+        <label>Requirements</label>
+        <p-editor formControlName="requirements" [style]="{ height: '140px' }" />
+      </div>
+
+      <div class="editor-field">
+        <label>Qualifications</label>
+        <p-editor formControlName="qualifications" [style]="{ height: '140px' }" />
+      </div>
+    </form>
+  </section>
+
+  <!-- ── Configuration ── -->
+  <section class="setup-section">
+    <div class="section-head">
+      <div>
+        <h3>Configuration</h3>
+        <p>Deadline, visibility and job type for this posting.</p>
+      </div>
+      @if (isRecruiter()) {
+        <p-button
+          label="Save Configuration"
+          icon="pi pi-save"
+          size="small"
+          [loading]="savingSection() === 'config'"
+          (onClick)="saveConfig()" />
+      }
+    </div>
+
+    <form [formGroup]="configForm" class="config-grid">
+      <div class="form-field">
+        <label>Application Deadline</label>
+        <p-datepicker
+          formControlName="deadline"
+          [showIcon]="true"
+          [readonlyInput]="true"
+          placeholder="No deadline" />
+        <small class="field-hint">Optional — leave empty for an open-ended post.</small>
+      </div>
+
+      <div class="form-field">
+        <label>Visibility</label>
+        <p-select
+          formControlName="visibility"
+          [options]="visibilityOptions"
+          placeholder="Select visibility" />
+      </div>
+
+      <div class="form-field">
+        <label>Job Type</label>
+        <p-select
+          formControlName="jobType"
+          [options]="jobTypeOptions"
+          placeholder="Select job type" />
+      </div>
+    </form>
+  </section>
+
+  <!-- ── Screening questions ── -->
+  <section class="setup-section">
+    <div class="section-head">
+      <div>
+        <h3>Screening Questions</h3>
+        <p>Candidates must answer these when applying. Saving replaces the full list.</p>
+      </div>
+      @if (isRecruiter()) {
+        <div class="head-actions">
+          <p-button
+            label="Add Question"
+            icon="pi pi-plus"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            (onClick)="addQuestion()" />
+          <p-button
+            label="Save Questions"
+            icon="pi pi-save"
+            size="small"
+            [loading]="savingSection() === 'questions'"
+            (onClick)="saveQuestions()" />
+        </div>
+      }
+    </div>
+
+    @if (questionsList().length === 0) {
+      <p class="empty-note">No screening questions configured.</p>
+    }
+
+    <form [formGroup]="questionsForm" class="question-list">
+      <div formArrayName="questions">
+        @for (q of questionsList(); track $index) {
+          <div class="question-row">
+            <span class="q-index">{{ $index + 1 }}</span>
+            <input
+              pInputText
+              type="text"
+              [formControl]="$any(q)"
+              placeholder="e.g. How many years of experience do you have with Go?"
+              [readonly]="!isRecruiter()" />
+
+            @if (isRecruiter()) {
+              <button
+                class="icon-btn danger"
+                type="button"
+                aria-label="Remove question"
+                (click)="removeQuestion($index)">
+                <i class="pi pi-trash"></i>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </form>
+  </section>
+
+  <!-- ── Interview rounds ── -->
+  <section class="setup-section">
+    <div class="section-head">
+      <div>
+        <h3>Interview Rounds</h3>
+        <p>Rounds run in the listed order. Saving replaces the full set.</p>
+      </div>
+      @if (isRecruiter()) {
+        <div class="head-actions">
+          <p-button
+            label="Add Round"
+            icon="pi pi-plus"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            (onClick)="addRound()" />
+          <p-button
+            label="Save Rounds"
+            icon="pi pi-save"
+            size="small"
+            [loading]="savingSection() === 'rounds'"
+            (onClick)="saveRounds()" />
+        </div>
+      }
+    </div>
+
+    @if (roundsList().length === 0) {
+      <p class="empty-note">No interview rounds configured.</p>
+    }
+
+    <form [formGroup]="roundsForm" class="round-list">
+      <div formArrayName="rounds">
+        @for (g of roundsList(); track $index; let last = $last) {
+          <div [formGroupName]="$index" class="round-card">
+            <div class="round-order">
+              <button
+                class="icon-btn"
+                type="button"
+                aria-label="Move up"
+                [disabled]="$first || !isRecruiter()"
+                (click)="moveRound($index, -1)">
+                <i class="pi pi-angle-up"></i>
+              </button>
+              <span class="order-badge">{{ $index + 1 }}</span>
+              <button
+                class="icon-btn"
+                type="button"
+                aria-label="Move down"
+                [disabled]="last || !isRecruiter()"
+                (click)="moveRound($index, 1)">
+                <i class="pi pi-angle-down"></i>
+              </button>
+            </div>
+
+            <div class="round-fields">
+              <div class="round-field">
+                <input
+                  pInputText
+                  type="text"
+                  formControlName="name"
+                  placeholder="Round name, e.g. Tech Round"
+                  [readonly]="!isRecruiter()" />
+              </div>
+
+              <div class="round-field">
+                <p-select
+                  formControlName="format"
+                  [options]="formatOptions"
+                  placeholder="Format"
+                  styleClass="round-format-select"
+                  [disabled]="!isRecruiter()" />
+                @if (g.get('format')?.invalid && g.get('format')?.touched) {
+                  <small class="p-error">Required</small>
+                }
+              </div>
+
+              <div class="round-field">
+                <p-inputnumber
+                  formControlName="estimatedDurationInMinutes"
+                  [min]="5"
+                  [max]="480"
+                  suffix=" min"
+                  inputStyleClass="round-duration-input"
+                  [disabled]="!isRecruiter()"
+                  placeholder="Duration" />
+                @if (g.get('estimatedDurationInMinutes')?.invalid && g.get('estimatedDurationInMinutes')?.touched) {
+                  <small class="p-error">Min 5 min</small>
+                }
+              </div>
+            </div>
+
+            @if (isRecruiter()) {
+              <button
+                class="icon-btn danger"
+                type="button"
+                aria-label="Remove round"
+                (click)="removeRound($index)">
+                <i class="pi pi-trash"></i>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </form>
+  </section>
+</div>

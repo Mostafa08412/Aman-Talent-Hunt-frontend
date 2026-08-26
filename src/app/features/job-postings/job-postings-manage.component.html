@@ -1,0 +1,226 @@
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Job Postings</h1>
+      <p>Manage published job posts across all departments.</p>
+    </div>
+
+    @if (canCreate) {
+      <p-button
+        label="Create Job Post"
+        icon="pi pi-plus"
+        (onClick)="createDialogVisible = true" />
+    }
+  </div>
+
+  <div class="directory">
+
+    <div class="filter-bar" [formGroup]="filterForm">
+
+      <div class="search-box">
+        <button class="search-btn" type="button" aria-label="Search" (click)="applyFilters()">
+          <i class="pi pi-search"></i>
+        </button>
+
+        <input
+          type="text"
+          placeholder="Search by title or reference number..."
+          formControlName="search"
+          (keyup.enter)="applyFilters()" />
+      </div>
+
+      <div class="filter-actions">
+        <p-select
+          [options]="statusOptions"
+          placeholder="Status"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="status"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="departments()"
+          optionLabel="viewText"
+          optionValue="id"
+          placeholder="Department"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="departmentId"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="employmentTypeOptions"
+          placeholder="Employment"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="employmentType"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="seniorityOptions"
+          placeholder="Seniority"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="seniorityLevel"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="locationOptions"
+          placeholder="Location"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="location"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="jobTypeOptions"
+          placeholder="Job Type"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="jobType"
+          (onChange)="applyFilters()" />
+
+        <p-select
+          [options]="visibilityOptions"
+          placeholder="Visibility"
+          [showClear]="true"
+          styleClass="filter-select"
+          formControlName="visibility"
+          (onChange)="applyFilters()" />
+
+        <button class="clear-btn" type="button" (click)="clearFilters()">
+          <i class="pi pi-filter-slash"></i>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrap" [class.loading]="isLoading()">
+
+      <div class="table-head grid-row">
+        <span class="col-title">Title</span>
+        <span class="col-dept">Department</span>
+        <span class="col-status">Status</span>
+        <span class="col-openings">Openings</span>
+        <span class="col-deadline">Deadline</span>
+        <span class="col-published">Published</span>
+        <span class="col-visibility">Visibility</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      @for (post of posts(); track $index) {
+
+        <div
+          class="grid-row table-row post-row"
+          role="button"
+          tabindex="0"
+          (click)="openPost(post)"
+          (keyup.enter)="openPost(post)">
+
+          <div class="cell-title">
+            <span class="post-name">{{ post.title || 'Untitled post' }}</span>
+            <span class="ref-code">{{ referenceCode(post) }}</span>
+          </div>
+
+          <div class="cell-dept">
+            {{ post.departmentName || '—' }}
+          </div>
+
+          <div class="cell-status">
+            <app-status-badge [value]="post.status" kind="jobPost" />
+          </div>
+
+          <div class="cell-openings">
+            {{ post.numberOfOpenings }}
+          </div>
+
+          <div class="cell-deadline muted">
+            {{ post.deadline ? (post.deadline | date: 'MMM d, y') : '—' }}
+          </div>
+
+          <div class="cell-published muted">
+            {{ post.publishedAtUTC ? (post.publishedAtUTC | date: 'MMM d, y' : 'UTC') : '—' }}
+          </div>
+
+          <div class="cell-visibility">
+            <app-status-badge [value]="post.visibility" kind="visibility" />
+          </div>
+
+          <div class="cell-actions">
+            <button
+              class="row-menu-btn"
+              type="button"
+              aria-label="View job post"
+              (click)="$event.stopPropagation(); openPost(post)">
+              <i class="pi pi-eye"></i>
+            </button>
+          </div>
+        </div>
+
+      } @empty {
+
+        <div class="empty-state">
+          @if (isLoading()) {
+            Loading job postings...
+          } @else {
+            No job postings found
+          }
+        </div>
+
+      }
+
+    </div>
+
+    <div class="table-foot">
+
+      <span class="foot-info">
+        Showing
+        <strong>{{ rangeStart }}</strong>
+        to
+        <strong>{{ rangeEnd }}</strong>
+        of
+        <strong>{{ totalCount() }}</strong>
+        entries
+      </span>
+
+      <div class="pager">
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+
+        @for (pageNumber of visiblePages; track pageNumber) {
+          <button
+            class="page-btn"
+            type="button"
+            [class.current]="pageNumber === page()"
+            (click)="goToPage(pageNumber)">
+            {{ pageNumber }}
+          </button>
+        }
+
+        <button
+          class="page-btn"
+          type="button"
+          [disabled]="page() >= totalPages"
+          (click)="nextPage()">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (canCreate) {
+  <app-create-job-post-dialog
+    [(visible)]="createDialogVisible"
+    (created)="onCreated($event)" />
+}
+
+

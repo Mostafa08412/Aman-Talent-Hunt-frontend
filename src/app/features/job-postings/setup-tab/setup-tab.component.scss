@@ -1,0 +1,248 @@
+.setup-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 1rem;
+}
+
+.setup-section {
+  background: var(--p-surface-0);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 1.25rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--p-surface-900);
+  }
+
+  p {
+    margin: 0.2rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--p-surface-500);
+  }
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Marketing editors ── */
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--p-surface-800);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+:host ::ng-deep .p-editor {
+  .ql-toolbar {
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-color: var(--p-surface-200);
+  }
+
+  .ql-container {
+    border-radius: 0 0 0.5rem 0.5rem;
+    border-color: var(--p-surface-200);
+    font-size: 0.875rem;
+    min-height: 120px;
+  }
+
+  .ql-editor {
+    min-height: 120px;
+  }
+}
+
+:host ::ng-deep .editor-description .p-editor .ql-container,
+:host ::ng-deep .editor-description .p-editor .ql-editor {
+  min-height: 160px;
+}
+
+:host ::ng-deep .editor-requirements .p-editor .ql-container,
+:host ::ng-deep .editor-requirements .p-editor .ql-editor,
+:host ::ng-deep .editor-qualifications .p-editor .ql-container,
+:host ::ng-deep .editor-qualifications .p-editor .ql-editor {
+  min-height: 140px;
+}
+
+/* ── Config grid ── */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  input,
+  p-select,
+  p-datepicker {
+    width: 100%;
+  }
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--p-surface-400);
+}
+
+.empty-note {
+  font-size: 0.8125rem;
+  color: var(--p-surface-400);
+  padding: 0.5rem 0;
+}
+
+/* ── Screening questions ── */
+.question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.question-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  input {
+    flex: 1;
+  }
+}
+
+.q-index {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--p-surface-100);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--p-surface-600);
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--p-surface-500);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--p-surface-100);
+    color: var(--ath-teal);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  &.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--p-red-500);
+  }
+}
+
+/* ── Interview rounds ── */
+.round-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.round-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--p-surface-100);
+  border-radius: 0.6rem;
+  background: var(--p-surface-50);
+
+  .round-fields {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.6rem;
+    align-items: start;
+
+    @media (max-width: 760px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.round-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .p-error {
+    font-size: 0.75rem;
+    color: var(--p-red-500);
+  }
+}
+
+.round-order {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.order-badge {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ath-teal);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}

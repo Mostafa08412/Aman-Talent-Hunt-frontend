@@ -1,0 +1,64 @@
+<div class="page">
+  @if (loading()) {
+    <div class="detail-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      Loading job post…
+    </div>
+  } @else if (!post()) {
+    <div class="detail-error">
+      <i class="pi pi-exclamation-triangle"></i>
+      <p>{{ errorMessage() || 'This job post could not be loaded.' }}</p>
+      <p-button label="Back to postings" severity="secondary" [outlined]="true" size="small" (onClick)="goBack()" />
+    </div>
+  } @else {
+    <app-job-post-header
+      [post]="post()!"
+      (back)="goBack()"
+      (changed)="reload()" />
+
+    <p-tabView
+      styleClass="jpd-tabs"
+      [(activeIndex)]="activeTabIndex">
+
+      <p-tabPanel header="Pipeline">
+        <app-pipeline-tab
+          [jobPostId]="postId()"
+          [numberOfOpenings]="post()!.numberOfOpenings"
+          [rounds]="post()!.interviewRounds ?? []"
+          [canManageStages]="canManageStages"
+          [active]="activeTabIndex() === 0" />
+      </p-tabPanel>
+
+      <p-tabPanel header="Submitted">
+        <app-submitted-tab
+          [jobPostId]="postId()"
+          [canManageStages]="canManageStages"
+          [active]="activeTabIndex() === 1" />
+      </p-tabPanel>
+
+      <p-tabPanel header="Applicants">
+        <app-applicants-tab
+          [jobPostId]="postId()"
+          [postStatus]="post()!.status"
+          [rounds]="post()!.interviewRounds ?? []"
+          [canManageStages]="canManageStages"
+          [active]="activeTabIndex() === 2" />
+      </p-tabPanel>
+
+      <p-tabPanel header="Interviews">
+        <app-interviews-tab
+          [jobPostId]="postId()"
+          [rounds]="post()!.interviewRounds ?? []"
+          [active]="activeTabIndex() === 3" />
+      </p-tabPanel>
+
+      <p-tabPanel header="Setup">
+        <app-setup-tab
+          [post]="post()!"
+          [isRecruiter]="isRecruiter"
+          (saved)="reload()" />
+      </p-tabPanel>
+    </p-tabView>
+  }
+
+</div>
