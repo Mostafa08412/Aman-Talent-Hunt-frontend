@@ -28,4 +28,6 @@ export interface CurrentUser {
   email: string;
   role: Role;
   department?: string;
+  resumeId?: string;
+  resumeFileName?: string;
 }

@@ -8,6 +8,8 @@ import { MessageService } from 'primeng/api';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CandidateProfileService } from '@core/services/candidate-profile.service';
 import { CandidateResumeService } from '@core/services/candidate-resume.service';
+import { AuthService } from '@core/services/auth.service';
+import { EMPTY, switchMap } from 'rxjs';
 
 interface ResumeFile {
   name: string;
@@ -31,6 +33,7 @@ export class ProfileResumeComponent implements OnInit {
   private message = inject(MessageService);
   private profileService = inject(CandidateProfileService);
   private resumeService = inject(CandidateResumeService);
+  private auth = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
 
   isLoading = signal(true);
@@ -39,7 +42,7 @@ export class ProfileResumeComponent implements OnInit {
 
   candidate = signal<CandidateSnapshot | null>(null);
   currentResume = signal<ResumeFile | null>(null);
-
+  EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
   previewVisible = signal(false);
   previewUrl = signal<SafeResourceUrl | null>(null);
 
@@ -58,8 +61,15 @@ export class ProfileResumeComponent implements OnInit {
             email: profile.email ?? '',
             phone: profile.phoneNumber ?? '',
           });
+          if (profile.resumeId.toLowerCase() === this.EMPTY_GUID)
+            return;
+          this.auth.updateLocalResume(profile.resumeId, profile.resumeFileName);
           this.currentResume.set(
-            profile.resumeFileName ? { name: profile.resumeFileName } : null,
+            profile.resumeFileName
+              ? { name: profile.resumeFileName }
+              : profile.resumeId
+                ? { name: 'Resume on file' }
+                : null,
           );
         }
         this.isLoading.set(false);
@@ -79,10 +89,24 @@ export class ProfileResumeComponent implements OnInit {
     const file = event.files[0];
     if (!file) return;
     this.isUploading.set(true);
-    this.resumeService.upload(file).subscribe({
-      next: () => {
+    this.resumeService.upload(file).pipe(
+      switchMap(() => this.profileService.getProfile()),
+    ).subscribe({
+      next: (result) => {
         this.isUploading.set(false);
-        this.currentResume.set({ name: file.name });
+        const profile = result.data;
+        if (profile) {
+          this.auth.updateLocalResume(profile.resumeId, profile.resumeFileName);
+          this.currentResume.set(
+            profile.resumeFileName
+              ? { name: profile.resumeFileName }
+              : profile.resumeId
+                ? { name: 'Resume on file' }
+                : null,
+          );
+        } else {
+          this.currentResume.set({ name: file.name });
+        }
         this.message.add({
           severity: 'success',
           summary: 'Uploaded',
@@ -101,6 +125,7 @@ export class ProfileResumeComponent implements OnInit {
   }
 
   openPreview(): void {
+    if (!this.currentResume()) return;
     this.previewVisible.set(true);
     if (this.previewUrl()) return;
     this.isPreviewLoading.set(true);
@@ -118,6 +143,7 @@ export class ProfileResumeComponent implements OnInit {
   }
 
   download(): void {
+    if (!this.currentResume()) return;
     this.resumeService.download().subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
