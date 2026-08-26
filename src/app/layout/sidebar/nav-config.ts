@@ -19,41 +19,16 @@ export const NAV_CONFIG: NavGroup[] = [
     label: '',
     items: [
       { label: 'Dashboard', icon: 'pi pi-home', route: '/console', exact: true },
-      {
-        label: 'HM Workstation',
-        icon: 'pi pi-briefcase',
-        route: '/hm/dashboard',
-        roles: [Role.HiringManager, Role.DepartmentHead],
-      },
     ],
   },
   {
     label: 'Recruitment',
     items: [
       {
-        label: 'Requisitions',
-        icon: 'pi pi-file-edit',
-        route: '/console/requisitions',
-        roles: [Role.HiringManager, Role.HRManager, Role.Admin, Role.SuperAdmin],
-      },
-      {
         label: 'Job Requisitions',
         icon: 'pi pi-list-check',
         route: '/console/job-requisitions',
         roles: [Role.HiringManager, Role.DepartmentHead, Role.HRManager, Role.Recruiter, Role.SuperAdmin],
-      },
-      {
-        label: 'Approvals',
-        icon: 'pi pi-check-square',
-        route: '/console/approvals',
-        roles: [Role.DepartmentHead, Role.FinanceApprover, Role.HRManager, Role.SuperAdmin],
-        badge: 'pendingApprovals',
-      },
-      {
-        label: 'Manpower Plan',
-        icon: 'pi pi-sitemap',
-        route: '/console/manpower-plan',
-        roles: [Role.HRManager, Role.Admin, Role.SuperAdmin],
       },
       {
         label: 'Job Postings',
@@ -76,28 +51,6 @@ export const NAV_CONFIG: NavGroup[] = [
         icon: 'pi pi-user-plus',
         route: '/console/onboarding',
         roles: [Role.OnboardingCoordinator, Role.HRManager, Role.SuperAdmin],
-      },
-    ],
-  },
-  {
-    label: 'Insights',
-    items: [
-      {
-        label: 'Reports & Analytics',
-        icon: 'pi pi-chart-bar',
-        route: '/console/reports',
-        roles: [Role.HRManager, Role.Admin, Role.SuperAdmin],
-      },
-    ],
-  },
-  {
-    label: 'Finance',
-    items: [
-      {
-        label: 'Plan Approval',
-        icon: 'pi pi-wallet',
-        route: '/finance/manpower-plan-approvals',
-        roles: [Role.FinanceApprover, Role.Admin],
       },
     ],
   },
