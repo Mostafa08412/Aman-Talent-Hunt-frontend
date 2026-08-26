@@ -99,17 +99,13 @@ export class UserEditComponent implements OnInit {
 
   private loadRoles(user: UserAdminDetailDto): void {
     const roles = new Set<Roles>();
-    console.log(Roles)
     const names = user.userRolesNames ?? [];
     for (const name of names) {
-      console.log(name)
-      const normalized = name.replace(/\s+/g, '').toUpperCase();
-      console.log(normalized);
+      const normalized = name.replace(/[\s_]/g, '').toUpperCase();
       const enumKey = Object.keys(Roles).find(
-        (key) => key.toUpperCase() === normalized,
+        (key) => key.replace(/[\s_]/g, '').toUpperCase() === normalized,
       );
       if (enumKey) {
-        console.log("Added")
         roles.add(Roles[enumKey as keyof typeof Roles]);
       }
     }
