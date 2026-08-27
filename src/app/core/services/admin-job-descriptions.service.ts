@@ -73,6 +73,6 @@ export class AdminJobDescriptionsService {
   }
 
   attachToRequisition(id: string, request: AttachJobDescriptionRequest): Observable<Result> {
-    return this.http.post<Result>(`${this.base}/api/admin/job-descriptions/${id}/attach-to-jd`, request);
+    return this.http.post<Result>(`${this.base}/api/admin/job-descriptions/${id}/attach-to-req`, request);
   }
 }

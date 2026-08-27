@@ -1,0 +1,56 @@
+@if (loading()) {
+  <div class="state">Loading job description...</div>
+} @else if (error() || !detail()) {
+  <div class="state"><i class="pi pi-exclamation-circle"></i><strong>Unable to load job description.</strong><a routerLink="/console/admin/job-descriptions">Back to Job Descriptions</a></div>
+} @else {
+  <div class="page">
+    <nav class="breadcrumb"><a routerLink="/console/admin/job-descriptions">Job Descriptions</a><span>/</span><span>{{ detail()!.referenceNumber || detail()!.title }}</span></nav>
+    <header class="page-header">
+      <div><span class="eyebrow">Job Description</span><h1>{{ detail()!.title || 'Untitled' }}</h1><p>{{ detail()!.referenceNumber || 'No reference number' }}</p></div>
+      <span class="status" [attr.data-status]="detail()!.status">{{ detail()!.status }}</span>
+    </header>
+
+    <div class="actions">
+      @if (canEdit()) { <button pButton type="button" label="Edit" icon="pi pi-pencil" (click)="openEdit()" [disabled]="!!operation()"></button> }
+      @if (canDelete()) { <button pButton type="button" label="Delete" icon="pi pi-trash" severity="danger" [outlined]="true" (click)="delete()" [disabled]="!!operation()"></button> }
+      @if (canSubmit()) { <button pButton type="button" label="Submit for Approval" icon="pi pi-send" (click)="submitForApproval()" [loading]="operation() === 'submit'"></button> }
+      @if (canReview()) { <button pButton type="button" label="Approve" icon="pi pi-check" (click)="approve()" [loading]="operation() === 'approve'"></button><button pButton type="button" label="Reject" icon="pi pi-times" severity="danger" [outlined]="true" (click)="openReject()" [disabled]="!!operation()"></button> }
+      @if (canAttach()) { <button pButton type="button" label="Attach to Requisition" icon="pi pi-link" (click)="openAttach()" [disabled]="!!operation()"></button> }
+    </div>
+
+    <div class="detail-grid">
+      <section class="card main-card">
+        <div class="facts"><div><span>Author</span><strong>{{ detail()!.author || '—' }}</strong></div><div><span>Employment Type</span><strong>{{ detail()!.employmentType }}</strong></div><div><span>Last Updated</span><strong>{{ detail()!.lastUpdatedAtUTC ? (detail()!.lastUpdatedAtUTC | date: 'medium') : '—' }}</strong></div></div>
+        <section><h2>Summary</h2><p>{{ detail()!.summary || '—' }}</p></section>
+        <section><h2>Responsibilities</h2>@if (toList(detail()!.responsibilities).length) {<ul>@for (item of toList(detail()!.responsibilities); track item) {<li>{{ item }}</li>}</ul>} @else {<p>—</p>}</section>
+        <section><h2>Requirements</h2>@if (toList(detail()!.requirements).length) {<ul>@for (item of toList(detail()!.requirements); track item) {<li>{{ item }}</li>}</ul>} @else {<p>—</p>}</section>
+      </section>
+      <aside class="card side-card">
+        <div><span class="side-label">Linked Position Registry</span><strong>{{ detail()!.positionRegistryTitle || 'Not attached' }}</strong></div>
+        @if (detail()!.rejectionReason) {<div class="rejection"><span class="side-label">Rejection Reason</span><p>{{ detail()!.rejectionReason }}</p></div>}
+      </aside>
+    </div>
+  </div>
+}
+
+<p-dialog header="Edit Job Description" [visible]="editVisible()" (onHide)="editVisible.set(false)" [modal]="true" [style]="{ width: 'min(46rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="editForm" (ngSubmit)="update()">
+    <div class="field"><label for="edit-title">Title *</label><input id="edit-title" pInputText formControlName="title" /></div>
+    <div class="field"><label for="edit-summary">Summary *</label><textarea id="edit-summary" pTextarea rows="3" formControlName="summary"></textarea></div>
+    <div class="field"><label for="edit-responsibilities">Responsibilities *</label><textarea id="edit-responsibilities" pTextarea rows="4" formControlName="responsibilities"></textarea></div>
+    <div class="field"><label for="edit-requirements">Requirements *</label><textarea id="edit-requirements" pTextarea rows="4" formControlName="requirements"></textarea></div>
+    <div class="field"><label for="edit-employment">Employment Type *</label><p-select inputId="edit-employment" [options]="employmentTypes" optionLabel="label" optionValue="value" formControlName="employmentType" appendTo="body"></p-select></div>
+    <div class="dialog-actions"><button pButton type="button" severity="secondary" label="Cancel" (click)="editVisible.set(false)"></button><button pButton type="submit" label="Save Changes" [loading]="operation() === 'update'"></button></div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Reject Job Description" [visible]="rejectVisible()" (onHide)="rejectVisible.set(false)" [modal]="true" [style]="{ width: 'min(34rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="rejectForm" (ngSubmit)="reject()"><div class="field"><label for="reject-reason">Rejection Reason *</label><textarea id="reject-reason" pTextarea rows="4" formControlName="reason"></textarea>@if (rejectForm.controls.reason.invalid && rejectForm.controls.reason.touched) {<small>Reason is required.</small>}</div><div class="dialog-actions"><button pButton type="button" severity="secondary" label="Cancel" (click)="rejectVisible.set(false)"></button><button pButton type="submit" severity="danger" label="Reject" [loading]="operation() === 'reject'"></button></div></form>
+</p-dialog>
+
+<p-dialog header="Attach to Requisition" [visible]="attachVisible()" (onHide)="attachVisible.set(false)" [modal]="true" [style]="{ width: 'min(34rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="attachForm" (ngSubmit)="attach()"><div class="field"><label for="attach-requisition">Requisition *</label><p-select inputId="attach-requisition" [options]="requisitions()" optionLabel="positionTitle" optionValue="id" formControlName="requisitionId" placeholder="Select requisition" appendTo="body"></p-select></div><div class="dialog-actions"><button pButton type="button" severity="secondary" label="Cancel" (click)="attachVisible.set(false)"></button><button pButton type="submit" label="Attach" [loading]="operation() === 'attach'"></button></div></form>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>

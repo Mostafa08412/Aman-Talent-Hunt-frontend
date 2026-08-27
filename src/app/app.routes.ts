@@ -229,6 +229,22 @@ export const routes: Routes = [
           import('./features/admin/users/user-management.component').then((m) => m.UserManagementComponent),
       },
       {
+        path: 'admin/job-descriptions',
+        canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/job-descriptions/job-descriptions-list.component').then(
+            (m) => m.JobDescriptionsListComponent,
+          ),
+      },
+      {
+        path: 'admin/job-descriptions/:id',
+        canActivate: [roleGuard([Role.HRManager, Role.Admin, Role.SuperAdmin])],
+        loadComponent: () =>
+          import('./features/admin/job-descriptions/job-description-detail.component').then(
+            (m) => m.JobDescriptionDetailComponent,
+          ),
+      },
+      {
         path: 'admin/users/new',
         canActivate: [roleGuard([Role.Admin, Role.SuperAdmin])],
         loadComponent: () =>

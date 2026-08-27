@@ -117,6 +117,12 @@ export const NAV_CONFIG: NavGroup[] = [
         roles: [Role.Admin, Role.SuperAdmin],
       },
       {
+        label: 'Job Descriptions',
+        icon: 'pi pi-file-edit',
+        route: '/console/admin/job-descriptions',
+        roles: [Role.Admin, Role.SuperAdmin, Role.HRManager],
+      },
+      {
         label: 'Positions',
         icon: 'pi pi-id-card',
         route: '/console/admin/positions',

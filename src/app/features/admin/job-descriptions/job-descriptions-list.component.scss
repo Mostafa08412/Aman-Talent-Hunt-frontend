@@ -1,0 +1,29 @@
+.page { display: flex; flex-direction: column; gap: 1.25rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; }
+.eyebrow { color: var(--p-primary-700); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+h1 { margin: .4rem 0; color: var(--p-surface-900); }
+.page-header p { margin: 0; color: var(--p-surface-600); }
+.card { background: var(--p-surface-0); border: 1px solid var(--p-surface-200); border-radius: 1rem; box-shadow: 0 8px 22px rgba(15,23,42,.04); }
+.toolbar { display: flex; align-items: center; gap: 1rem; padding: 1rem; }
+.search-box { position: relative; flex: 1; }
+.search-box i { position: absolute; left: .9rem; top: 50%; transform: translateY(-50%); color: var(--p-surface-500); }
+.search-box input { width: 100%; padding-left: 2.4rem; }
+:host ::ng-deep .status-filter { min-width: 190px; }
+.table-card { overflow: hidden; }
+:host ::ng-deep .p-datatable th { white-space: nowrap; color: var(--p-surface-700); font-size: .8rem; }
+:host ::ng-deep .p-datatable td { color: var(--p-surface-700); font-size: .88rem; }
+.clickable-row { cursor: pointer; }
+.clickable-row:hover { background: rgba(0,120,109,.04); }
+.summary { max-width: 260px; }
+.status { display: inline-flex; padding: .3rem .65rem; border-radius: 999px; background: var(--p-surface-100); color: var(--p-surface-700); font-size: .75rem; font-weight: 700; }
+.status[data-status="Approved"] { background: rgba(22,163,74,.1); color: #15803d; }
+.status[data-status="Rejected"] { background: rgba(220,38,38,.1); color: #b91c1c; }
+.state { min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; color: var(--p-surface-600); }
+.state i { font-size: 1.8rem; color: var(--p-primary-600); }
+.dialog-form { display: flex; flex-direction: column; gap: 1rem; padding-top: .5rem; }
+.field { display: flex; flex-direction: column; gap: .4rem; }
+.field label { color: var(--p-surface-700); font-weight: 600; font-size: .85rem; }
+.field input, .field textarea, :host ::ng-deep .field p-select { width: 100%; }
+.field small { color: #dc2626; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: .75rem; padding-top: .5rem; }
+@media (max-width: 700px) { .page-header, .toolbar { align-items: stretch; flex-direction: column; } :host ::ng-deep .status-filter { width: 100%; } }

@@ -1,0 +1,81 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Content Library</span>
+      <h1>Job Descriptions</h1>
+      <p>Manage job descriptions and approval status.</p>
+    </div>
+    <button pButton type="button" label="Create Job Description" icon="pi pi-plus" (click)="openCreate()"></button>
+  </div>
+
+  <section class="toolbar card">
+    <span class="search-box">
+      <i class="pi pi-search"></i>
+      <input pInputText #searchInput type="search" placeholder="Search by title" [value]="search()" (change)="onSearch(searchInput.value)" />
+    </span>
+    <p-select
+      [options]="statuses"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="selectedStatus()"
+      (ngModelChange)="onStatusChange($event)"
+      placeholder="All statuses"
+      [showClear]="true"
+      styleClass="status-filter"></p-select>
+  </section>
+
+  <section class="card table-card">
+    @if (loading()) {
+      <div class="state">Loading job descriptions...</div>
+    } @else if (!items().length) {
+      <div class="state">
+        <i class="pi pi-file-edit"></i>
+        <strong>No job descriptions found</strong>
+        <span>Try adjusting your search or status filter.</span>
+      </div>
+    } @else {
+      <p-table [value]="items()" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Reference Number</th>
+            <th>Title</th>
+            <th>Summary</th>
+            <th>Author</th>
+            <th>Employment Type</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr class="clickable-row" [routerLink]="['/console/admin/job-descriptions', item.id]">
+            <td>{{ item.referenceNumber || '—' }}</td>
+            <td><strong>{{ item.title || 'Untitled' }}</strong></td>
+            <td class="summary">{{ truncate(item.summary) }}</td>
+            <td>{{ item.author || '—' }}</td>
+            <td>{{ item.employmentType }}</td>
+            <td><span class="status" [attr.data-status]="item.status">{{ item.status }}</span></td>
+            <td>{{ item.lastUpdatedAtUTC ? (item.lastUpdatedAtUTC | date: 'mediumDate') : '—' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+      <p-paginator
+        [first]="(page() - 1) * pageSize()"
+        [rows]="pageSize()"
+        [totalRecords]="totalRecords()"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        (onPageChange)="onPageChange($event)"></p-paginator>
+    }
+  </section>
+</div>
+
+<p-dialog header="Create Job Description" [visible]="createVisible()" (onHide)="createVisible.set(false)" [modal]="true" [style]="{ width: 'min(46rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="createForm" (ngSubmit)="create()">
+    <div class="field"><label for="jd-title">Title *</label><input id="jd-title" pInputText formControlName="title" />@if (createForm.controls.title.invalid && createForm.controls.title.touched) {<small>Title is required.</small>}</div>
+    <div class="field"><label for="jd-summary">Summary *</label><textarea id="jd-summary" pTextarea rows="3" formControlName="summary"></textarea>@if (createForm.controls.summary.invalid && createForm.controls.summary.touched) {<small>Summary is required.</small>}</div>
+    <div class="field"><label for="jd-responsibilities">Responsibilities *</label><textarea id="jd-responsibilities" pTextarea rows="4" formControlName="responsibilities"></textarea>@if (createForm.controls.responsibilities.invalid && createForm.controls.responsibilities.touched) {<small>Responsibilities are required.</small>}</div>
+    <div class="field"><label for="jd-requirements">Requirements *</label><textarea id="jd-requirements" pTextarea rows="4" formControlName="requirements"></textarea>@if (createForm.controls.requirements.invalid && createForm.controls.requirements.touched) {<small>Requirements are required.</small>}</div>
+    <div class="field"><label for="jd-employment">Employment Type *</label><p-select inputId="jd-employment" [options]="employmentTypes" optionLabel="label" optionValue="value" formControlName="employmentType" placeholder="Select employment type" appendTo="body"></p-select>@if (createForm.controls.employmentType.invalid && createForm.controls.employmentType.touched) {<small>Employment type is required.</small>}</div>
+    <div class="dialog-actions"><button pButton type="button" severity="secondary" label="Cancel" (click)="createVisible.set(false)"></button><button pButton type="submit" label="Create" [loading]="saving()"></button></div>
+  </form>
+</p-dialog>
+<p-toast></p-toast>
