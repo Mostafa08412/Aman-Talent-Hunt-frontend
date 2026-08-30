@@ -100,9 +100,87 @@
   }
 }
 
+:host ::ng-deep .assign-recruiter-field.p-select {
+  width: 100%;
+}
+
+/* The recruiter dropdown panel — widen it and let it show several rows without clipping. */
+:host ::ng-deep .assign-recruiter-panel {
+  min-width: 32rem;
+}
+
+:host ::ng-deep .assign-recruiter-panel .p-select-list {
+  max-height: 22rem !important;
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 0.25rem;
+}
+
+.link-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding-top: 0.35rem;
+
+  .links-hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--p-surface-500);
+  }
+
+  .source-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+
+    .source-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.6rem 0.5rem;
+      border: 1px solid var(--p-surface-300);
+      border-radius: var(--p-border-radius-md);
+      background: var(--p-surface-0);
+      color: var(--p-surface-700);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+
+      &:hover {
+        border-color: var(--p-primary-400);
+      }
+
+      &.selected {
+        border-color: var(--p-primary-500);
+        background: var(--p-primary-50);
+        color: var(--p-primary-700);
+
+        i {
+          color: var(--p-primary-600);
+        }
+      }
+    }
+  }
+
+  .link-preview {
+    .link-input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--p-surface-300);
+      border-radius: var(--p-border-radius-sm);
+      background: var(--p-surface-50);
+      color: var(--p-surface-700);
+      font-size: 0.78rem;
+    }
+  }
 }

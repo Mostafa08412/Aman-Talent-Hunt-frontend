@@ -1,181 +1,260 @@
 @if (post(); as p) {
-  <div class="jph">
+<div class="jph">
 
-    <div class="jph-main">
-      <button class="back-btn" type="button" aria-label="Back" (click)="back.emit()">
-        <i class="pi pi-arrow-left"></i>
-      </button>
+  <div class="jph-main">
+    <button class="back-btn" type="button" aria-label="Back"
+      (click)="back.emit()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
 
-      <div class="jph-title-block">
-        <div class="title-row">
-          <h1>{{ p.title || 'Untitled job post' }}</h1>
-          <app-status-badge [value]="p.status" kind="jobPost" />
-          @if (p.referenceNumber) {
-            <span class="ref-code">{{ p.referenceNumber }}</span>
-          }
-        </div>
-
-        <div class="meta-row">
-          <span class="meta-item"><i class="pi pi-map-marker"></i> {{ enumLabel(p.location) }}</span>
-          <span class="meta-item"><i class="pi pi-clock"></i> {{ enumLabel(p.employmentType) }}</span>
-          <span class="meta-item"><i class="pi pi-building"></i> {{ p.departmentName || '—' }}</span>
-          <span class="meta-item"><i class="pi pi-users"></i> {{ p.numberOfOpenings }} Openings</span>
-          <span class="meta-item">
-            <i class="pi pi-user"></i> Recruiter: {{ p.ownerEmployeeName || 'Unassigned' }}
-          </span>
-        </div>
+    <div class="jph-title-block">
+      <div class="title-row">
+        <h1>{{ p.title || 'Untitled job post' }}</h1>
+        <app-status-badge [value]="p.status" kind="jobPost" />
+        @if (p.referenceNumber) {
+        <span class="ref-code">{{ p.referenceNumber }}</span>
+        }
       </div>
 
-      <div class="jph-actions">
-        <!-- Lifecycle buttons — disabled (not hidden) on invalid transitions; RECRUITER-only per guide §4.2 -->
-        @if (isRecruiter) {
-          @if (p.status === 'Draft') {
-            <p-button
-              label="Publish"
-              icon="pi pi-send"
-              size="small"
-              [loading]="acting() === 'publish'"
-              (onClick)="runLifecycle('publish')" />
-          }
-          @if (p.status === 'Published') {
-            <p-button
-              label="Hold"
-              icon="pi pi-pause"
-              severity="secondary"
-              size="small"
-              [loading]="acting() === 'hold'"
-              (onClick)="runLifecycle('hold')" />
-          }
-          @if (p.status === 'OnHold') {
-            <p-button
-              label="Resume"
-              icon="pi pi-play"
-              severity="success"
-              size="small"
-              [loading]="acting() === 'resume'"
-              (onClick)="runLifecycle('resume')" />
-          }
-          @if (p.status === 'Published' || p.status === 'OnHold') {
-            <p-button
-              label="Close Job"
-              icon="pi pi-ban"
-              severity="contrast"
-              [outlined]="true"
-              size="small"
-              [loading]="acting() === 'close'"
-              (onClick)="runLifecycle('close')" />
-          }
-          <p-button
-            label="Mark Filled"
-            icon="pi pi-check-circle"
-            severity="success"
-            [outlined]="true"
-            size="small"
-            [disabled]="p.status === 'Closed' || p.status === 'Filled'"
-            [loading]="acting() === 'mark-filled'"
-            (onClick)="runLifecycle('mark-filled')" />
-        }
-
-        @if (canExtendDeadline && (p.status === 'Published' || p.status === 'Draft' || p.status === 'OnHold')) {
-          <p-button
-            label="Extend Deadline"
-            icon="pi pi-calendar-plus"
-            severity="secondary"
-            [outlined]="true"
-            size="small"
-            (onClick)="deadlineDialogVisible.set(true)" />
-        }
-
-        <p-button
-          icon="pi pi-ellipsis-h"
-          severity="secondary"
-          [outlined]="true"
-          size="small"
-          styleClass="more-btn"
-          (onClick)="moreMenu.toggle($event)"
-          aria-label="More actions" />
-        <p-menu #moreMenu [model]="moreItems" [popup]="true" appendTo="body" />
+      <div class="meta-row">
+        <span class="meta-item"><i class="pi pi-map-marker"></i> {{
+          enumLabel(p.location) }}</span>
+        <span class="meta-item"><i class="pi pi-clock"></i> {{
+          enumLabel(p.employmentType) }}</span>
+        <span class="meta-item"><i class="pi pi-building"></i> {{
+          p.departmentName || '—' }}</span>
+        <span class="meta-item"><i class="pi pi-users"></i> {{
+          p.numberOfOpenings }} Openings</span>
+        <span class="meta-item">
+          <i class="pi pi-user"></i> Recruiter: {{ p.ownerEmployeeName ||
+          'Unassigned' }}
+        </span>
       </div>
+    </div>
+
+    <div class="jph-actions">
+      <!-- Lifecycle buttons — disabled (not hidden) on invalid transitions; RECRUITER-only per guide §4.2 -->
+      @if (isRecruiter) {
+      @if (p.status === 'Draft') {
+      <p-button
+        label="Publish"
+        icon="pi pi-send"
+        size="small"
+        [loading]="acting() === 'publish'"
+        (onClick)="runLifecycle('publish')" />
+      }
+      @if (p.status === 'Published') {
+      <p-button
+        label="Hold"
+        icon="pi pi-pause"
+        severity="secondary"
+        size="small"
+        [loading]="acting() === 'hold'"
+        (onClick)="runLifecycle('hold')" />
+      }
+      @if (p.status === 'OnHold') {
+      <p-button
+        label="Resume"
+        icon="pi pi-play"
+        severity="success"
+        size="small"
+        [loading]="acting() === 'resume'"
+        (onClick)="runLifecycle('resume')" />
+      }
+      @if (p.status === 'Published' || p.status === 'OnHold') {
+      <p-button
+        label="Close Job"
+        icon="pi pi-ban"
+        severity="contrast"
+        [outlined]="true"
+        size="small"
+        [loading]="acting() === 'close'"
+        (onClick)="runLifecycle('close')" />
+      }
+      <p-button
+        label="Mark Filled"
+        icon="pi pi-check-circle"
+        severity="success"
+        [outlined]="true"
+        size="small"
+        [disabled]="p.status === 'Closed' || p.status === 'Filled'"
+        [loading]="acting() === 'mark-filled'"
+        (onClick)="runLifecycle('mark-filled')" />
+      }
+
+      @if (canExtendDeadline && (p.status === 'Published' || p.status ===
+      'Draft' || p.status === 'OnHold')) {
+      <p-button
+        label="Extend Deadline"
+        icon="pi pi-calendar-plus"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="deadlineDialogVisible.set(true)" />
+      }
+
+      @if (canAssignRecruiter) {
+      <p-button
+        icon="pi pi-ellipsis-h"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        styleClass="more-btn"
+        (onClick)="moreMenu.toggle($event)"
+        aria-label="More actions" />
+      <p-menu #moreMenu [model]="moreItems" [popup]="true" appendTo="body" />
+      }
+
+      @if (canGenerateLink) {
+      <p-button
+        label="Generate Link"
+        icon="pi pi-link"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="openLinkDialog()" />
+      }
     </div>
   </div>
+</div>
 
-  <!-- Extend deadline dialog (RECRUITER, SUPER_ADMIN) -->
-  <p-dialog
-    header="Extend Deadline"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [(visible)]="deadlineDialogVisible"
-    [style]="{ width: '24rem', maxWidth: '95vw' }">
-    <div class="dialog-form">
-      <div class="form-field">
-        <label>New Deadline</label>
-        <p-datepicker
-          [formControl]="deadlineForm.controls.newDeadline"
-          [showIcon]="true"
-          [readonlyInput]="true"
-          [minDate]="minDate"
-          placeholder="Pick a new deadline" />
-        @if (deadlineForm.controls.newDeadline.invalid && deadlineForm.controls.newDeadline.touched) {
-          <small class="p-error">A deadline is required.</small>
-        }
-      </div>
-      <div class="dialog-actions">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [outlined]="true"
-          size="small"
-          (onClick)="deadlineDialogVisible.set(false)" />
-        <p-button
-          label="Save"
-          size="small"
-          [disabled]="deadlineForm.invalid"
-          [loading]="acting() === 'extend-deadline'"
-          (onClick)="extendDeadline()" />
-      </div>
+<!-- Extend deadline dialog (RECRUITER, SUPER_ADMIN) -->
+<p-dialog
+  header="Extend Deadline"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="deadlineDialogVisible"
+  [style]="{ width: '24rem', maxWidth: '95vw' }">
+  <div class="dialog-form">
+    <div class="form-field">
+      <label>New Deadline</label>
+      <p-datepicker
+        [formControl]="deadlineForm.controls.newDeadline"
+        [showIcon]="true"
+        [readonlyInput]="true"
+        [minDate]="minDate"
+        placeholder="Pick a new deadline" />
+      @if (deadlineForm.controls.newDeadline.invalid &&
+      deadlineForm.controls.newDeadline.touched) {
+      <small class="p-error">A deadline is required.</small>
+      }
     </div>
-  </p-dialog>
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="deadlineDialogVisible.set(false)" />
+      <p-button
+        label="Save"
+        size="small"
+        [disabled]="deadlineForm.invalid"
+        [loading]="acting() === 'extend-deadline'"
+        (onClick)="extendDeadline()" />
+    </div>
+  </div>
+</p-dialog>
 
-  <!-- Assign recruiter dialog (RECRUITER, SUPER_ADMIN) -->
-  <p-dialog
-    header="Assign Recruiter"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [(visible)]="assignDialogVisible"
-    [style]="{ width: '26rem', maxWidth: '95vw' }">
-    <div class="dialog-form" [formGroup]="assignForm">
-      <div class="form-field">
-        <label>Recruiter</label>
-        <p-select
-          [options]="recruiters()"
-          optionLabel="viewText"
-          optionValue="id"
-          placeholder="{{ recruitersLoading() ? 'Loading…' : 'Select recruiter' }}"
-          [filter]="true"
-          filterBy="viewText,secondaryText"
-          (onFilter)="searchRecruiters($any($event).filter ?? '')"
-          formControlName="recruiterId" />
-        @if (assignForm.controls.recruiterId.invalid && assignForm.controls.recruiterId.touched) {
-          <small class="p-error">A recruiter must be selected.</small>
-        }
-      </div>
-      <div class="dialog-actions">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [outlined]="true"
-          size="small"
-          (onClick)="assignDialogVisible.set(false)" />
-        <p-button
-          label="Assign"
-          size="small"
-          [disabled]="assignForm.invalid"
-          [loading]="acting() === 'assign-recruiter'"
-          (onClick)="assignRecruiter()" />
-      </div>
+<!-- Assign recruiter dialog (RECRUITER, SUPER_ADMIN) -->
+<p-dialog
+  header="Assign Recruiter"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="assignDialogVisible"
+  [style]="{ width: '34rem', maxWidth: '95vw' }">
+  <div class="dialog-form" [formGroup]="assignForm">
+    <div class="form-field">
+      <label>Recruiter</label>
+      <p-select
+        [options]="recruiters()"
+        optionLabel="viewText"
+        optionValue="id"
+        placeholder="{{ recruitersLoading() ? 'Loading…' : 'Select recruiter' }}"
+        [filter]="true"
+        filterBy="viewText,secondaryText"
+        (onFilter)="searchRecruiters($any($event).filter ?? '')"
+        formControlName="recruiterId"
+        styleClass="assign-recruiter-field"
+        appendTo="body"
+        panelStyleClass="assign-recruiter-panel" />
+      @if (assignForm.controls.recruiterId.invalid &&
+      assignForm.controls.recruiterId.touched) {
+      <small class="p-error">A recruiter must be selected.</small>
+      }
     </div>
-  </p-dialog>
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="assignDialogVisible.set(false)" />
+      <p-button
+        label="Assign"
+        size="small"
+        [disabled]="assignForm.invalid"
+        [loading]="acting() === 'assign-recruiter'"
+        (onClick)="assignRecruiter()" />
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Generate Link dialog -->
+<p-dialog
+  header="Generate Link"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [(visible)]="linkDialogVisible"
+  [style]="{ width: '30rem', maxWidth: '95vw' }">
+  <div class="link-dialog">
+    <p class="links-hint">
+      Pick the channel you'll share this post on. Each generated link is tagged so the
+      applicant's source is detected automatically when they apply.
+    </p>
+
+    <div class="source-options">
+      @for (source of APPLICATION_SOURCES; track source) {
+      <button
+        type="button"
+        class="source-option"
+        [class.selected]="linkSource() === source"
+        (click)="selectLinkSource(source)">
+        <i class="pi" [class.pi-check-circle]="linkSource() === source"
+          [class.pi-circle]="linkSource() !== source"></i>
+        <span>{{ source }}</span>
+      </button>
+      }
+    </div>
+
+    @if (linkSource(); as source) {
+    <div class="link-preview">
+      <input
+        class="link-input"
+        type="text"
+        readonly
+        [value]="linkUrlFor(source)" />
+    </div>
+    }
+
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="linkDialogVisible.set(false)" />
+      <p-button
+        label="Copy Link"
+        size="small"
+        [disabled]="!linkSource()"
+        [label]="linkCopied() ? 'Copied' : 'Copy Link'"
+        [icon]="linkCopied() ? 'pi pi-check' : 'pi pi-copy'"
+        (onClick)="copyLink()" />
+    </div>
+  </div>
+</p-dialog>
 }
-

@@ -62,7 +62,7 @@
         [minDate]="minDate"
         [readonlyInput]="true"
         placeholder="Pick a future date/time"
-        [stepMinute]="15"
+        [stepMinute]="1"
         appendTo="body" />
       @if (form.controls.scheduledDate.invalid &&
       form.controls.scheduledDate.touched) {
@@ -112,5 +112,3 @@
     </div>
   </div>
 </p-dialog>
-
-

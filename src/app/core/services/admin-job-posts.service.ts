@@ -21,6 +21,7 @@ export interface AdminJobPostsQueryParams {
   Status?: JobPostStatus;
   DepartmentId?: string;
   PositionId?: string;
+  OwnerId?: string;
   EmploymentType?: EmploymentType;
   SeniorityLevel?: SeniorityLevel;
   Location?: Location;
@@ -43,6 +44,16 @@ export class AdminJobPostsService {
     return this.http.get<AdminJobPostListItemDtoPagedResultResult>(`${this.base}/api/admin/job-posts`, {
       params: toHttpParams(params as Record<string, unknown>),
     });
+  }
+
+  /** Job posts created for the current hiring manager (view-only scope). */
+  getHiringManagerPosts(
+    params?: AdminJobPostsQueryParams,
+  ): Observable<AdminJobPostListItemDtoPagedResultResult> {
+    return this.http.get<AdminJobPostListItemDtoPagedResultResult>(
+      `${this.base}/api/admin/job-posts/hiring-manager`,
+      { params: toHttpParams(params as Record<string, unknown>) },
+    );
   }
 
   getById(id: string): Observable<AdminJobPostDetailDtoResult> {

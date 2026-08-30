@@ -1,9 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 
@@ -29,12 +28,13 @@ import {
 import { LookupItemDto } from '@core/models/lookup-model';
 
 import { StatusBadgeComponent, humanizeEnum } from './shared/status-badge.component';
-import { CreateJobPostDialogComponent } from './create-job-post-dialog.component';
 
 interface EnumOption {
   label: string;
   value: string;
 }
+
+type JobPostsView = 'all' | 'assigned';
 
 function enumToOptions(e: Record<string, string>): EnumOption[] {
   return Object.values(e).map((v) => ({ label: humanizeEnum(v), value: v }));
@@ -46,11 +46,9 @@ function enumToOptions(e: Record<string, string>): EnumOption[] {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    ButtonModule,
     InputTextModule,
     SelectModule,
     StatusBadgeComponent,
-    CreateJobPostDialogComponent,
   ],
   templateUrl: './job-postings-manage.component.html',
   styleUrl: './job-postings-manage.component.scss',
@@ -60,6 +58,7 @@ export class JobPostingsManageComponent implements OnInit {
   private readonly departmentsService = inject(AdminDepartmentsService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
 
   readonly posts = signal<AdminJobPostListItemDto[]>([]);
@@ -69,6 +68,17 @@ export class JobPostingsManageComponent implements OnInit {
   readonly totalCount = signal(0);
   readonly page = signal(1);
   readonly pageSize = 10;
+
+  /** Recruiters and hiring managers can scope the list to posts assigned to them (OwnerId). */
+  readonly isRecruiter = computed(() => this.authService.hasRole(Role.Recruiter));
+  readonly isHiringManager = computed(() => this.authService.hasRole(Role.HiringManager));
+  /** Active view is resolved from the active route so each sidebar item / tab lives at its own URL. */
+  readonly view = signal<JobPostsView>('all');
+
+  selectView(view: JobPostsView): void {
+    if (view === this.view()) return;
+    this.router.navigate([VIEW_ROUTES[view]]);
+  }
 
   readonly filterForm = this.fb.group({
     search: [''],
@@ -81,8 +91,6 @@ export class JobPostingsManageComponent implements OnInit {
     visibility: this.fb.control<PostingVisibility | null>(null),
   });
 
-  createDialogVisible = false;
-
   // Enum option sets for the filter dropdowns
   readonly statusOptions = enumToOptions(JobPostStatus);
   readonly employmentTypeOptions = enumToOptions(EmploymentType);
@@ -91,10 +99,15 @@ export class JobPostingsManageComponent implements OnInit {
   readonly jobTypeOptions = enumToOptions(JobType);
   readonly visibilityOptions = enumToOptions(PostingVisibility);
 
-  readonly canCreate = this.authService.hasRole(Role.Recruiter);
-
   ngOnInit(): void {
-    this.loadPosts();
+    this.route.data.subscribe((data) => {
+      const next = data['view'] === 'assigned' ? 'assigned' : 'all';
+      if (next !== this.view()) {
+        this.view.set(next);
+        this.page.set(1);
+      }
+      this.loadPosts();
+    });
     this.loadDepartments();
   }
 
@@ -115,6 +128,10 @@ export class JobPostingsManageComponent implements OnInit {
       Search: v.search?.trim() || undefined,
       Status: v.status ?? undefined,
       DepartmentId: v.departmentId ?? undefined,
+      OwnerId:
+        this.view() === 'assigned' && !this.isHiringManager()
+          ? this.authService.currentUser()?.id
+          : undefined,
       EmploymentType: v.employmentType ?? undefined,
       SeniorityLevel: v.seniorityLevel ?? undefined,
       Location: v.location ?? undefined,
@@ -122,7 +139,12 @@ export class JobPostingsManageComponent implements OnInit {
       Visibility: v.visibility ?? undefined,
     };
 
-    this.jobPostsService.getList(params).subscribe({
+    // Hiring managers always get their own scoped list from the dedicated endpoint.
+    const request$ = this.isHiringManager()
+      ? this.jobPostsService.getHiringManagerPosts(params)
+      : this.jobPostsService.getList(params);
+
+    request$.subscribe({
       next: (res) => {
         this.posts.set(res.data?.items ?? []);
         this.totalCount.set(res.data?.totalCount ?? 0);
@@ -201,13 +223,13 @@ export class JobPostingsManageComponent implements OnInit {
     this.router.navigate(['/console/postings', post.id]);
   }
 
-  onCreated(detailId: string): void {
-    this.createDialogVisible = false;
-    // Navigate straight to the new post's detail page (guide §3 step 3).
-    this.router.navigate(['/console/postings', detailId]);
-  }
-
   referenceCode(post: AdminJobPostListItemDto): string {
     return post.referenceNumber || post.id.slice(0, 8).toUpperCase();
   }
 }
+
+/** Maps each postings view to its sidebar-mapped route under /console/postings. */
+const VIEW_ROUTES: Record<JobPostsView, string> = {
+  all: '/console/postings',
+  assigned: '/console/postings/assigned',
+};

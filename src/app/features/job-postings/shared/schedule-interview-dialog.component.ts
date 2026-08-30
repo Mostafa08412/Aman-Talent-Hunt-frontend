@@ -89,6 +89,7 @@ export class ScheduleInterviewDialogComponent {
     this.interviewers.set([]);
     this.visible.set(true);
     this.visibleChange.emit(true);
+    this.loadInterviewers('');
   }
 
   close(): void {
@@ -140,7 +141,7 @@ export class ScheduleInterviewDialogComponent {
   private loadInterviewers(search: string): void {
     this.interviewerLoading.set(true);
     this.employeesService
-      .getLookup({ Search: search || undefined, PageSize: 50 })
+      .getLookup({ Search: search || undefined, PageSize: 10 })
       .subscribe({
         next: (res) => {
           this.interviewers.set(res.data?.items ?? []);

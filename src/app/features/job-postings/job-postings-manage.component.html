@@ -5,14 +5,24 @@
       <h1>Job Postings</h1>
       <p>Manage published job posts across all departments.</p>
     </div>
-
-    @if (canCreate) {
-      <p-button
-        label="Create Job Post"
-        icon="pi pi-plus"
-        (onClick)="createDialogVisible = true" />
-    }
   </div>
+
+  @if (isRecruiter() || isHiringManager()) {
+    <div class="view-tabs">
+      <button class="view-tab" type="button"
+        [class.active]="view() === 'all'"
+        (click)="selectView('all')">
+        <i class="pi pi-briefcase"></i>
+        All Posts
+      </button>
+      <button class="view-tab" type="button"
+        [class.active]="view() === 'assigned'"
+        (click)="selectView('assigned')">
+        <i class="pi pi-user"></i>
+        Assigned to Me
+      </button>
+    </div>
+  }
 
   <div class="directory">
 
@@ -217,10 +227,6 @@
   </div>
 </div>
 
-@if (canCreate) {
-  <app-create-job-post-dialog
-    [(visible)]="createDialogVisible"
-    (created)="onCreated($event)" />
-}
+
 
 

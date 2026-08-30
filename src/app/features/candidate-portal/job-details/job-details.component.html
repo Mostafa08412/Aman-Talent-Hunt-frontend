@@ -1,6 +1,8 @@
 
 
-@if (loading()) {
+@if (badSourceLink()) {
+<app-not-found />
+} @else if (loading()) {
 <div class="job-details-state">Loading job details...</div>
 } @else if (loadError()) {
 <div class="job-details-state">Unable to load job details.</div>
@@ -238,32 +240,6 @@
 
           }
 
-          <!-- Source -->
-          <div class="form-group">
-
-            <label for="source">
-              How did you hear about this role? *
-            </label>
-
-            <p-select
-              id="source"
-              formControlName="source"
-              [options]="sourceOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="e.g. LinkedIn, Referral..." />
-
-            @if (
-            form.controls.source.invalid &&
-            form.controls.source.touched
-            ) {
-            <small class="field-error">
-              Please select a source.
-            </small>
-            }
-
-          </div>
-
           <p-button
             type="submit"
             label="Submit Application"
@@ -324,6 +300,7 @@
 <p-dialog
   header="Application Submitted"
   [visible]="successVisible()"
+  (visibleChange)="successVisible.set($event)"
   (onHide)="successVisible.set(false)"
   [style]="{ width: 'min(26rem, 92vw)' }"
   [modal]="true"

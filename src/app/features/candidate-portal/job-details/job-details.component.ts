@@ -5,13 +5,11 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../core/services/auth.service';
-import { CandidateProfileService } from '../../../core/services/candidate-profile.service';
 import { CandidateApplicationsService } from '../../../core/services/candidate-applications.service';
 import { CandidateResumeService } from '../../../core/services/candidate-resume.service';
 import { JobDetailsService } from '../../../core/services/job-details.service';
@@ -21,7 +19,9 @@ import { Role } from '@core/models/role.model';
 import { PanelModule } from 'primeng/panel';
 import { HttpErrorResponse } from '@angular/common/http';
 import { toApiError } from '@core/errors';
-import { throwError, switchMap, of, tap, filter } from 'rxjs';
+import { decodeApplicationSource } from '@core/utils/application-source.util';
+import { NotFoundComponent } from '../../errors/not-found.component';
+import { throwError, switchMap, of, tap } from 'rxjs';
 @Component({
   selector: 'app-job-details',
   standalone: true,
@@ -32,11 +32,11 @@ import { throwError, switchMap, of, tap, filter } from 'rxjs';
     ButtonModule,
     TagModule,
     TextareaModule,
-    SelectModule,
     FileUploadModule,
     DialogModule,
     ToastModule,
-    PanelModule
+    PanelModule,
+    NotFoundComponent,
   ],
   providers: [MessageService],
   templateUrl: './job-details.component.html',
@@ -47,7 +47,6 @@ export class JobDetailsComponent {
   private message = inject(MessageService);
   private router = inject(Router);
   private auth = inject(AuthService);
-  private profileService = inject(CandidateProfileService);
   private applicationsService = inject(CandidateApplicationsService);
   private resumeService = inject(CandidateResumeService);
   private route = inject(ActivatedRoute);
@@ -71,11 +70,8 @@ export class JobDetailsComponent {
   isSubmitting = signal(false);
   successVisible = signal(false);
 
-  sourceOptions = [
-    { label: 'LinkedIn', value: ApplicationSource.LinkedIn },
-    { label: 'Referral', value: ApplicationSource.Wuzzuf },
-    { label: 'Other', value: ApplicationSource.Portal },
-  ];
+  /** A ?src= param was present but invalid — show the not-found page. */
+  badSourceLink = signal(false);
 
   form = this.fb.nonNullable.group({
     answers: this.fb.array<FormControl<string>>([]),
@@ -83,6 +79,20 @@ export class JobDetailsComponent {
   });
 
   constructor() {
+    // Source is always detected silently: the tagged share link (?src=…) wins,
+    // otherwise the candidate is attributed to the Portal.
+    let source: ApplicationSource = ApplicationSource.Portal;
+    const srcParam = this.route.snapshot.queryParamMap.get('src');
+    if (srcParam) {
+      const decodedSource = decodeApplicationSource(srcParam);
+      if (decodedSource) {
+        source = decodedSource;
+      } else {
+        this.badSourceLink.set(true);
+      }
+    }
+    this.form.controls.source.setValue(source);
+    this.form.controls.source.disable();
     this.loadJobDetails();
     if (this.isLoggedIn() && this.isUserCandidate) {
       this.loadCandidateResume();
@@ -134,16 +144,24 @@ export class JobDetailsComponent {
   }
 
   private loadCandidateResume(): void {
-    if (this.auth.hasResume()) {
-            console.log("here")
-
-      this.currentResume.set({ name: this.auth.getResumeFileName() || 'Resume on file' });
-      this.hasExistingResume.set(true);
-    } else {
-      this.currentResume.set(null);
-      this.hasExistingResume.set(false);
-      this.showUpload.set(true);
-    }
+    this.resumeService.getInfo().subscribe({
+      next: (res) => {
+        const info = res.data;
+        if (info) {
+          this.currentResume.set({ name: info.name || 'Resume on file' });
+          this.hasExistingResume.set(true);
+        } else {
+          this.currentResume.set(null);
+          this.hasExistingResume.set(false);
+          this.showUpload.set(true);
+        }
+      },
+      error: () => {
+        this.currentResume.set(null);
+        this.hasExistingResume.set(false);
+        this.showUpload.set(true);
+      },
+    });
   }
 
   onResumeSelected(event: { files: File[] }): void {
@@ -152,7 +170,6 @@ export class JobDetailsComponent {
     this.selectedFile.set(file);
     this.currentResume.set({ name: file.name });
     this.hasExistingResume.set(true);
-    this.auth.updateLocalResume(this.auth.getResumeId(), file.name);
     this.showUpload.set(false);
     this.message.add({
       severity: 'success',
@@ -204,24 +221,13 @@ export class JobDetailsComponent {
         })
       ),
       tap(appRes => {
+        this.isSubmitting.set(false);
         if (appRes.isCompletedSuccessfully) {
           this.successVisible.set(true);
-
-          this.isSubmitting.set(false);
+          this.message.add({ severity: 'success', summary: 'Application submitted', detail: 'Your application has been received successfully.' });
         }
       }),
-      filter(appRes => !appRes.isCompletedSuccessfully),
-      switchMap(() => this.profileService.getProfile()),
     ).subscribe({
-      next: (profileRes) => {
-        this.isSubmitting.set(false);
-        const profile = profileRes.data;
-        if (profile) {
-          this.auth.updateLocalResume(profile.resumeId, profile.resumeFileName);
-        }
-        this.successVisible.set(true);
-        this.message.add({ severity: 'success', summary: 'Application submitted', detail: 'Your application has been received successfully.' });
-      },
       error: (err: HttpErrorResponse) => {
         const error = toApiError(err);
         this.isSubmitting.set(false);
