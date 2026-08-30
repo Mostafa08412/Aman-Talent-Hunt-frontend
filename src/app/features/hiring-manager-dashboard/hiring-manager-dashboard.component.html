@@ -1,0 +1,177 @@
+<div class="page">
+  <div class="dashboard-head">
+    <div class="dash-title">
+      <h1>Dashboard</h1>
+      <p>Your requisitions, job posts, approvals, hires and interviews — at a glance.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else {
+    <!-- Speed-dial counters -->
+    <div class="stat-grid">
+      @for (card of statCards(); track card.key) {
+        <p-card styleClass="stat-card" class="stat-{{ card.accent }}">
+          <div class="stat-body">
+            <div class="stat-icon">
+              <i [class]="card.icon"></i>
+            </div>
+            <div class="stat-text">
+              <span class="stat-value">{{ card.value }}</span>
+              <span class="stat-label">{{ card.label }}</span>
+            </div>
+          </div>
+        </p-card>
+      }
+    </div>
+
+    <!-- Time-to-fill / time-to-hire metric cards -->
+    <div class="metric-grid">
+      <p-card styleClass="metric-card">
+        <div class="metric-body">
+          <span class="metric-value">{{ formatDays(timeMetrics()?.averageTimeToFillDays) }}</span>
+          <span class="metric-label">Avg Time-to-Fill</span>
+          <span class="metric-sample">({{ timeMetrics()?.timeToFillSampleCount ?? 0 }} posts)</span>
+        </div>
+      </p-card>
+      <p-card styleClass="metric-card">
+        <div class="metric-body">
+          <span class="metric-value">{{ formatDays(timeMetrics()?.averageTimeToHireDays) }}</span>
+          <span class="metric-label">Avg Time-to-Hire</span>
+          <span class="metric-sample">({{ timeMetrics()?.timeToHireSampleCount ?? 0 }} hires)</span>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Pipeline + Job posts -->
+    <div class="split-grid">
+      <p-card header="Candidate Pipeline" subheader="Applicants across your job posts">
+        @if (pipelineSummary().length > 0) {
+          <div class="pipeline">
+            @for (stage of pipelineSummary(); track stage.status) {
+              <div class="pipe-row" [class.terminal]="isTerminal(stage.status)">
+                <div class="pipe-head">
+                  <span class="pipe-label">{{ stage.status | humanize }}</span>
+                  <span class="pipe-count">{{ stage.count }}</span>
+                </div>
+                <div class="pipe-track">
+                  <div class="pipe-fill" [style.width.%]="barWidth(stage.count, pipelineMax())"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No pipeline data yet.</div>
+        }
+      </p-card>
+
+      <p-card header="Job Posts &amp; Time-to-Fill" subheader="Created from your approved requisitions">
+        @if (jobPosts().length > 0) {
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Job Post</th>
+                  <th>Status</th>
+                  <th class="num">Openings</th>
+                  <th class="num">Applicants</th>
+                  <th class="num">Time-to-fill</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (post of jobPosts(); track trackById($index, post)) {
+                  <tr role="button" tabindex="0" (click)="openJobPost(post.id)" (keyup.enter)="openJobPost(post.id)">
+                    <td>
+                      <span class="cell-title">{{ post.title }}</span>
+                      <span class="cell-sub">{{ post.referenceNumber }}</span>
+                    </td>
+                    <td><p-tag [value]="post.status" [severity]="jobPostTagSeverity(post.status)" /></td>
+                    <td class="num">{{ post.numberOfOpenings }}</td>
+                    <td class="num">{{ post.applicantCount }}</td>
+                    <td class="num">{{ post.timeToFillDays === null ? '—' : post.timeToFillDays.toFixed(1) + ' d' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">No job posts yet.</div>
+        }
+      </p-card>
+    </div>
+
+    <!-- JD-approval inbox -->
+    <p-card header="JD Approvals" subheader="Requisitions awaiting your job-description sign-off">
+      <div class="inbox-list">
+        @for (req of requisitionsToApprove(); track trackById($index, req)) {
+          <div class="inbox-row" role="button" tabindex="0" (click)="openRequisition(req.id)" (keyup.enter)="openRequisition(req.id)">
+            <p-avatar icon="pi pi-file-check" shape="circle" styleClass="avatar-sm req" />
+            <div class="inbox-main">
+              <span class="inbox-title">{{ req.positionTitle || 'Untitled requisition' }}</span>
+              <span class="inbox-sub">
+                {{ req.referenceNumber }} &middot; {{ req.departmentName }} &middot; {{ req.requestedHeadcount }} opening(s) &middot; {{ req.hiringManagerName }}
+              </span>
+            </div>
+            <span class="inbox-date">{{ req.createdAtUTC | date: 'MMM d' }}</span>
+          </div>
+        } @empty {
+          <div class="empty-state">No requisitions awaiting your approval.</div>
+        }
+      </div>
+    </p-card>
+
+    <!-- Recent hires + Upcoming interviews -->
+    <div class="split-grid">
+      <p-card header="Recent Hires" subheader="Last 10 hires with time-to-hire">
+        @if (recentHires().length > 0) {
+          <div class="list">
+            @for (hire of recentHires(); track trackById($index, hire)) {
+              <div class="list-row" role="button" tabindex="0" (click)="openJobPost(hire.id)" (keyup.enter)="openJobPost(hire.id)">
+                <p-avatar label="{{ initials(hire.candidateName) }}" shape="circle" styleClass="avatar-sm" />
+                <div class="list-main">
+                  <span class="list-title">{{ hire.candidateName }}</span>
+                  <span class="list-sub">{{ hire.jobPostTitle }}</span>
+                  <span class="list-sub">Applied {{ hire.appliedAtUTC | date: 'MMM d' }} &middot; Hired {{ hire.hiredAtUTC | date: 'MMM d' }}</span>
+                </div>
+                <span class="list-metric">{{ hire.timeToHireDays.toFixed(1) }} d</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No hires yet.</div>
+        }
+      </p-card>
+
+      <p-card header="Upcoming Interviews" subheader="Next 7 days">
+        @if (upcomingInterviews().length > 0) {
+          <div class="list">
+            @for (iv of upcomingInterviews(); track trackById($index, iv)) {
+              <div class="list-row" role="button" tabindex="0" (click)="openInterview(iv.id)" (keyup.enter)="openInterview(iv.id)">
+                <p-avatar icon="pi pi-calendar-clock" shape="circle" styleClass="avatar-sm interview" />
+                <div class="list-main">
+                  <span class="list-title">{{ iv.applicantName }}</span>
+                  <span class="list-sub">{{ iv.jobPostTitle }}</span>
+                  <span class="list-sub">
+                    {{ iv.roundName }} &middot; {{ iv.interviewerName }} &middot; {{ iv.scheduledDate | date: 'MMM d, h:mm a' }}
+                  </span>
+                </div>
+                @if (iv.meetingLink) {
+                  <a class="join-btn" [href]="iv.meetingLink" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
+                    <i class="pi pi-video"></i> Join
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No interviews in the next 7 days.</div>
+        }
+      </p-card>
+    </div>
+  }
+</div>

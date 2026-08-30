@@ -1,0 +1,157 @@
+<div class="page">
+  <div class="dashboard-head">
+    <div class="dash-title">
+      <h1>Dashboard</h1>
+      <p>Company-wide hiring health — approvals, workload and headcount at a glance.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else {
+    <!-- Speed-dial counters -->
+    <div class="stat-grid">
+      @for (card of statCards(); track card.key) {
+        <p-card styleClass="stat-card" class="stat-{{ card.accent }}">
+          <div class="stat-body">
+            <div class="stat-icon">
+              <i [class]="card.icon"></i>
+            </div>
+            <div class="stat-text">
+              <span class="stat-value">{{ card.value }}</span>
+              <span class="stat-label">{{ card.label }}</span>
+            </div>
+          </div>
+        </p-card>
+      }
+    </div>
+
+    <!-- Approval inbox + Right column (workload + headcount) -->
+    <div class="split-grid">
+      <p-card header="Approval Inbox" subheader="Awaiting your final HR sign-off">
+        <div class="inbox-list">
+          @for (req of requisitionsToApprove(); track trackById($index, req)) {
+            <div class="inbox-row" role="button" tabindex="0" (click)="openRequisition(req.id)" (keyup.enter)="openRequisition(req.id)">
+              <p-avatar icon="pi pi-file-check" shape="circle" styleClass="avatar-sm req" />
+              <div class="inbox-main">
+                <span class="inbox-title">{{ req.positionTitle || 'Untitled requisition' }}</span>
+                <span class="inbox-sub">
+                  {{ req.referenceNumber }} &middot; {{ req.departmentName }} &middot; {{ req.requestedHeadcount }} opening(s) &middot; {{ req.hiringManagerName }}
+                </span>
+              </div>
+              <span class="inbox-date">{{ req.createdAtUTC | date: 'MMM d' }}</span>
+            </div>
+          } @empty {
+            <div class="empty-state">No requisitions awaiting approval.</div>
+          }
+
+          @for (plan of manPowerPlansToApprove(); track trackById($index, plan)) {
+            <div class="inbox-row" role="button" tabindex="0" (click)="openManPowerPlan(plan.id)" (keyup.enter)="openManPowerPlan(plan.id)">
+              <p-avatar icon="pi pi-user-plus" shape="circle" styleClass="avatar-sm plan" />
+              <div class="inbox-main">
+                <span class="inbox-title">{{ plan.positionTitle || 'Manpower plan' }}</span>
+                <span class="inbox-sub">
+                  {{ plan.referenceNumber }} &middot; {{ plan.departmentName }} &middot; {{ plan.fiscalYear }} {{ plan.quarter | humanize }} &middot; {{ plan.targetHeadcount }} headcount
+                </span>
+              </div>
+              <p-tag value="Pending" severity="warn" />
+            </div>
+          } @empty {
+            <div class="empty-state" [class.is-hidden]="requisitionsToApprove().length > 0">No manpower plans awaiting approval.</div>
+          }
+        </div>
+      </p-card>
+
+      <div class="stacked-card">
+        <p-card header="Recruiter Workload" subheader="Assigned requisitions per recruiter">
+          @if (workloadSorted().length > 0) {
+            <div class="workload-list">
+              @for (wrk of workloadSorted(); track wrk.employeeId) {
+                <div class="workload-row">
+                  <p-avatar label="{{ initials(wrk.recruiterName) }}" shape="circle" styleClass="avatar-sm" />
+                  <div class="wrk-main">
+                    <div class="wrk-head">
+                      <span class="wrk-name">{{ wrk.recruiterName }}</span>
+                      <span class="wrk-count">{{ wrk.assignedRequisitions }} reqs</span>
+                    </div>
+                    <div class="wrk-track">
+                      <div class="wrk-fill" [style.width.%]="workloadWidth(wrk)"></div>
+                    </div>
+                    <span class="wrk-sub">{{ wrk.ownedJobPosts }} posts &middot; {{ wrk.openApplications }} open apps</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">No recruiter workload data.</div>
+          }
+        </p-card>
+
+        <p-card header="Headcount by Department" subheader="Target vs filled (counted plans)">
+          @if (headcountByDepartment().length > 0) {
+            <div class="headcount-list">
+              @for (dep of headcountByDepartment(); track dep.departmentName) {
+                <div class="hc-row">
+                  <div class="hc-head">
+                    <span class="hc-name">{{ dep.departmentName }}</span>
+                    <span class="hc-count">{{ dep.filledHeadcount }} / {{ dep.targetHeadcount }}</span>
+                  </div>
+                  <div class="hc-track">
+                    <div class="hc-fill" [style.width.%]="barWidth(dep.filledHeadcount, dep.targetHeadcount)"></div>
+                  </div>
+                  <span class="hc-vacant">{{ dep.vacant }} vacant</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">No headcount data.</div>
+          }
+        </p-card>
+      </div>
+    </div>
+
+    <!-- Application inflow (12 weeks) -->
+    <p-card header="Application Inflow" subheader="New applications per week (last 12 weeks)">
+      @if (applicationInflow().length > 0) {
+        <div class="inflow">
+          @for (week of applicationInflow(); track week.weekOffset) {
+            <div class="inflow-col">
+              <span class="inflow-count">{{ week.count }}</span>
+              <div class="inflow-track">
+                <div class="inflow-fill" [style.height.%]="barWidth(week.count, inflowMax())"></div>
+              </div>
+              <span class="inflow-date">{{ week.weekStartUTC | date: 'dd MMM' }}</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">No application inflow data.</div>
+      }
+    </p-card>
+
+    <!-- Pipeline summary -->
+    <p-card header="Candidate Pipeline" subheader="Applications by status (all posts)">
+      @if (pipelineSummary().length > 0) {
+        <div class="pipeline">
+          @for (stage of pipelineSummary(); track trackByStatus($index, stage)) {
+            <div class="pipe-row" [class.terminal]="isTerminal(stage.status)">
+              <div class="pipe-head">
+                <span class="pipe-label">{{ stage.status | humanize }}</span>
+                <span class="pipe-count">{{ stage.count }}</span>
+              </div>
+              <div class="pipe-track">
+                <div class="pipe-fill" [style.width.%]="barWidth(stage.count, pipelineMax())"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">No pipeline data.</div>
+      }
+    </p-card>
+  }
+</div>

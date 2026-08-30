@@ -9,6 +9,7 @@ import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../../core/services/auth.service';
 import { Role } from '@core/models/role.model';
+import { dashboardRouteFor } from '../../../layout/sidebar/nav-config';
 import { Toast } from 'primeng/toast';
 import { environment } from '../../../../environments/environment';
 
@@ -20,30 +21,29 @@ interface TestAccount {
 
 const TEST_PASSWORD = 'Admin@12345';
 
+const ROLE_TITLES: Record<Role, string> = {
+  [Role.Candidate]: 'Candidate',
+  [Role.Recruiter]: 'Recruiter',
+  [Role.HiringManager]: 'Hiring Manager',
+  [Role.DepartmentHead]: 'Department Head',
+  [Role.FinanceApprover]: 'Finance Approver',
+  [Role.HRManager]: 'HR Manager',
+  [Role.OnboardingCoordinator]: 'Onboarding Coordinator',
+  [Role.Admin]: 'Administrator',
+  [Role.SuperAdmin]: 'Super Admin',
+};
+
+function roleTitle(role: Role): string {
+  return ROLE_TITLES[role] ?? role;
+}
+
 const TEST_ACCOUNTS: TestAccount[] = [
-  // Super Admin
   { fullName: 'System Administrator', email: 'sa@local.com', role: Role.SuperAdmin },
-  // Recruiters
-  { fullName: 'Sara Khalil', email: 'r1@local.com', role: Role.Recruiter },
-  { fullName: 'Omar Youssef', email: 'r2@local.com', role: Role.Recruiter },
-  { fullName: 'Ahmed Emad', email: 'r3@local.com', role: Role.Recruiter },
-  // HR Managers
-  { fullName: 'Ahmed Hassan', email: 'hr@local.com', role: Role.HRManager },
-  { fullName: 'Nour El-Sayed', email: 'hr1@local.com', role: Role.HRManager },
-  { fullName: 'Hana Kamel', email: 'hr2@local.com', role: Role.HRManager },
-  { fullName: 'Laila Mansour', email: 'hr3@local.com', role: Role.HRManager },
-  // Department Heads
-  { fullName: 'Khaled Mostafa', email: 'dh@local.com', role: Role.DepartmentHead },
-  { fullName: 'Mahmoud Salem', email: 'dh1@local.com', role: Role.DepartmentHead },
-  { fullName: 'Reem Ghanem', email: 'dh2@local.com', role: Role.DepartmentHead },
-  { fullName: 'Yara Radi', email: 'dh3@local.com', role: Role.DepartmentHead },
-  { fullName: 'Mostafa Zaki', email: 'dh4@local.com', role: Role.DepartmentHead },
-  { fullName: 'Tarek Fahmy', email: 'dh5@local.com', role: Role.DepartmentHead },
-  { fullName: 'Hazem El-Sherif', email: 'dh6@local.com', role: Role.DepartmentHead },
-  { fullName: 'Dina Mansour', email: 'dh7@local.com', role: Role.DepartmentHead },
-  // Hiring Manager
-  { fullName: 'Mohamed Ali', email: 'hm@local.com', role: Role.HiringManager },
-  // Candidates
+  { fullName: 'Yasmine Anwar', email: 'hr@local.com', role: Role.HRManager },
+  { fullName: 'Ziad Hegazy', email: 'r1@local.com', role: Role.Recruiter },
+  { fullName: 'Salma Alaa', email: 'r2@local.com', role: Role.Recruiter },
+  { fullName: 'Tarek Nashed', email: 'hm@local.com', role: Role.HiringManager },
+  { fullName: 'Youssef Rashidy', email: 'dh@local.com', role: Role.DepartmentHead },
   { fullName: 'Yotham Sameh', email: 'yotham@gmail.com', role: Role.Candidate },
   { fullName: 'Fardia Ahmed', email: 'fardia@gmail.com', role: Role.Candidate },
   { fullName: 'Hatem Hussien', email: 'hatem@gmail.com', role: Role.Candidate },
@@ -77,6 +77,7 @@ export class LoginComponent {
     .filter((role) => TEST_ACCOUNTS.some((a) => a.role === role))
     .map((role) => ({
       role,
+      label: roleTitle(role),
       accounts: TEST_ACCOUNTS.filter((a) => a.role === role),
     }));
 
@@ -104,8 +105,15 @@ export class LoginComponent {
 
         if (returnUrl) {
           this.router.navigateByUrl(returnUrl);
-        } else if (this.auth.currentUser()?.role === Role.Candidate) this.router.navigate(['/']);
-        else this.router.navigate(['/console']);
+          return;
+        }
+
+        const role = this.auth.currentUser()?.role;
+        if (role && role !== Role.Candidate) {
+          this.router.navigateByUrl(dashboardRouteFor(role));
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: () => {
         this.error.set('This email and password combination is invalid, please try again.');

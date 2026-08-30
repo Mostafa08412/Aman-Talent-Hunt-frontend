@@ -1,0 +1,312 @@
+$teal: #00abc2;
+$orange: #f26522;
+$indigo: #6366f1;
+$green: #22c55e;
+$violet: #8b5cf6;
+
+.state-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.empty-state {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--p-surface-400);
+  font-size: 0.875rem;
+}
+
+/* ── Page header ── */
+.dashboard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.dash-title h1 {
+  margin: 0 0 0.25rem;
+}
+
+/* ── Speed-dial counters ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+.stat-body {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.stat-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.stat-value {
+  font-size: 1.625rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--p-surface-900);
+}
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+  margin-block-start: 0.125rem;
+}
+.stat-teal .stat-icon { background: rgba($teal, 0.14); color: $teal; }
+.stat-orange .stat-icon { background: rgba($orange, 0.14); color: $orange; }
+.stat-indigo .stat-icon { background: rgba($indigo, 0.14); color: $indigo; }
+.stat-green .stat-icon { background: rgba($green, 0.16); color: $green; }
+.stat-violet .stat-icon { background: rgba($violet, 0.14); color: $violet; }
+
+/* ── Metric cards (time-to-fill / time-to-hire) ── */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.metric-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--p-primary-700);
+  line-height: 1.1;
+}
+.metric-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--p-surface-900);
+}
+.metric-sample {
+  font-size: 0.72rem;
+  color: var(--p-surface-500);
+}
+
+/* ── Layout columns ── */
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Candidate pipeline ── */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+.pipe-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.pipe-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+}
+.pipe-label {
+  color: var(--p-surface-600);
+  font-weight: 500;
+}
+.pipe-count {
+  font-weight: 700;
+  color: var(--p-surface-900);
+}
+.pipe-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--p-surface-100);
+  overflow: hidden;
+}
+.pipe-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, $teal, #34d3e8);
+  transition: width 0.3s ease;
+}
+.pipe-row.terminal .pipe-fill {
+  background: linear-gradient(90deg, var(--p-surface-300), var(--p-surface-400));
+}
+
+/* ── Job posts table ── */
+.table-wrap {
+  overflow-x: auto;
+}
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  th {
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--p-surface-500);
+    padding: 0.5rem 0.5rem;
+    border-bottom: 1px solid var(--p-surface-200);
+    white-space: nowrap;
+  }
+  th.num, td.num {
+    text-align: right;
+  }
+  td {
+    padding: 0.625rem 0.5rem;
+    border-bottom: 1px solid var(--p-surface-100);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tr {
+    cursor: pointer;
+    &:hover { background: var(--p-surface-50); }
+    &:last-child td { border-bottom: none; }
+  }
+}
+.cell-title, .cell-sub {
+  display: block;
+}
+.cell-title {
+  font-weight: 600;
+  color: var(--p-surface-900);
+}
+.cell-sub {
+  font-size: 0.72rem;
+  color: var(--p-surface-500);
+}
+
+/* ── Approval inbox ── */
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+}
+.inbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid var(--p-surface-100);
+  border-radius: 8px;
+  cursor: pointer;
+  &:hover { background: var(--p-surface-50); }
+  &:last-child { border-bottom: none; }
+}
+.inbox-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+.inbox-title {
+  font-weight: 600;
+  color: var(--p-surface-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inbox-sub {
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inbox-date {
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+  white-space: nowrap;
+}
+
+/* ── Recent hires / interviews lists ── */
+.list {
+  display: flex;
+  flex-direction: column;
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid var(--p-surface-100);
+  border-radius: 8px;
+  cursor: pointer;
+  &:hover { background: var(--p-surface-50); }
+  &:last-child { border-bottom: none; }
+}
+.list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+.list-title {
+  font-weight: 600;
+  color: var(--p-surface-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-sub {
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-metric {
+  font-weight: 700;
+  color: var(--p-primary-700);
+  white-space: nowrap;
+}
+.join-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--p-secondary-50);
+  color: var(--p-secondary-800);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  &:hover { background: var(--p-secondary-100); }
+}
+
+/* ── Avatars ── */
+.avatar-sm {
+  background: var(--p-primary-100);
+  color: var(--p-primary-800);
+  font-weight: 700;
+}
+.avatar-sm.req {
+  background: rgba($orange, 0.14);
+  color: $orange;
+}
+.avatar-sm.interview {
+  background: rgba($indigo, 0.14);
+  color: $indigo;
+}

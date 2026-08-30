@@ -1,0 +1,182 @@
+<div class="page">
+  <div class="dashboard-head">
+    <div class="dash-title">
+      <h1>Dashboard</h1>
+      <p>{{ headcountSummary()?.departmentName ?? 'Your department' }} — approvals, headcount, pipeline and job posts at a glance.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else {
+    <!-- Speed-dial counters -->
+    <div class="stat-grid">
+      @for (card of statCards(); track card.key) {
+        <p-card styleClass="stat-card" class="stat-{{ card.accent }}">
+          <div class="stat-body">
+            <div class="stat-icon">
+              <i [class]="card.icon"></i>
+            </div>
+            <div class="stat-text">
+              <span class="stat-value">{{ card.value }}</span>
+              <span class="stat-label">{{ card.label }}</span>
+            </div>
+          </div>
+        </p-card>
+      }
+    </div>
+
+    <!-- Budget approvals + Headcount summary + Manpower plans -->
+    <div class="split-grid">
+        <p-card header="Budget Approvals" subheader="Requisitions awaiting your budget sign-off">
+        <div class="inbox-list">
+          @for (req of budgetApprovals(); track trackById($index, req)) {
+            <div class="inbox-row" role="button" tabindex="0" (click)="openRequisition(req.id)" (keyup.enter)="openRequisition(req.id)">
+              <p-avatar icon="pi pi-wallet" shape="circle" styleClass="avatar-sm req" />
+              <div class="inbox-main">
+                <span class="inbox-title">{{ req.positionTitle || 'Untitled requisition' }}</span>
+                <span class="inbox-sub">
+                  {{ req.referenceNumber }} &middot; {{ req.departmentName }} &middot; {{ req.requestedHeadcount }} opening(s) &middot; {{ req.hiringManagerName }}
+                </span>
+              </div>
+              <span class="inbox-date">{{ req.createdAtUTC | date: 'MMM d' }}</span>
+            </div>
+          } @empty {
+            <div class="empty-state">No budget approvals pending.</div>
+          }
+        </div>
+      </p-card>
+
+      <div class="stacked-card">
+        <p-card header="Headcount Summary" [subheader]="'Counted plans (' + (headcountSummary()?.targetHeadcount ?? 0) + ' targeted)'">
+          <div class="headcount">
+            <div class="hc-head">
+              <span class="hc-name">{{ headcountSummary()?.departmentName }}</span>
+              <span class="hc-count">{{ headcountSummary()?.filledHeadcount ?? 0 }} / {{ headcountSummary()?.targetHeadcount ?? 0 }} filled</span>
+            </div>
+            <div class="hc-track">
+              <div class="hc-fill" [style.width.%]="headcountPercent()"></div>
+            </div>
+            <div class="hc-foot">
+              <span class="hc-vacant" [class.warn]="(headcountSummary()?.vacant ?? 0) > 0">
+                {{ headcountSummary()?.vacant ?? 0 }} vacant
+              </span>
+              <span class="hc-note">{{ headcountPercent() }}% attainment</span>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card header="Manpower Plans" subheader="Department plan book (all statuses)">
+          @if (manPowerPlans().length > 0) {
+            <div class="table-wrap">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Plan</th>
+                    <th class="num">Target</th>
+                    <th class="num">Filled</th>
+                    <th class="num">Vacant</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (plan of manPowerPlans(); track trackById($index, plan)) {
+                    <tr role="button" tabindex="0" (click)="openManPowerPlan(plan.id)" (keyup.enter)="openManPowerPlan(plan.id)">
+                      <td>
+                        <span class="cell-title">{{ plan.positionTitle || 'Manpower plan' }}</span>
+                        <span class="cell-sub">{{ plan.referenceNumber }} &middot; FY{{ plan.fiscalYear }} {{ plan.quarter | humanize }}</span>
+                      </td>
+                      <td class="num">{{ plan.targetHeadcount }}</td>
+                      <td class="num">{{ plan.filledHeadcount }}</td>
+                      <td class="num">
+                        <span class="vacant-badge" [class.warn]="plan.vacant > 0" [class.muted]="plan.vacant === 0">
+                          {{ plan.vacant }}
+                        </span>
+                      </td>
+                      <td><p-tag [value]="plan.status" [severity]="planStatusSeverity(plan.status)" /></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (hasInformationalPlans()) {
+              <p class="table-note">Draft / pending / rejected plans are shown for visibility; retained numbers are informational.</p>
+            }
+          } @else {
+            <div class="empty-state">No manpower plans yet.</div>
+          }
+        </p-card>
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <p-card header="Candidate Pipeline" subheader="Applicants across the department's job posts">
+      @if (pipelineSummary().length > 0) {
+        <div class="pipeline">
+          @for (stage of pipelineSummary(); track stage.status) {
+            <div class="pipe-row" [class.terminal]="isTerminal(stage.status)">
+              <div class="pipe-head">
+                <span class="pipe-label">{{ stage.status | humanize }}</span>
+                <span class="pipe-count">{{ stage.count }}</span>
+              </div>
+              <div class="pipe-track">
+                <div class="pipe-fill" [style.width.%]="barWidth(stage.count, pipelineMax())"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">No pipeline data yet.</div>
+      }
+    </p-card>
+
+    <!-- Job posts -->
+    <p-card header="Job Posts" subheader="Publication status across the department">
+      @if (jobPosts().length > 0) {
+        <div class="table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Job Post</th>
+                <th>Status</th>
+                <th class="num">Openings</th>
+                <th class="num">Applicants</th>
+                <th>Deadline</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (post of jobPosts(); track trackById($index, post)) {
+                <tr role="button" tabindex="0" (click)="openJobPost(post.id)" (keyup.enter)="openJobPost(post.id)">
+                  <td>
+                    <span class="cell-title">{{ post.title }}</span>
+                    <span class="cell-sub">{{ post.referenceNumber }}</span>
+                  </td>
+                  <td>
+                    <p-tag [value]="post.status" [severity]="jobPostTagSeverity(post.status)" />
+                    @if (isExpired(post)) {
+                      <p-tag value="Expired" severity="danger" styleClass="ml-2" />
+                    }
+                  </td>
+                  <td class="num">{{ post.numberOfOpenings }}</td>
+                  <td class="num">{{ post.applicantCount }}</td>
+                  <td class="num">
+                    {{ post.deadline | date: 'MMM d, y' }}
+                    @if (isExpired(post)) {
+                      <span class="elapsed-note">(past)</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">No job posts yet.</div>
+      }
+    </p-card>
+  }
+</div>

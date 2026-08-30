@@ -1,6 +1,17 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/models/role.model';
+import { dashboardRouteFor } from '../../layout/sidebar/nav-config';
+
+const ROLES_WITH_DEDICATED_DASHBOARD = [
+  Role.Recruiter,
+  Role.HRManager,
+  Role.HiringManager,
+  Role.DepartmentHead,
+  Role.SuperAdmin,
+];
 
 @Component({
   selector: 'app-dashboard',
@@ -63,6 +74,14 @@ import { AuthService } from '../../core/services/auth.service';
     `,
   ],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   auth = inject(AuthService);
+  private router = inject(Router);
+
+  ngOnInit(): void {
+    const role = this.auth.role();
+    if (role && ROLES_WITH_DEDICATED_DASHBOARD.includes(role)) {
+      this.router.navigateByUrl(dashboardRouteFor(role), { replaceUrl: true });
+    }
+  }
 }

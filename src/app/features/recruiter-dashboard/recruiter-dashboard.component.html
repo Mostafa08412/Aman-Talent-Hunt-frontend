@@ -1,0 +1,162 @@
+<div class="page">
+  <div class="dashboard-head">
+    <div class="dash-title">
+      <h1>Dashboard</h1>
+      <p>Your pipeline, requisitions and interviews — at a glance.</p>
+    </div>
+    <p-button
+      label="New Posting"
+      icon="pi pi-plus"
+      routerLink="/console/postings" />
+  </div>
+
+  @if (loading()) {
+    <div class="state-center">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  } @else {
+    <!-- Speed-dial counters -->
+    <div class="stat-grid">
+      @for (card of statCards(); track card.key) {
+        <p-card styleClass="stat-card" class="stat-{{ card.accent }}">
+          <div class="stat-body">
+            <div class="stat-icon">
+              <i [class]="card.icon"></i>
+            </div>
+            <div class="stat-text">
+              <span class="stat-value">{{ card.value }}</span>
+              <span class="stat-label">{{ card.label }}</span>
+            </div>
+          </div>
+        </p-card>
+      }
+    </div>
+
+    <!-- Pipeline + Publication status -->
+    <div class="split-grid">
+      <p-card header="Candidate Pipeline" subheader="Applications across your job posts">
+        @if (activePipeline().length > 0 || terminalPipeline().length > 0) {
+          <div class="pipeline">
+            @for (bucket of activePipeline(); track trackByStatus($index, bucket)) {
+              <div class="pipe-row">
+                <div class="pipe-head">
+                  <span class="pipe-label">{{ bucket.status | humanize }}</span>
+                  <span class="pipe-count">{{ bucket.count }}</span>
+                </div>
+                <div class="pipe-track">
+                  <div class="pipe-fill" [style.width.%]="barWidth(bucket.count)"></div>
+                </div>
+              </div>
+            }
+            @if (terminalPipeline().length > 0) {
+              <div class="pipe-row terminal">
+                <div class="pipe-head">
+                  <span class="pipe-label">Terminal (outcome)</span>
+                  <span class="pipe-count">{{ terminalSum() }}</span>
+                </div>
+                <div class="pipe-track">
+                  <div class="pipe-fill terminal" [style.width.%]="barWidth(terminalSum())"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No applications yet.</div>
+        }
+      </p-card>
+
+      <p-card header="Publication Status" subheader="Your job posts">
+        @if (jobPosts().length > 0) {
+          <div class="publication-list">
+            @for (post of jobPosts(); track trackById($index, post)) {
+              <div class="pub-row" role="button" tabindex="0" (click)="openJobPost(post.id)" (keyup.enter)="openJobPost(post.id)">
+                <div class="pub-main">
+                  <span class="pub-title">{{ post.title }}</span>
+                  <span class="pub-ref">{{ post.referenceNumber }}</span>
+                </div>
+                <div class="pub-side">
+                  <p-tag [value]="post.status | humanize" [severity]="jobPostSeverity(post.status)" />
+                  <span class="pub-meta">{{ post.applicantCount }} apps</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No job posts to show.</div>
+        }
+      </p-card>
+    </div>
+
+    <!-- Requisitions to act -->
+    <p-card header="Requisitions To Act">
+      @if (requisitionToDos().length > 0) {
+        <div class="todo-list">
+          @for (req of requisitionToDos(); track trackById($index, req)) {
+            <div class="todo-row" role="button" tabindex="0" (click)="openRequisition(req.id)" (keyup.enter)="openRequisition(req.id)">
+              <div class="todo-main">
+                <span class="todo-title">{{ req.positionTitle || 'Untitled requisition' }}</span>
+                <span class="todo-sub">
+                  {{ req.referenceNumber }} &middot; {{ req.departmentName }} &middot; {{ req.requestedHeadcount }} opening(s)
+                </span>
+              </div>
+              <div class="todo-side">
+                <p-tag [value]="req.status | humanize" [severity]="requisitionSeverity(req.status)" />
+                <span class="todo-hint">{{ requisitionActionHint(req) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">Nothing needs your squad's attention right now.</div>
+      }
+    </p-card>
+
+    <!-- Upcoming interviews + Recent applications -->
+    <div class="split-grid">
+      <p-card header="Upcoming Interviews">
+        @if (upcomingInterviews().length > 0) {
+          <div class="interview-list">
+            @for (inv of upcomingInterviews(); track trackById($index, inv)) {
+              <div class="int-row" role="button" tabindex="0" (click)="openInterview(inv.id)" (keyup.enter)="openInterview(inv.id)">
+                <p-avatar label="{{ initials(inv.applicantName) }}" shape="circle" styleClass="avatar-sm" />
+                <div class="int-main">
+                  <span class="int-name">{{ inv.applicantName }}</span>
+                  <span class="int-sub">{{ inv.jobPostTitle }} &middot; {{ inv.roundName }}</span>
+                </div>
+                <div class="int-side">
+                  <span class="int-time">{{ inv.scheduledDate | date: 'MMM d, h:mm a' }}</span>
+                  @if (inv.meetingLink) {
+                    <a class="join-link" [href]="inv.meetingLink" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Join</a>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No interviews coming up.</div>
+        }
+      </p-card>
+
+      <p-card header="Recent Applications">
+        @if (recentApplications().length > 0) {
+          <div class="recent-list">
+            @for (app of recentApplications(); track trackById($index, app)) {
+              <div class="recent-row">
+                <p-avatar label="{{ initials(app.candidateName) }}" shape="circle" styleClass="avatar-sm" />
+                <div class="rec-main">
+                  <span class="rec-name">{{ app.candidateName }}</span>
+                  <span class="rec-sub">{{ app.jobPostTitle }}</span>
+                </div>
+                <p-tag [value]="app.status | humanize" [severity]="applicationSeverity(app.status)" />
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No recent applications.</div>
+        }
+      </p-card>
+    </div>
+  }
+</div>
