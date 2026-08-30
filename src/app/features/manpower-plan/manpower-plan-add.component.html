@@ -1,17 +1,42 @@
 <div class="page">
-  <!-- Page header -->
-  <div class="page-header">
-    <div>
-      <nav aria-label="Breadcrumb" class="breadcrumb">
-        <a routerLink="/console/manpower-plan">Manpower Plans</a>
-        <span class="divider">/</span>
-        <span class="current">Create</span>
-      </nav>
-      <h1>Create Manpower Plan</h1>
-      <p class="subtitle">Define budget and headcount allocations for the
-        upcoming period.</p>
+  <!-- Breadcrumb -->
+  <nav aria-label="Breadcrumb" class="breadcrumb">
+    <a routerLink="/console/manpower-plan">Manpower Plans</a>
+    <span class="divider">/</span>
+    <span class="current">Create</span>
+  </nav>
+
+  <!-- Hero banner -->
+  <section class="hero-banner">
+    <div class="hero-accent"></div>
+    <div class="hero-body">
+      <div class="hero-main">
+        <div class="hero-icon-wrap"><i class="pi pi-users"></i></div>
+        <div class="hero-text">
+          <p class="hero-kicker">Manpower Planning</p>
+          <h1>Create Manpower Plan</h1>
+          <p class="hero-sub">Define budget and headcount allocations for the
+            upcoming period.</p>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div class="hero-chip">
+          <i class="pi pi-calendar-chart"></i>
+          <div>
+            <span>Quarterly Plans</span>
+            <small>Fiscal-year based periods</small>
+          </div>
+        </div>
+        <div class="hero-chip">
+          <i class="pi pi-send"></i>
+          <div>
+            <span>Approval Workflow</span>
+            <small>Draft &rarr; Approved</small>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <div class="content-grid">
@@ -19,7 +44,14 @@
       <div class="left-column">
         <!-- Plan Details -->
         <section class="form-card">
-          <h2><i class="pi pi-file-edit section-icon"></i> Plan Details</h2>
+          <div class="card-head">
+            <span class="card-head-icon teal"><i
+                class="pi pi-file-edit"></i></span>
+            <div class="card-head-text">
+              <h2>Plan Details</h2>
+              <p>Select the period and the department this plan covers</p>
+            </div>
+          </div>
           <div class="fields-grid two-cols">
             <div class="form-field">
               <label for="mp-add-period">Period <span
@@ -73,31 +105,45 @@
 
         <!-- Position Detail -->
         <section class="form-card">
-          <h2><i class="pi pi-user-plus section-icon"></i> Position Detail</h2>
+          <div class="card-head">
+            <span class="card-head-icon orange"><i
+                class="pi pi-user-plus"></i></span>
+            <div class="card-head-text">
+              <h2>Position Detail</h2>
+              <p>Choose an existing role or propose a new one</p>
+            </div>
+          </div>
 
           <div class="mode-box">
             <p class="mode-title">Position Configuration</p>
             <div class="mode-options">
-              <label class="mode-option">
-                <input
-                  class="mode-radio"
-                  type="radio"
-                  name="pos-type"
-                  value="existing"
-                  [checked]="positionMode() === 'existing'"
-                  (change)="onPositionModeChange('existing')" />
-                <span>Existing Position</span>
-              </label>
-              <label class="mode-option">
-                <input
-                  class="mode-radio"
-                  type="radio"
-                  name="pos-type"
-                  value="adhoc"
-                  [checked]="positionMode() === 'adhoc'"
-                  (change)="onPositionModeChange('adhoc')" />
-                <span>Ad-Hoc Position</span>
-              </label>
+              <button
+                type="button"
+                class="mode-option"
+                [class.active]="isExistingMode()"
+                (click)="onPositionModeChange('existing')">
+                <span class="mode-option-icon"><i
+                    class="pi pi-briefcase"></i></span>
+                <span class="mode-option-text">
+                  <span class="mode-option-title">Existing Position</span>
+                  <span class="mode-option-sub">Pick from the department
+                    registry</span>
+                </span>
+                <span class="mode-radio"></span>
+              </button>
+              <button
+                type="button"
+                class="mode-option"
+                [class.active]="!isExistingMode()"
+                (click)="onPositionModeChange('adhoc')">
+                <span class="mode-option-icon"><i
+                    class="pi pi-lightbulb"></i></span>
+                <span class="mode-option-text">
+                  <span class="mode-option-title">Ad-Hoc Position</span>
+                  <span class="mode-option-sub">Propose a brand-new title</span>
+                </span>
+                <span class="mode-radio"></span>
+              </button>
             </div>
 
             <div class="config-grid">
@@ -156,8 +202,84 @@
         </section>
       </div>
 
-      <!-- Right column: actions rail -->
+      <!-- Right column: preview + guide + actions -->
       <div class="right-column">
+        <!-- Live preview -->
+        <section class="preview-card">
+          <div class="preview-head">
+            <span class="preview-head-icon"><i class="pi pi-eye"></i></span>
+            <div>
+              <h3>Plan Preview</h3>
+              <p>Updates as you type</p>
+            </div>
+          </div>
+          <div class="preview-rows">
+            <div class="preview-row">
+              <span class="preview-label">Period</span>
+              <span class="preview-value" [class.empty]="!periodLabel()">{{
+                periodLabel() ?? 'Not selected' }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Department</span>
+              <span class="preview-value" [class.empty]="!departmentName()">{{
+                departmentName() ?? 'Not selected' }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Headcount Target</span>
+              <span class="preview-value">{{ headcountValue() }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Position</span>
+              <span class="preview-value" [class.empty]="!positionName()">{{
+                positionName() ?? 'Not selected' }}</span>
+            </div>
+            @if (!isExistingMode()) {
+            <div class="preview-row">
+              <span class="preview-label">Seniority</span>
+              <span class="preview-value" [class.empty]="!seniorityName()">{{
+                seniorityName() ?? 'Not selected' }}</span>
+            </div>
+            }
+            <div class="preview-row">
+              <span class="preview-label">Position Type</span>
+              <span class="preview-value preview-type">{{
+                positionTypeName() }}</span>
+            </div>
+          </div>
+          <div class="preview-progress">
+            <div class="preview-progress-caption">
+              <span>Completeness</span>
+              <span>{{ completionPct() }}%</span>
+            </div>
+            <div class="preview-progress-track">
+              <div class="preview-progress-fill"
+                [style.width.%]="completionPct()"></div>
+            </div>
+          </div>
+          <div class="preview-status" [class.ready]="isComplete()">
+            @if (isComplete()) {
+            <i class="pi pi-check-circle"></i>
+            <span>Ready to submit for approval</span>
+            } @else {
+            <i class="pi pi-info-circle"></i>
+            <span>Fill the required fields to continue</span>
+            }
+          </div>
+        </section>
+
+        <!-- What happens next -->
+        <section class="guide-card">
+          <div class="guide-head"><i class="pi pi-route"></i> What Happens
+            Next</div>
+          <ol class="guide-list">
+            <li><span class="guide-step">1</span>Submit for approval</li>
+            <li><span class="guide-step">2</span>Reviewer approves the plan</li>
+            <li><span class="guide-step">3</span>Plan is activated</li>
+            <li><span class="guide-step">4</span>Tracked until fulfilled</li>
+          </ol>
+        </section>
+
+        <!-- Actions rail -->
         <section class="actions-card">
           <p-button
             label="Submit for Approval"

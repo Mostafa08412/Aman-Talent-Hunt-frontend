@@ -88,6 +88,51 @@
     </div>
   </div>
 
+  <!-- Plan Timeline -->
+  <section class="card timeline-card">
+    <h2><i class="pi pi-sliders-h card-icon teal"></i> Plan Timeline</h2>
+    <div class="timeline">
+      @for (step of timelineSteps(); track step.label; let last = $last) {
+      <div class="timeline-step">
+        @if (!last) {
+        <div class="step-line"
+          [class.line-active]="step.state === 'completed'"></div>
+        }
+        @switch (step.state) {
+        @case ('completed') {
+        <div class="step-dot dot-completed"><i
+            class="pi pi-check step-check"></i></div>
+        }
+        @case ('current') {
+        <div class="step-dot dot-current"><div class="pulse"></div></div>
+        }
+        @case ('error') {
+        <div class="step-dot dot-error-step"><i
+            class="pi pi-times step-check"></i></div>
+        }
+        @default {
+        <div class="step-dot dot-upcoming"></div>
+        }
+        }
+        <div class="step-body">
+          <p class="step-label {{ 'label-' + step.state }}">{{ step.label
+            }}</p>
+          @if (step.state === 'completed') {
+          <p class="step-note note-completed">Completed</p>
+          }
+          @if (step.state === 'current' && p.pendingRequisitionsCount > 0) {
+          <span class="requisition-chip">{{ p.pendingRequisitionsCount }}
+            Requisition(s)</span>
+          }
+          @if (step.state === 'error' && p.rejectionReason) {
+          <p class="step-note note-error">{{ p.rejectionReason }}</p>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </section>
+
   <!-- Bento grid -->
   <div class="bento-grid">
     <!-- Left column -->
@@ -157,51 +202,6 @@
             <span>0</span>
             <span>Target: {{ p.targetHeadcount }}</span>
           </div>
-        </div>
-      </section>
-
-      <!-- Plan Timeline -->
-      <section class="card">
-        <h2><i class="pi pi-sliders-h card-icon teal"></i> Plan Timeline</h2>
-        <div class="timeline">
-          @for (step of timelineSteps(); track step.label; let last = $last) {
-          <div class="timeline-step">
-            @if (!last) {
-            <div class="step-line"
-              [class.line-active]="step.state === 'completed'"></div>
-            }
-            @switch (step.state) {
-            @case ('completed') {
-            <div class="step-dot dot-completed"><i
-                class="pi pi-check step-check"></i></div>
-            }
-            @case ('current') {
-            <div class="step-dot dot-current"><div class="pulse"></div></div>
-            }
-            @case ('error') {
-            <div class="step-dot dot-error-step"><i
-                class="pi pi-times step-check"></i></div>
-            }
-            @default {
-            <div class="step-dot dot-upcoming"></div>
-            }
-            }
-            <div class="step-body">
-              <p class="step-label {{ 'label-' + step.state }}">{{ step.label
-                }}</p>
-              @if (step.state === 'completed') {
-              <p class="step-note note-completed">Completed</p>
-              }
-              @if (step.state === 'current' && p.pendingRequisitionsCount > 0) {
-              <span class="requisition-chip">{{ p.pendingRequisitionsCount }}
-                Requisition(s)</span>
-              }
-              @if (step.state === 'error' && p.rejectionReason) {
-              <p class="step-note note-error">{{ p.rejectionReason }}</p>
-              }
-            </div>
-          </div>
-          }
         </div>
       </section>
     </div>

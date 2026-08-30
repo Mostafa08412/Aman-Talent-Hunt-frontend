@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -20,6 +21,7 @@ import { AdminPositionsService } from '../../core/services/admin-positions.servi
 import { LookupItemDto } from '../../core/models/lookup-model';
 import { CreateManPowerPlanRequest } from '../../core/models/admin-manpower-plan-model';
 import { PlanQuarter, SeniorityLevel } from '../../core/models/enums';
+import { HumanizePipe, humanizeValue } from '../../shared/pipes/humanize.pipe';
 
 type PositionMode = 'existing' | 'adhoc';
 
@@ -53,6 +55,7 @@ function nonBlankValidator(control: AbstractControl): ValidationErrors | null {
     SelectModule,
     InputTextModule,
     InputNumberModule,
+    HumanizePipe,
   ],
   templateUrl: './manpower-plan-add.component.html',
   styleUrl: './manpower-plan-add.component.scss',
@@ -89,6 +92,68 @@ export class ManpowerPlanAddComponent {
   });
 
   isExistingMode = computed(() => this.positionMode() === 'existing');
+
+  /* ── Derived preview state ──
+     Reactive-form controls are not signals, so read the whole form value
+     through a signal fed by `valueChanges` to keep the preview live. */
+  readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
+
+  readonly periodLabel = computed(() => {
+    const fy = this.formValue()?.fiscalYear ?? null;
+    const quarter = this.formValue()?.quarter ?? null;
+    if (fy == null) return null;
+    const match = this.periodOptions.find(
+      (o) => o.fiscalYear === fy && o.quarter === quarter,
+    );
+    return match?.label ?? `${fy} · ${quarter ?? ''}`.trim();
+  });
+
+  readonly departmentName = computed(() => {
+    const id = this.formValue()?.departmentId;
+    return this.departments().find((d) => d.id === id)?.viewText ?? null;
+  });
+
+  readonly headcountValue = computed(() =>
+    Number(this.formValue()?.targetHeadcount) || 1,
+  );
+
+  readonly seniorityName = computed(() =>
+    this.formValue()?.proposedJobSeniorityLevel
+      ? humanizeValue(this.formValue()!.proposedJobSeniorityLevel)
+      : null,
+  );
+
+  readonly positionName = computed(() => {
+    if (this.isExistingMode()) {
+      const id = this.formValue()?.positionRegistryId;
+      return this.positions().find((p) => p.id === id)?.viewText ?? null;
+    }
+    const title = this.formValue()?.proposedJobTitle?.trim();
+    return title || null;
+  });
+
+  readonly positionTypeName = computed(() =>
+    this.isExistingMode() ? 'Registry Position' : 'Ad-Hoc Position',
+  );
+
+  readonly completionPct = computed(() => {
+    const v = this.formValue();
+    const required = [
+      v?.fiscalYear != null,
+      v?.quarter != null,
+      !!v?.departmentId,
+      Number(v?.targetHeadcount) >= 1,
+      this.isExistingMode()
+        ? !!v?.positionRegistryId
+        : !!v?.proposedJobTitle?.trim() && v?.proposedJobSeniorityLevel != null,
+    ];
+    const done = required.filter(Boolean).length;
+    return Math.round((done / required.length) * 100);
+  });
+
+  readonly isComplete = computed(() => this.completionPct() === 100);
 
   onPeriodChange(option: PeriodOption): void {
     this.form.controls.fiscalYear.setValue(option?.fiscalYear ?? null);
