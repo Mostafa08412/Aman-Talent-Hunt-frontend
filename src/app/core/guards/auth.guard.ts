@@ -20,7 +20,7 @@ export const roleGuard = (allowed: Role[]): CanActivateFn => {
     const auth = inject(AuthService);
     const router = inject(Router);
     if (!auth.hasRole(...allowed)) {
-      router.navigate(['/']);
+      router.navigate(['/forbidden']);
       return false;
     }
     return true;
