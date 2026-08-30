@@ -5,11 +5,13 @@
       <h1>Requisitions</h1>
       <p>Track and manage hiring requests across departments</p>
     </div>
+    @if (canCreateRequisition) {
     <p-button
       label="New Requisition"
       icon="pi pi-plus"
       styleClass="btn-add-requisition"
       routerLink="/console/requisitions/new" />
+    }
   </div>
 
   <!-- Data directory -->
@@ -146,5 +148,3 @@
     </div>
   </div>
 </div>
-
-<p-toast />

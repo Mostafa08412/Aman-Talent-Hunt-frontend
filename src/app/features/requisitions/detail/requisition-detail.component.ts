@@ -1,7 +1,13 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -26,13 +32,26 @@ import {
   SquadOption,
 } from '../../../core/services/requisition.service';
 
+function headcountValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === undefined || value === '') return null;
+  return Number(value) >= 1 ? null : { min: true };
+}
+
+function nonBlankValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'string') return null;
+  return value.trim().length > 0 ? null : { blank: true };
+}
+
 @Component({
   selector: 'app-requisition-detail',
   standalone: true,
   imports: [
     RouterLink,
     DatePipe,
-    FormsModule,
+    ReactiveFormsModule,
     CardModule,
     ButtonModule,
     SelectButtonModule,
@@ -53,6 +72,7 @@ export class RequisitionDetailComponent {
   private requisitionService = inject(RequisitionService);
   private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
   // Bound automatically from the `:id` route param via withComponentInputBinding();
   // undefined on the `requisitions/new` route, which has no :id segment.
@@ -66,28 +86,24 @@ export class RequisitionDetailComponent {
   RequisitionHoldState = RequisitionHoldState;
 
   // ── Create mode (#10) ──
-  title = signal('');
-  hiringType = signal<HiringType>(HiringType.NewHeadcount);
-  departmentId = signal<string | null>(null);
-  squadId = signal<string | null>(null);
-  headcount = signal<number>(1);
-  startDate = signal<Date | null>(null);
+  readonly form = this.fb.nonNullable.group({
+    title: ['', [Validators.required, nonBlankValidator, Validators.maxLength(120)]],
+    hiringType: [HiringType.NewHeadcount, Validators.required],
+    departmentId: ['', Validators.required],
+    squadId: ['', Validators.required],
+    headcount: [1 as number | null, [Validators.required, headcountValidator]],
+    startDate: [null as Date | null, Validators.required],
+  });
 
   departments = signal<DepartmentOption[]>([]);
   squads = signal<SquadOption[]>([]);
-  availableSquads = computed(() => this.squads().filter((s) => s.departmentId === this.departmentId()));
+  availableSquads = computed(() => {
+    const departmentId = this.form.controls.departmentId.value;
+    return this.squads().filter((s) => s.departmentId === departmentId);
+  });
 
   submitting = signal(false);
   formError = signal<string | null>(null);
-
-  canSubmit = computed(
-    () =>
-      this.title().trim().length > 0 &&
-      !!this.departmentId() &&
-      !!this.squadId() &&
-      this.headcount() > 0 &&
-      !!this.startDate(),
-  );
 
   // ── Control Center mode (#11) ──
   loading = signal(true);
@@ -111,7 +127,9 @@ export class RequisitionDetailComponent {
   }
 
   onDepartmentChange(): void {
-    this.squadId.set(null);
+    const squad = this.form.controls.squadId;
+    squad.reset();
+    squad.updateValueAndValidity();
   }
 
   private loadRequisition(): void {
@@ -136,17 +154,24 @@ export class RequisitionDetailComponent {
   }
 
   submit(): void {
-    if (!this.canSubmit() || this.submitting()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.formError.set('Please fill in all required fields.');
+      return;
+    }
+    if (this.submitting()) return;
+
+    const value = this.form.getRawValue();
     this.submitting.set(true);
     this.formError.set(null);
     this.requisitionService
       .create({
-        title: this.title().trim(),
-        hiringType: this.hiringType(),
-        departmentId: this.departmentId()!,
-        squadId: this.squadId()!,
-        headcount: this.headcount(),
-        startDate: (this.startDate() as Date).toISOString(),
+        title: value.title.trim(),
+        hiringType: value.hiringType,
+        departmentId: value.departmentId,
+        squadId: value.squadId,
+        headcount: Number(value.headcount),
+        startDate: (value.startDate as Date).toISOString(),
       })
       .subscribe({
         next: (created) => {

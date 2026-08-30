@@ -89,20 +89,21 @@
   [modal]="true"
   [style]="{ width: '28rem' }"
 >
-  <div class="field">
-    <label for="reason-text">Note for the requester</label>
-    <textarea
-      pTextarea
-      id="reason-text"
-      rows="4"
-      placeholder="Explain what's needed..."
-      [ngModel]="reasonText()"
-      (ngModelChange)="reasonText.set($event)"
-    ></textarea>
-  </div>
-  @if (reasonError()) {
-    <p-message severity="error" [text]="reasonError()!" styleClass="w-full" />
-  }
+  <form [formGroup]="reasonForm">
+    <div class="field">
+      <label for="reason-text">Note for the requester</label>
+      <textarea
+        pTextarea
+        id="reason-text"
+        rows="4"
+        placeholder="Explain what's needed..."
+        formControlName="note"
+      ></textarea>
+      @if (reasonForm.controls.note.invalid && reasonForm.controls.note.touched) {
+        <small class="field-error">Add a note for the requester before continuing.</small>
+      }
+    </div>
+  </form>
   <ng-template pTemplate="footer">
     <button pButton type="button" severity="secondary" label="Cancel" (click)="closeReasonDialog()"></button>
     <button pButton type="button" label="Submit" (click)="confirmReasonDialog()"></button>

@@ -5,21 +5,24 @@
       <h1>Job Requisitions</h1>
       <p>One pipeline from draft to fulfilled — your queues, your approvals</p>
     </div>
+    @if (canCreateRequisition()) {
     <p-button
       label="New Requisition"
       icon="pi pi-plus"
       styleClass="btn-add-requisition"
       routerLink="/console/job-requisitions/new" />
+    }
   </div>
 
   <!-- View tabs -->
   <div class="view-tabs">
-    @for (tab of viewTabs; track tab.value) {
-      <button class="view-tab" type="button" [class.active]="activeView() === tab.value"
-        (click)="switchView(tab.value)">
-        <i class="pi" [class]="'pi ' + tab.icon"></i>
-        {{ tab.label }}
-      </button>
+    @for (tab of viewTabs(); track tab.value) {
+    <button class="view-tab" type="button"
+      [class.active]="activeView() === tab.value"
+      (click)="switchView(tab.value)">
+      <i class="pi" [class]="'pi ' + tab.icon"></i>
+      {{ tab.label }}
+    </button>
     }
   </div>
 
@@ -28,9 +31,11 @@
     <!-- Filter bar -->
     <div class="filter-bar">
       <div class="filter-actions">
-        <input pInputText type="text" class="search-input" placeholder="Search title, ref, employee..."
-          [ngModel]="searchFilter" (ngModelChange)="searchFilter = $event" (keyup.enter)="applyFilters()" />
-        <p-multi-select
+        <input pInputText type="text" class="search-input"
+          placeholder="Search title, ref, employee..."
+          [ngModel]="searchFilter" (ngModelChange)="searchFilter = $event"
+          (keyup.enter)="applyFilters()" />
+        <p-select
           [options]="statusOptions"
           optionLabel="label"
           optionValue="value"
@@ -57,7 +62,8 @@
         <button class="apply-btn" type="button" (click)="applyFilters()">
           <i class="pi pi-filter"></i> Apply
         </button>
-        <button class="clear-btn" type="button" (click)="clearFilters()">Reset</button>
+        <button class="clear-btn" type="button"
+          (click)="clearFilters()">Reset</button>
       </div>
     </div>
 
@@ -75,63 +81,67 @@
       </div>
 
       @for (requisition of requisitions(); track requisition.id) {
-        <div class="grid-row table-row" (click)="openRequisition(requisition)">
-          <div class="cell-requisition">
-            <span class="req-number">{{ requisition.referenceNumber }}</span>
-            <span class="req-title">{{ requisition.proposedJobTitle }}</span>
-          </div>
-
-          <div class="cell-type muted">
-            {{ typeLabel(requisition.requisitionType) }}
-          </div>
-
-          <div class="cell-department muted">
-            {{ requisition.departmentName }}
-          </div>
-
-          <div class="cell-headcount muted">
-            {{ requisition.requestedHeadcount }}
-          </div>
-
-          <div class="cell-manager muted">
-            {{ requisition.hiringManagerName }}
-          </div>
-
-          <div class="cell-approver muted">
-            {{ approverLabel(requisition) }}
-          </div>
-
-          <div class="cell-status">
-            <span class="status-pill" [class]="'status-' + statusSeverity(requisition.status)">
-              <span class="dot"></span> {{ statusLabel(requisition.status) }}
-            </span>
-          </div>
-
-          <div class="cell-updated muted">
-            {{ requisition.updatedAtUTC | date: 'MMM d' }}
-          </div>
+      <div class="grid-row table-row" (click)="openRequisition(requisition)">
+        <div class="cell-requisition">
+          <span class="req-number">{{ requisition.referenceNumber }}</span>
+          <span class="req-title">{{ requisition.positionTitle }}</span>
         </div>
+
+        <div class="cell-type muted">
+          {{ typeLabel(requisition.hiringType) }}
+        </div>
+
+        <div class="cell-department muted">
+          {{ requisition.departmentName }}
+        </div>
+
+        <div class="cell-headcount muted">
+          {{ requisition.requestedHeadcount }}
+        </div>
+
+        <div class="cell-manager muted">
+          {{ requisition.hiringManagerName }}
+        </div>
+
+        <div class="cell-approver muted">
+          {{ requisition.assignedSquadName }}
+        </div>
+
+        <div class="cell-status">
+          <span class="status-pill"
+            [class]="'status-' + statusSeverity(requisition.status)">
+            <span class="dot"></span> {{ statusLabel(requisition.status) }}
+          </span>
+        </div>
+
+        <div class="cell-updated muted">
+          {{ requisition.createdAtUTC | date: 'MMM d' }}
+        </div>
+      </div>
       } @empty {
-        <div class="empty-state">No requisitions in this view</div>
+      <div class="empty-state">No requisitions in this view</div>
       }
     </div>
 
     <!-- Pagination -->
     <div class="table-foot">
       <span class="foot-info">
-        Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd }}</strong>
+        Showing <strong>{{ rangeStart }}</strong> to <strong>{{ rangeEnd
+          }}</strong>
         of <strong>{{ totalCount() | number }}</strong> entries
       </span>
       <div class="pager">
-        <button class="page-btn" type="button" [disabled]="page() <= 1" (click)="goToPage(page() - 1)"
+        <button class="page-btn" type="button" [disabled]="page() <= 1"
+          (click)="goToPage(page() - 1)"
           aria-label="Previous page">
           <i class="pi pi-chevron-left"></i>
         </button>
         @for (p of visiblePages; track p) {
-          <button class="page-btn" type="button" [class.current]="p === page()"
-            (click)="goToPage(p)">{{ p }}</button>
+        <button class="page-btn" type="button" [class.current]="p === page()"
+          (click)="goToPage(p)">{{ p }}</button>
         }
-        <button class="page-btn" type="button" [disabled]="page() >= totalPages" (click)="goToPage(page() + 1)"
+        <button class="page-btn" type="button" [disabled]="page() >= totalPages"
+          (click)="goToPage(page() + 1)"
           aria-label="Next page">
           <i class="pi pi-chevron-right"></i>
         </button>
@@ -139,5 +149,3 @@
     </div>
   </div>
 </div>
-
-<p-toast />

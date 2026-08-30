@@ -27,6 +27,8 @@ export interface EmployeesLookupParams extends BaseLookupParams {
   squadId?: string;
   positionRegistryId?: string;
   role?: string;
+  /** Filter to members of the squad led by this employee id (the squad leader). */
+  squadLeaderId?: string;
 }
 
 export interface PositionsLookupParams extends BaseLookupParams {
@@ -36,6 +38,8 @@ export interface PositionsLookupParams extends BaseLookupParams {
 export interface ManpowerPlansLookupParams extends BaseLookupParams {
   departmentId?: string;
   positionId?: string;
+  /** true = ad-hoc job lines only, false = existing job lines only, undefined = all. */
+  isAdHocJob?: boolean;
 }
 
 export interface JobDescriptionsLookupParams extends BaseLookupParams {

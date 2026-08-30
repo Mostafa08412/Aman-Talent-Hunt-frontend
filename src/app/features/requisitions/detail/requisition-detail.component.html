@@ -8,10 +8,13 @@
     </div>
 
     <p-card>
-      <div class="form">
+      <form class="form" [formGroup]="form">
         <div class="field">
           <label for="req-title">Job Title</label>
-          <input id="req-title" pInputText [ngModel]="title()" (ngModelChange)="title.set($event)" placeholder="e.g. Senior Backend Engineer" />
+          <input id="req-title" pInputText formControlName="title" placeholder="e.g. Senior Backend Engineer" />
+          @if (form.controls.title.invalid && form.controls.title.touched) {
+          <small class="field-error">Job title is required</small>
+          }
         </div>
 
         <div class="field">
@@ -20,8 +23,7 @@
             [options]="hiringTypeOptions"
             optionLabel="label"
             optionValue="value"
-            [ngModel]="hiringType()"
-            (ngModelChange)="hiringType.set($event)"
+            formControlName="hiringType"
           />
         </div>
 
@@ -34,9 +36,12 @@
               optionLabel="name"
               optionValue="id"
               placeholder="Select department"
-              [ngModel]="departmentId()"
-              (ngModelChange)="departmentId.set($event); onDepartmentChange()"
+              formControlName="departmentId"
+              (onChange)="onDepartmentChange()"
             />
+            @if (form.controls.departmentId.invalid && form.controls.departmentId.touched) {
+            <small class="field-error">Department is required</small>
+            }
           </div>
 
           <div class="field">
@@ -47,22 +52,30 @@
               optionLabel="name"
               optionValue="id"
               placeholder="Select squad"
-              [disabled]="!departmentId()"
-              [ngModel]="squadId()"
-              (ngModelChange)="squadId.set($event)"
+              [disabled]="!form.controls.departmentId.value"
+              formControlName="squadId"
             />
+            @if (form.controls.squadId.invalid && form.controls.squadId.touched) {
+            <small class="field-error">Squad is required</small>
+            }
           </div>
         </div>
 
         <div class="field-row">
           <div class="field">
             <label for="req-headcount">Headcount</label>
-            <p-inputnumber inputId="req-headcount" [min]="1" [max]="50" [ngModel]="headcount()" (ngModelChange)="headcount.set($event)" />
+            <p-inputnumber inputId="req-headcount" [min]="1" [max]="50" formControlName="headcount" />
+            @if (form.controls.headcount.invalid && form.controls.headcount.touched) {
+            <small class="field-error">Headcount must be at least 1</small>
+            }
           </div>
 
           <div class="field">
             <label for="req-start">Target Start Date</label>
-            <p-datepicker inputId="req-start" dateFormat="M dd, yy" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
+            <p-datepicker inputId="req-start" dateFormat="M dd, yy" formControlName="startDate" showIcon />
+            @if (form.controls.startDate.invalid && form.controls.startDate.touched) {
+            <small class="field-error">Target start date is required</small>
+            }
           </div>
         </div>
 
@@ -71,9 +84,9 @@
         }
 
         <div class="form-actions">
-          <button pButton type="button" label="Submit Requisition" icon="pi pi-check" [disabled]="!canSubmit() || submitting()" [loading]="submitting()" (click)="submit()"></button>
+          <button pButton type="button" label="Submit Requisition" icon="pi pi-check" [disabled]="submitting()" [loading]="submitting()" (click)="submit()"></button>
         </div>
-      </div>
+      </form>
     </p-card>
   </div>
 } @else {

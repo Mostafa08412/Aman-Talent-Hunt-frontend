@@ -1,7 +1,14 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -14,26 +21,34 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
+import { TabViewModule } from 'primeng/tabview';
+import { EditorModule } from 'primeng/editor';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { JOB_REQUISITION_API } from '../../../core/services/job-requisition-api';
 import type { JobRequisitionApi } from '../../../core/services/job-requisition-api';
+import { AuthService } from '../../../core/services/auth.service';
+import { AdminJobDescriptionsService } from '../../../core/services/admin-job-descriptions.service';
 import type {
-  AssignRecruiterPayload,
-  AttachJobDescriptionPayload,
-  CloseRequest,
-  JobRequisitionDetail,
-  JobRequisitionDetailResult,
-  PatchDraftRequest,
-  PermittedAction as PermittedActionType,
-  ReasonRequest,
+  JobRequisitionDetailDto,
+  UpdateRequisitionRequest,
 } from '../../../core/models/job-requisition-model';
-import { JobRequisitionStatus, Location, PermittedAction, SeniorityLevel } from '../../../core/models/job-requisition-model';
+import { JobRequisitionStatus, Location, RequisitionAvailableAction, SeniorityLevel } from '../../../core/models/job-requisition-model';
+import type { CreateJobDescriptionRequest, JobDescriptionDetailDto } from '../../../core/models/admin-job-description-model';
+import { EmploymentType } from '../../../core/models/enums';
+import { Role } from '../../../core/models/role.model';
 import type { LookupItemDto } from '../../../core/models/lookup-model';
+import type { Result } from '../../../core/models/common';
+
+function nonBlankValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'string') return null;
+  return value.trim().length > 0 ? null : { blank: true };
+}
 
 interface ActionButton {
-  action: PermittedActionType;
+  action: RequisitionAvailableAction;
   label: string;
   icon: string;
   severity: 'success' | 'warn' | 'danger' | 'contrast' | undefined;
@@ -45,6 +60,8 @@ interface ActionButton {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
     CardModule,
     ButtonModule,
     TagModule,
@@ -56,9 +73,10 @@ interface ActionButton {
     InputTextModule,
     InputNumberModule,
     TextareaModule,
-    ToastModule,
+    TabViewModule,
+    EditorModule,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService],
   templateUrl: './job-req-detail.component.html',
   styleUrl: './job-req-detail.component.scss',
 })
@@ -67,17 +85,38 @@ export class JobReqDetailComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+  private jdService = inject(AdminJobDescriptionsService);
+  private readonly fb = inject(FormBuilder);
 
   // Bound from the :id route param via withComponentInputBinding().
   id = input.required<string>();
 
   loading = signal(true);
   loadError = signal<string | null>(null);
-  requisition = signal<JobRequisitionDetail | null>(null);
+  requisition = signal<JobRequisitionDetailDto | null>(null);
   actionPending = signal<string | null>(null);
 
-  readonly steps = ['Draft', 'Budget Approval', 'Attach JD', 'JD Review', 'HR Sign-off', 'Live', 'Fulfilled'];
+  readonly steps = ['Draft', 'Budget Approval', 'JD', 'HR Sign-off', 'Live', 'Fulfilled'];
   readonly Status = JobRequisitionStatus;
+  readonly Action = RequisitionAvailableAction;
+
+  /** Maps a current-approver role to its Assignment role card. */
+  readonly approverRoles = {
+    DepartmentHead: 'DEPARTMENT_HEAD',
+    HiringManager: 'HIRING_MANAGER',
+    HRManager: 'HR_MANAGER',
+    SquadLeader: 'SQUAD_LEADER',
+    Recruiter: 'RECRUITER',
+  };
+
+  isCurrentApprover(role: string): boolean {
+    return this.requisition()?.currentApproverRole === role;
+  }
+
+  currentApproverRef(): string | null {
+    return this.requisition()?.currentApproverReferenceNumber ?? null;
+  }
 
   readonly statusStepIndex = computed(() => {
     const req = this.requisition();
@@ -85,30 +124,56 @@ export class JobReqDetailComponent implements OnInit {
     switch (req.status) {
       case JobRequisitionStatus.Draft:
         return 0;
+      case JobRequisitionStatus.Rejected:
+        return -1;
       case JobRequisitionStatus.PendingBudgetApproval:
         return 1;
       case JobRequisitionStatus.PendingAttachingJD:
-        return 2;
       case JobRequisitionStatus.PendingJDApproval:
-        return 3;
+      case JobRequisitionStatus.RequestedModifications:
+        return 2;
       case JobRequisitionStatus.PendingHRManagerApproval:
-        return 4;
+        return 3;
       case JobRequisitionStatus.Approved:
       case JobRequisitionStatus.Published:
       case JobRequisitionStatus.OnHold:
+        return 4;
       case JobRequisitionStatus.Closed:
-        return 5;
+        return 4;
       case JobRequisitionStatus.Fulfilled:
-        return 6;
+        return 5;
       default:
         return -1;
     }
   });
 
+  readonly heroTitle = computed(() => {
+    const req = this.requisition();
+    if (!req) return 'Untitled position';
+    const isExisting = Boolean(req.positionRegistryId);
+    if (isExisting) {
+      return req.positionTitle ?? req.proposedJobTitle ?? 'Untitled position';
+    }
+    return req.proposedJobTitle ?? req.positionTitle ?? 'Untitled position';
+  });
+
+  readonly isAdHoc = computed<boolean>(
+    () => !Boolean(this.requisition()?.positionRegistryId)
+  );
+
+  readonly heroSeniorityLabel = computed<string | null>(() => {
+    const req = this.requisition();
+    return req?.proposedJobSeniorityLevel
+      ? humanize(req.proposedJobSeniorityLevel)
+      : null;
+  });
+
   readonly visibleActions = computed<ActionButton[]>(() => {
     const req = this.requisition();
     if (!req) return [];
-    return req.permittedActions.map((action) => ACTION_BUTTONS[action]).filter(Boolean);
+    return req.availableActions
+      .map((action) => ACTION_BUTTONS[action])
+      .filter((b): b is ActionButton => Boolean(b));
   });
 
   /* Reason dialog (reject / request-modification / hold / close). */
@@ -117,8 +182,8 @@ export class JobReqDetailComponent implements OnInit {
   reasonSubtitle = '';
   reasonDialogRequired = true;
   reasonDialogAcceptLabel = 'Confirm';
-  reasonSeverity: 'danger' | 'warn' | 'primary' = 'danger';
-  private reasonTargetAction: PermittedActionType | null = null;
+  reasonSeverity: 'danger' | 'warn' | 'contrast' | 'success' = 'danger';
+  private reasonTargetAction: RequisitionAvailableAction | null = null;
   reasonText = '';
 
   /* Assign recruiter dialog */
@@ -126,20 +191,54 @@ export class JobReqDetailComponent implements OnInit {
   recruiters = signal<LookupItemDto[]>([]);
   selectedRecruiterId: string | null = null;
 
-  /* Attach JD dialog */
-  attachDialogVisible = false;
-  draftDescriptions = signal<LookupItemDto[]>([]);
-  selectedJobDescriptionId: string | null = null;
+  /** Recruiter options, tagging "(me)" on the option that matches the signed-in user. */
+  readonly recruiterOptions = computed<LookupItemDto[]>(() => {
+    const myId = this.auth.currentUser()?.id?.toLowerCase();
+    return this.recruiters().map((r) =>
+      r.id?.toLowerCase() === myId ? { ...r, viewText: r.viewText ? `${r.viewText} (me)` : r.viewText } : r,
+    );
+  });
 
-  /* Edit draft dialog */
-  editDialogVisible = false;
+  /* Edit (modify) dialog */
+  modifyDialogVisible = false;
   editHeadcount: number | null = null;
-  editLocation: Location = Location.Cairo;
+  editLocation: Location | '' = '';
   editJobTitle = '';
   editSeniority: SeniorityLevel | null = null;
   editJustification = '';
   readonly locations = Object.values(Location);
   readonly seniorityLevels = Object.values(SeniorityLevel);
+
+  /* Attach JD dialog */
+  attachJdDialogVisible = false;
+  jdMode: 'pick' | 'create' | 'edit' = 'pick';
+  jdOptions = signal<LookupItemDto[]>([]);
+  jdLoading = signal(false);
+  selectedJdId: string | null = null;
+  jdSubmitting = signal(false);
+  readonly jdForm = this.fb.nonNullable.group({
+    title: ['', [Validators.required, nonBlankValidator]],
+    summary: [''],
+    responsibilities: [''],
+    requirements: [''],
+    employmentType: [EmploymentType.FullTime, Validators.required],
+  });
+  readonly employmentTypeOptions = Object.values(EmploymentType);
+
+  /** Attached JD (edit tab only makes sense while a JD is linked). */
+  readonly hasAttachedJd = computed(() => Boolean(this.requisition()?.jobDescriptionId));
+  /** Tab order — hides the "Edit" tab when no JD is attached yet. */
+  readonly jdTabs = computed<Array<'pick' | 'edit' | 'create'>>(() =>
+    this.hasAttachedJd() ? ['pick', 'edit', 'create'] : ['pick', 'create'],
+  );
+  jdTabIndex = 0;
+  private editJdId: string | null = null;
+
+  /* JD preview (Hiring Manager review) */
+  jdPreviewDialogVisible = false;
+  jdPreview = signal<JobDescriptionDetailDto | null>(null);
+  jdPreviewLoading = signal(false);
+  readonly isHiringManager = computed(() => this.auth.currentUser()?.role === Role.HiringManager);
 
   ngOnInit(): void {
     this.loadRequisition();
@@ -172,90 +271,146 @@ export class JobReqDetailComponent implements OnInit {
     return role ? humanize(role) : '—';
   }
 
-  recruiterLabel(req: JobRequisitionDetail): string {
-    return req.assignedRecruiterId ? 'Assigned' : 'Unassigned';
+  showTimestamp(value: string | null): boolean {
+    return Boolean(value);
   }
 
-  statusSeverity(status: JobRequisitionStatus): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
+  statusSeverity(status: JobRequisitionStatus): 'success' | 'warning' | 'danger' | 'info' | 'secondary' {
     switch (status) {
       case JobRequisitionStatus.Approved:
       case JobRequisitionStatus.Published:
       case JobRequisitionStatus.Fulfilled:
         return 'success';
       case JobRequisitionStatus.Rejected:
+      case JobRequisitionStatus.Closed:
         return 'danger';
       case JobRequisitionStatus.OnHold:
-      case JobRequisitionStatus.Closed:
         return 'warning';
       case JobRequisitionStatus.Draft:
-        return 'neutral';
+        return 'secondary';
       default:
         return 'info';
     }
   }
 
+  statusPillClass(status: JobRequisitionStatus): string {
+    switch (this.statusSeverity(status)) {
+      case 'success':
+        return 'pill-success';
+      case 'warning':
+        return 'pill-warning';
+      case 'danger':
+        return 'pill-error';
+      case 'secondary':
+        return 'pill-draft';
+      default:
+        return 'pill-info';
+    }
+  }
+
+  statusDotClass(status: JobRequisitionStatus): string {
+    switch (this.statusSeverity(status)) {
+      case 'success':
+        return 'dot-success';
+      case 'warning':
+        return 'dot-warning';
+      case 'danger':
+        return 'dot-error';
+      case 'info':
+        return 'dot-info';
+      default:
+        return '';
+    }
+  }
+
+  actionStyleClass(btn: ActionButton): string {
+    switch (btn.severity) {
+      case 'success':
+        return 'btn-approve';
+      case 'danger':
+        return 'btn-reject';
+      case 'warn':
+        return 'btn-neutral';
+      default:
+        return 'btn-teal';
+    }
+  }
+
   // ── Action dispatch ──
 
-  onAction(action: PermittedActionType): void {
+  onAction(action: RequisitionAvailableAction): void {
     switch (action) {
-      case PermittedAction.Submit:
-        this.confirmSimple(action, 'Submit Requisition', `Submit for budget approval? The department head becomes the current approver.`);
+      case RequisitionAvailableAction.Submit:
+        this.confirm(action, 'Submit Requisition', 'Submit for budget approval? The department head becomes the current approver.');
         break;
-      case PermittedAction.ApproveDepartmentHead:
-        this.confirmSimple(action, 'Approve Budget', 'Approve the budget request and release it to the squad for JD attachment?');
+      case RequisitionAvailableAction.Resume:
+        this.confirm(action, 'Resume Requisition', 'Resume and continue its workflow?');
         break;
-      case PermittedAction.ApproveHiringManager:
-        this.confirmSimple(action, 'Approve JD', 'Approve the attached job description and send to HR for final sign-off?');
+      case RequisitionAvailableAction.Fulfill:
+        this.confirm(action, 'Mark Fulfilled', 'Mark this requisition as fulfilled? All openings have been hired.');
         break;
-      case PermittedAction.ApproveHRManager:
-        this.confirmSimple(action, 'Final HR Approval', 'Give final HR approval? The requisition will move to the assigned squad.');
+      case RequisitionAvailableAction.Modify:
+        this.openModifyDialog();
         break;
-      case PermittedAction.Publish:
-        this.confirmSimple(action, 'Publish', 'Publish this approved requisition so sourcing can start?');
+      case RequisitionAvailableAction.AttachJD:
+        this.openAttachJdDialog();
         break;
-      case PermittedAction.Resume:
-        this.confirmSimple(action, 'Resume Posting', 'Resume the posting and return it to Published?');
-        break;
-      case PermittedAction.Fulfill:
-        this.confirmSimple(action, 'Mark Fulfilled', 'Mark this posting as fulfilled? All openings have been hired.');
-        break;
-      case PermittedAction.AssignRecruiter:
+      case RequisitionAvailableAction.AssignRecruiter:
         this.openAssignDialog();
         break;
-      case PermittedAction.AttachJobDescription:
-        this.openAttachDialog();
+      case RequisitionAvailableAction.Approve:
+        this.confirm(action, this.approveHeader(), this.approveMessage());
         break;
-      case PermittedAction.EditDraft:
-        this.openEditDialog();
-        break;
-      case PermittedAction.Reject:
+      case RequisitionAvailableAction.Reject:
         this.openReasonDialog(action, 'Reject Requisition', 'Rejection reason is recorded on the requisition.', true, 'Reject', 'danger');
         break;
-      case PermittedAction.RequestModification:
-        this.openReasonDialog(action, 'Request Modification', 'The actor who produced the current status will be asked to fix it.', true, 'Send Request', 'warn');
+      case RequisitionAvailableAction.RequestModifications:
+        this.openReasonDialog(action, 'Request Modification', 'The employee who produced the current status will be asked to fix it.', true, 'Send Request', 'warn');
         break;
-      case PermittedAction.Hold:
-        this.openReasonDialog(action, 'Place On Hold', 'Explain why the posting is being paused.', true, 'Place On-Hold', 'warn');
+      case RequisitionAvailableAction.OnHold:
+        this.openReasonDialog(action, 'Place On Hold', 'Explain why the requisition is being paused.', true, 'Place On-Hold', 'warn');
         break;
-      case PermittedAction.Close:
-        this.openReasonDialog(action, 'Close Requisition', 'Closing is final and cannot be reopened from this screen.', false, 'Close Requisition', 'danger');
+      case RequisitionAvailableAction.Cancel:
+        this.openReasonDialog(action, 'Close Requisition', 'Closing is final and cannot be undone from this screen.', false, 'Close Requisition', 'danger');
         break;
     }
   }
 
-  private confirmSimple(action: PermittedActionType, header: string, message: string): void {
+  private approveHeader(): string {
+    switch (this.requisition()?.status) {
+      case JobRequisitionStatus.PendingBudgetApproval:
+        return 'Approve Budget';
+      case JobRequisitionStatus.PendingJDApproval:
+        return 'Approve JD';
+      default:
+        return 'Final Approval';
+    }
+  }
+
+  private approveMessage(): string {
+    switch (this.requisition()?.status) {
+      case JobRequisitionStatus.PendingBudgetApproval:
+        return 'Approve the budget request?';
+      case JobRequisitionStatus.PendingJDApproval:
+        return 'Approve the attached job description?';
+      default:
+        return 'Give final HR approval?';
+    }
+  }
+
+  private confirm(action: RequisitionAvailableAction, header: string, message: string): void {
     this.confirmationService.confirm({
       header,
       message,
       acceptLabel: header,
       rejectLabel: 'Cancel',
-      acceptButtonProps: { severity: action === PermittedAction.Submit ? 'contrast' : 'success' },
+      acceptButtonProps: { severity: action === RequisitionAvailableAction.Submit ? 'contrast' : 'success' },
       accept: () => void this.executeAction(action),
     });
   }
 
   private openReasonDialog(
-    action: PermittedActionType,
+    action: RequisitionAvailableAction,
     title: string,
     subtitle: string,
     required: boolean,
@@ -275,22 +430,20 @@ export class JobReqDetailComponent implements OnInit {
   submitReason(): void {
     if (!this.reasonTargetAction) return;
     if (this.reasonDialogRequired && !this.reasonText.trim()) return;
-    const body = { reason: this.reasonText.trim() };
     const target = this.reasonTargetAction;
+    const reason = this.reasonText.trim();
     this.reasonDialogVisible = false;
 
     switch (target) {
-      case PermittedAction.Reject:
-        void this.executeAction(target, body);
+      case RequisitionAvailableAction.RequestModifications:
+        void this.executeAction(target, { comment: reason });
         break;
-      case PermittedAction.RequestModification:
-        void this.executeAction(target, body);
+      case RequisitionAvailableAction.Reject:
+      case RequisitionAvailableAction.OnHold:
+        void this.executeAction(target, { reason });
         break;
-      case PermittedAction.Hold:
-        void this.executeAction(target, body);
-        break;
-      case PermittedAction.Close:
-        void this.executeAction(target, { reason: body.reason || null });
+      case RequisitionAvailableAction.Cancel:
+        void this.executeAction(target, { reason: reason || null });
         break;
     }
   }
@@ -298,91 +451,207 @@ export class JobReqDetailComponent implements OnInit {
   openAssignDialog(): void {
     const req = this.requisition();
     if (!req) return;
-    this.api.getEmployeeOptions('RECRUITER', req.departmentId).subscribe({
-      next: (res) => this.recruiters.set(res.data ?? []),
+    this.api.getEmployeeOptions({ squadLeaderId: this.auth.currentUser()?.id, PageSize: 10 }).subscribe({
+      next: (res) => this.recruiters.set(res.data?.items ?? []),
       error: () => this.recruiters.set([]),
     });
-    this.selectedRecruiterId = req.assignedRecruiterId;
+    this.selectedRecruiterId = null;
     this.assignDialogVisible = true;
   }
 
   confirmAssignRecruiter(): void {
     if (!this.selectedRecruiterId) return;
     this.assignDialogVisible = false;
-    void this.executeAction(PermittedAction.AssignRecruiter, { recruiterId: this.selectedRecruiterId });
+    void this.executeAction(RequisitionAvailableAction.AssignRecruiter, { recruiterId: this.selectedRecruiterId });
   }
 
-  openAttachDialog(): void {
-    const req = this.requisition();
-    if (!req) return;
-    this.api.getDraftJobDescriptionOptions(req.assignedSquad.id).subscribe({
-      next: (res) => this.draftDescriptions.set(res.data ?? []),
-      error: () => this.draftDescriptions.set([]),
-    });
-    this.selectedJobDescriptionId = req.jobDescription?.id ?? null;
-    this.attachDialogVisible = true;
-  }
-
-  confirmAttachJobDescription(): void {
-    if (!this.selectedJobDescriptionId) return;
-    this.attachDialogVisible = false;
-    void this.executeAction(PermittedAction.AttachJobDescription, { jobDescriptionId: this.selectedJobDescriptionId });
-  }
-
-  openEditDialog(): void {
+  openModifyDialog(): void {
     const req = this.requisition();
     if (!req) return;
     this.editHeadcount = req.requestedHeadcount;
-    this.editLocation = req.location;
-    this.editJobTitle = req.proposedJobTitle;
-    this.editSeniority = null;
+    this.editLocation = req.location ?? '';
+    this.editJobTitle = req.proposedJobTitle ?? '';
+    this.editSeniority = req.proposedJobSeniorityLevel ?? null;
     this.editJustification = req.growthJustification ?? '';
-    this.editDialogVisible = true;
+    this.modifyDialogVisible = true;
   }
 
-  saveDraftEdits(): void {
+  saveModify(): void {
     const req = this.requisition();
     if (!req || !this.editHeadcount) return;
-    this.editDialogVisible = false;
-    void this.executeAction(PermittedAction.EditDraft, {
+    this.modifyDialogVisible = false;
+    const body: UpdateRequisitionRequest = {
       requestedHeadcount: this.editHeadcount,
-      location: this.editLocation,
+      location: this.editLocation as Location,
       growthJustification: this.editJustification.trim() || null,
       proposedJobTitle: this.editJobTitle.trim() || null,
-      proposedJobSeniorityLevel: this.editSeniority,
+      proposedJobSeniorityLevel: this.editSeniority as SeniorityLevel | null,
+    };
+    void this.executeAction(RequisitionAvailableAction.Modify, body);
+  }
+
+  /* ── Attach JD ── */
+
+  openAttachJdDialog(): void {
+    const req = this.requisition();
+    if (!req || this.jdSubmitting()) return;
+    this.selectedJdId = null;
+    this.jdForm.reset({
+      title: '',
+      summary: '',
+      responsibilities: '',
+      requirements: '',
+      employmentType: EmploymentType.FullTime,
+    });
+    // When a JD is already attached (modification-request loop), land on the Edit tab.
+    this.jdTabIndex = this.hasAttachedJd() ? 1 : 0;
+    this.jdMode = this.jdTabs()[this.jdTabIndex] ?? 'pick';
+    this.editJdId = req.jobDescriptionId ?? null;
+    this.attachJdDialogVisible = true;
+    this.loadJdOptions();
+    if (this.jdMode === 'edit') this.loadAttachedJd();
+  }
+
+  onJdTabChange(index: number): void {
+    this.jdTabIndex = index;
+    this.jdMode = this.jdTabs()[index] ?? 'pick';
+    if (this.jdMode === 'pick' && this.jdOptions().length === 0) this.loadJdOptions();
+    if (this.jdMode === 'edit') this.loadAttachedJd();
+  }
+
+  loadJdOptions(): void {
+    if (this.jdLoading()) return;
+    this.jdLoading.set(true);
+    this.api.getDraftJobDescriptionOptions({ status: 'Draft', PageSize: 100 }).subscribe({
+      next: (res) => this.jdOptions.set(res.data?.items ?? []),
+      error: () => this.jdOptions.set([]),
+      complete: () => this.jdLoading.set(false),
     });
   }
 
-  private executeAction(
-    action: PermittedActionType,
-    body?: unknown,
-  ): void {
+  loadAttachedJd(): void {
+    const jdId = this.editJdId;
+    if (!jdId) return;
+    this.jdService.getById(jdId).subscribe({
+      next: (res) => {
+        if (!res.isCompletedSuccessfully || !res.data) return;
+        const dto = res.data;
+        this.jdForm.patchValue({
+          title: dto.title ?? '',
+          summary: dto.summary ?? '',
+          responsibilities: dto.responsibilities ?? '',
+          requirements: dto.requirements ?? '',
+          employmentType: dto.employmentType ?? EmploymentType.FullTime,
+        });
+      },
+    });
+  }
+
+  /* ── JD Preview (Hiring Manager) ── */
+
+  openJdPreview(): void {
+    const jdId = this.requisition()?.jobDescriptionId;
+    if (!jdId) return;
+    this.jdPreviewDialogVisible = true;
+    this.jdPreviewLoading.set(true);
+    this.jdService.getById(jdId).subscribe({
+      next: (res) => this.jdPreview.set(res.isCompletedSuccessfully ? (res.data ?? null) : null),
+      error: () => this.jdPreview.set(null),
+      complete: () => this.jdPreviewLoading.set(false),
+    });
+  }
+
+  attachSelectedJd(): void {
+    if (!this.selectedJdId || this.jdSubmitting()) return;
+    this.attachJdDialogVisible = false;
+    void this.executeAction(RequisitionAvailableAction.AttachJD, { jobDescriptionId: this.selectedJdId });
+  }
+
+  saveAndReattachJd(): void {
+    const jdId = this.editJdId;
+    if (this.jdForm.invalid) {
+      this.jdForm.markAllAsTouched();
+      return;
+    }
+    if (!jdId || this.jdSubmitting()) return;
+    const value = this.jdForm.getRawValue();
+
+    const request: CreateJobDescriptionRequest = {
+      title: value.title.trim(),
+      summary: value.summary.trim() || null,
+      responsibilities: value.responsibilities || null,
+      requirements: value.requirements || null,
+      employmentType: value.employmentType,
+    };
+
+    this.jdSubmitting.set(true);
+    this.jdService.update(jdId, request).subscribe({
+      next: (res) => {
+        if (!res.isCompletedSuccessfully) {
+          return;
+        }
+        this.attachJdDialogVisible = false;
+        void this.executeAction(RequisitionAvailableAction.AttachJD, { jobDescriptionId: jdId });
+      },
+      complete: () => this.jdSubmitting.set(false),
+    });
+  }
+
+  createAndAttachJd(): void {
+    const req = this.requisition();
+    if (this.jdForm.invalid) {
+      this.jdForm.markAllAsTouched();
+      return;
+    }
+    if (!req || this.jdSubmitting()) return;
+    const value = this.jdForm.getRawValue();
+
+    const request: CreateJobDescriptionRequest = {
+      title: value.title.trim(),
+      summary: value.summary.trim() || null,
+      responsibilities: value.responsibilities || null,
+      requirements: value.requirements || null,
+      employmentType: value.employmentType,
+    };
+
+    this.jdSubmitting.set(true);
+    this.jdService.create(request).subscribe({
+      next: (res) => {
+        if (!res.isCompletedSuccessfully || !res.data) {
+          this.jdSubmitting.set(false);
+          return;
+        }
+        this.jdSubmitting.set(false);
+        this.attachJdDialogVisible = false;
+        void this.executeAction(RequisitionAvailableAction.AttachJD, { jobDescriptionId: res.data });
+      },
+      error: () => {
+        this.jdSubmitting.set(false);
+      },
+    });
+  }
+
+  private executeAction(action: RequisitionAvailableAction, body?: unknown): void {
     const req = this.requisition();
     if (!req || this.actionPending()) return;
     this.actionPending.set(action);
 
-    const call$ = resolveCall(this.api, action, req.id, body);
+    const call$: Observable<Result> = resolveCall(this.api, action, req.id, req.status, body);
     call$.subscribe({
       next: (res) => {
         this.actionPending.set(null);
-        if (!res.isCompletedSuccessfully || !res.data) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Action failed',
-            detail: res.message ?? 'The server rejected this action.',
-          });
+        if (!res.isCompletedSuccessfully) {
           return;
         }
-        this.requisition.set(res.data);
         this.messageService.add({
           severity: 'success',
           summary: 'Done',
-          detail: `${ACTION_BUTTONS[action].label} completed.`,
+          detail: `${ACTION_BUTTONS[action]!.label} completed.`,
         });
+        this.loadRequisition();
       },
       error: () => {
         this.actionPending.set(null);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Network error while performing this action.' });
       },
     });
   }
@@ -392,64 +661,92 @@ export class JobReqDetailComponent implements OnInit {
   }
 }
 
-const ACTION_BUTTONS: Record<PermittedActionType, ActionButton> = {
-  [PermittedAction.Submit]: { action: PermittedAction.Submit, label: 'Submit', icon: 'pi pi-send', severity: 'contrast' },
-  [PermittedAction.EditDraft]: { action: PermittedAction.EditDraft, label: 'Edit Draft', icon: 'pi pi-pencil', severity: undefined },
-  [PermittedAction.ApproveDepartmentHead]: { action: PermittedAction.ApproveDepartmentHead, label: 'Approve Budget', icon: 'pi pi-check', severity: 'success' },
-  [PermittedAction.AttachJobDescription]: { action: PermittedAction.AttachJobDescription, label: 'Attach JD', icon: 'pi pi-paperclip', severity: 'success' },
-  [PermittedAction.ApproveHiringManager]: { action: PermittedAction.ApproveHiringManager, label: 'Approve JD', icon: 'pi pi-check', severity: 'success' },
-  [PermittedAction.ApproveHRManager]: { action: PermittedAction.ApproveHRManager, label: 'Final Approval', icon: 'pi pi-check-circle', severity: 'success' },
-  [PermittedAction.Publish]: { action: PermittedAction.Publish, label: 'Publish', icon: 'pi pi-globe', severity: 'success' },
-  [PermittedAction.Resume]: { action: PermittedAction.Resume, label: 'Resume', icon: 'pi pi-play', severity: 'success' },
-  [PermittedAction.Fulfill]: { action: PermittedAction.Fulfill, label: 'Mark Fulfilled', icon: 'pi pi-verified', severity: 'success' },
-  [PermittedAction.AssignRecruiter]: { action: PermittedAction.AssignRecruiter, label: 'Assign Recruiter', icon: 'pi pi-user-plus', severity: undefined },
-  [PermittedAction.RequestModification]: { action: PermittedAction.RequestModification, label: 'Request Modification', icon: 'pi pi-refresh', severity: 'warn' },
-  [PermittedAction.Hold]: { action: PermittedAction.Hold, label: 'Hold', icon: 'pi pi-pause', severity: 'warn' },
-  [PermittedAction.Reject]: { action: PermittedAction.Reject, label: 'Reject', icon: 'pi pi-times', severity: 'danger' },
-  [PermittedAction.Close]: { action: PermittedAction.Close, label: 'Close', icon: 'pi pi-ban', severity: 'danger' },
+const ACTION_BUTTONS: Partial<Record<RequisitionAvailableAction, ActionButton>> = {
+  [RequisitionAvailableAction.Submit]: { action: RequisitionAvailableAction.Submit, label: 'Submit', icon: 'pi pi-send', severity: 'contrast' },
+  [RequisitionAvailableAction.Modify]: { action: RequisitionAvailableAction.Modify, label: 'Modify', icon: 'pi pi-pencil', severity: undefined },
+  [RequisitionAvailableAction.Approve]: { action: RequisitionAvailableAction.Approve, label: 'Approve', icon: 'pi pi-check', severity: 'success' },
+  [RequisitionAvailableAction.Resume]: { action: RequisitionAvailableAction.Resume, label: 'Resume', icon: 'pi pi-play', severity: 'success' },
+  [RequisitionAvailableAction.Fulfill]: { action: RequisitionAvailableAction.Fulfill, label: 'Mark Fulfilled', icon: 'pi pi-verified', severity: 'success' },
+  [RequisitionAvailableAction.AssignRecruiter]: { action: RequisitionAvailableAction.AssignRecruiter, label: 'Assign Recruiter', icon: 'pi pi-user-plus', severity: undefined },
+  [RequisitionAvailableAction.AttachJD]: { action: RequisitionAvailableAction.AttachJD, label: 'Attach JD', icon: 'pi pi-file-edit', severity: undefined },
+  [RequisitionAvailableAction.RequestModifications]: { action: RequisitionAvailableAction.RequestModifications, label: 'Request Modification', icon: 'pi pi-refresh', severity: 'warn' },
+  [RequisitionAvailableAction.OnHold]: { action: RequisitionAvailableAction.OnHold, label: 'Hold', icon: 'pi pi-pause', severity: 'warn' },
+  [RequisitionAvailableAction.Reject]: { action: RequisitionAvailableAction.Reject, label: 'Reject', icon: 'pi pi-times', severity: 'danger' },
+  [RequisitionAvailableAction.Cancel]: { action: RequisitionAvailableAction.Cancel, label: 'Close', icon: 'pi pi-ban', severity: 'danger' },
 };
 
 function resolveCall(
   api: JobRequisitionApi,
-  action: PermittedActionType,
+  action: RequisitionAvailableAction,
   id: string,
+  status: JobRequisitionStatus,
   body: unknown,
-): Observable<JobRequisitionDetailResult> {
+): Observable<Result> {
   switch (action) {
-    case PermittedAction.Submit:
+    case RequisitionAvailableAction.Submit:
       return api.submit(id);
-    case PermittedAction.EditDraft:
-      return api.updateDraft(id, body as PatchDraftRequest);
-    case PermittedAction.ApproveDepartmentHead:
-      return api.approveAsDepartmentHead(id);
-    case PermittedAction.AttachJobDescription:
-      return api.attachJobDescription(id, body as AttachJobDescriptionPayload);
-    case PermittedAction.ApproveHiringManager:
-      return api.approveAsHiringManager(id);
-    case PermittedAction.ApproveHRManager:
-      return api.approveAsHRManager(id);
-    case PermittedAction.Publish:
-      return api.publish(id);
-    case PermittedAction.Resume:
+    case RequisitionAvailableAction.Modify:
+      return api.modify(id, body as UpdateRequisitionRequest);
+    case RequisitionAvailableAction.Approve:
+      return resolveApprove(api, id, status);
+    case RequisitionAvailableAction.AssignRecruiter:
+      return api.assignRecruiter(id, body as { recruiterId: string });
+    case RequisitionAvailableAction.AttachJD:
+      return api.attachJD(id, body as { jobDescriptionId: string });
+    case RequisitionAvailableAction.RequestModifications:
+      return api.requestModification(id, body as { comment: string });
+    case RequisitionAvailableAction.Reject:
+      return api.reject(id, body as { reason: string });
+    case RequisitionAvailableAction.OnHold:
+      return api.hold(id, body as { reason: string });
+    case RequisitionAvailableAction.Resume:
       return api.resume(id);
-    case PermittedAction.Fulfill:
+    case RequisitionAvailableAction.Cancel:
+      return api.close(id, body as { reason: string | null });
+    case RequisitionAvailableAction.Fulfill:
       return api.fulfill(id);
-    case PermittedAction.AssignRecruiter:
-      return api.assignRecruiter(id, body as AssignRecruiterPayload);
-    case PermittedAction.RequestModification:
-      return api.requestModification(id, body as ReasonRequest);
-    case PermittedAction.Hold:
-      return api.hold(id, body as ReasonRequest);
-    case PermittedAction.Reject:
-      return api.reject(id, body as ReasonRequest);
-    case PermittedAction.Close:
-      return api.close(id, body as CloseRequest);
+    default:
+      throw new Error(`Unhandled available action: ${action}`);
   }
 }
 
+function resolveApprove(api: JobRequisitionApi, id: string, status: JobRequisitionStatus): Observable<Result> {
+  switch (status) {
+    case JobRequisitionStatus.PendingBudgetApproval:
+      return api.approveAsDepartmentHead(id);
+    case JobRequisitionStatus.PendingJDApproval:
+    case JobRequisitionStatus.PendingAttachingJD:
+      return api.approveAsHiringManager(id);
+    default:
+      return api.approveAsHRManager(id);
+  }
+}
+
+const ENUM_ABBREVIATIONS: Record<string, string> = { JD: 'Job Description' };
+
+/**
+ * Humanizes backend enum wire values for display:
+ *  - PascalCase (e.g. "PendingAttachingJD", "OnHold") → "Pending Attaching JD" …
+ *  - SCREAMING_SNAKE (e.g. "HIRING_MANAGER") → "Hiring Manager"
+ *  - expands common acronyms (JD → Job Description, etc.)
+ * Leaves ordinary words (Backfill, Draft, …) as-is.
+ */
 function humanize(value: string): string {
-  return value
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  if (!value) return value;
+  const words = String(value)
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter((w) => w.length > 0);
+
+  return words
+    .map((word) => {
+      const upper = word.toUpperCase();
+      const abbreviation = ENUM_ABBREVIATIONS[upper];
+      if (abbreviation) return abbreviation;
+      if (word === upper && word.length <= 3) return upper;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
 }

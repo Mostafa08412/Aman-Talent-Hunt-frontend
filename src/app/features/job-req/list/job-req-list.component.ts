@@ -1,19 +1,21 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { JOB_REQUISITION_API } from '../../../core/services/job-requisition-api';
-import type { JobRequisitionListQuery, JobRequisitionSummary, RequisitionView } from '../../../core/models/job-requisition-model';
+import type { JobRequisitionListItemDto, JobRequisitionListQuery } from '../../../core/models/job-requisition-model';
 import { JobRequisitionStatus } from '../../../core/models/job-requisition-model';
 import { HiringType } from '../../../core/models/enums';
+import { Role } from '../../../core/models/role.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { LookupItemDto } from '../../../core/models/lookup-model';
+
+type RequisitionView = 'all' | 'assigned' | 'pendingMyApproval' | 'pendingMyModification';
 
 interface ViewTab {
   value: RequisitionView;
@@ -36,43 +38,68 @@ interface FilterOption<T> {
     ButtonModule,
     SelectModule,
     InputTextModule,
-    MultiSelectModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './job-req-list.component.html',
   styleUrl: './job-req-list.component.scss',
 })
 export class JobReqListComponent implements OnInit {
   private api = inject(JOB_REQUISITION_API);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private messageService = inject(MessageService);
+  private auth = inject(AuthService);
 
-  readonly viewTabs: ViewTab[] = [
-    { value: 'mine', label: 'Mine', icon: 'pi pi-user' },
-    { value: 'pendingMyApproval', label: 'Pending My Approval', icon: 'pi pi-clock' },
-    { value: 'pendingMyModification', label: 'Needs My Fix', icon: 'pi pi-exclamation-circle' },
-    { value: 'assignedToMySquad', label: 'Squad Queue', icon: 'pi pi-inbox' },
-    { value: 'ownedByMySquad', label: 'Squad Postings', icon: 'pi pi-briefcase' },
-    { value: 'departmentAll', label: 'Department', icon: 'pi pi-building' },
-    { value: 'all', label: 'All', icon: 'pi pi-globe' },
-  ];
+  /**
+   * Tabs adapt to the caller's role:
+   *  - Hiring Manager — Pending My Approval / Needs My Fix / Mine (HM owns the
+   *    requisitions, so the plain list is "mine"; the Assigned tab is not for them).
+   *  - Department Head — Pending My Approval / Assigned (the assigned scope IS the
+   *    department's requisitions, so "All" would be a duplicate; no fix queue).
+   *  - Everyone else (Recruiter / HR Manager / SuperAdmin) — Pending My Approval /
+   *    Needs My Fix / Assigned / All.
+   */
+  readonly viewTabs = computed<ViewTab[]>(() => {
+    const role = this.auth.currentUser()?.role;
+    if (role === Role.HiringManager) {
+      return [
+        { value: 'pendingMyApproval', label: 'Pending My Approval', icon: 'pi pi-clock' },
+        { value: 'pendingMyModification', label: 'Needs My Fix', icon: 'pi pi-exclamation-circle' },
+        { value: 'all', label: 'Mine', icon: 'pi pi-briefcase' },
+      ];
+    }
+    if (role === Role.DepartmentHead) {
+      return [
+        { value: 'pendingMyApproval', label: 'Pending My Approval', icon: 'pi pi-clock' },
+        { value: 'pendingMyModification', label: 'Requested Modifications', icon: 'pi pi-exclamation-circle' },
+        { value: 'assigned', label: 'Assigned', icon: 'pi pi-briefcase' },
+      ];
+    }
+    return [
+      { value: 'pendingMyApproval', label: 'Pending My Approval', icon: 'pi pi-clock' },
+      { value: 'pendingMyModification', label: 'Needs My Fix', icon: 'pi pi-exclamation-circle' },
+      { value: 'assigned', label: 'Assigned', icon: 'pi pi-briefcase' },
+    ];
+  });
 
-  activeView = signal<RequisitionView>('mine');
+  /** Active view is resolved from the active route so each sidebar item / tab lives at
+      its own URL. Defaults to "All" until the route data arrives. */
+  activeView = signal<RequisitionView>('all');
 
-  requisitions = signal<JobRequisitionSummary[]>([]);
+  /** Only the Hiring Manager can create requisitions (route guard enforces too). */
+  readonly canCreateRequisition = computed(() => this.auth.hasRole(Role.HiringManager));
+  requisitions = signal<JobRequisitionListItemDto[]>([]);
   departments = signal<LookupItemDto[]>([]);
   isLoading = signal(false);
   totalCount = signal(0);
 
   /* Filters — staged until Apply commits them. */
   searchFilter: string | null = null;
-  statusFilter: JobRequisitionStatus[] | null = null;
+  statusFilter: JobRequisitionStatus | null = null;
   departmentFilter: string | null = null;
   hiringTypeFilter: HiringType | null = null;
 
   private appliedSearch: string | null = null;
-  private appliedStatus: JobRequisitionStatus[] | null = null;
+  private appliedStatus: JobRequisitionStatus | null = null;
   private appliedDepartment: string | null = null;
   private appliedHiringType: HiringType | null = null;
 
@@ -87,39 +114,52 @@ export class JobReqListComponent implements OnInit {
   readonly pageSize = 10;
 
   ngOnInit(): void {
-    this.loadRequisitions();
-    this.api.getDepartmentOptions().subscribe({
-      next: (res) => this.departments.set(res.data ?? []),
+    this.route.data.subscribe((data) => {
+      const view = data['view'] as RequisitionView | undefined;
+      const next = view && this.viewTabs().some((t) => t.value === view) ? view : 'all';
+      this.activeView.set(next);
+      this.page.set(1);
+      this.loadRequisitions();
+    });
+    this.api.getDepartmentOptions({ PageSize: 100 }).subscribe({
+      next: (res) => this.departments.set(res.data?.items ?? []),
       error: () => this.departments.set([]),
     });
   }
 
   switchView(view: RequisitionView): void {
-    if (this.activeView() === view) return;
-    this.activeView.set(view);
-    this.page.set(1);
-    this.loadRequisitions();
+    if (this.activeView() === view || !this.viewTabs().some((t) => t.value === view)) {
+      return;
+    }
+    this.router.navigate([VIEW_ROUTES[view]]);
   }
 
   loadRequisitions(): void {
     this.isLoading.set(true);
 
     const query: JobRequisitionListQuery = {
-      view: this.activeView(),
       search: this.appliedSearch ?? undefined,
       status: this.appliedStatus ?? undefined,
       departmentId: this.appliedDepartment ?? undefined,
       hiringType: this.appliedHiringType ?? undefined,
       page: this.page(),
       pageSize: this.pageSize,
-      sortBy: 'updatedAtUTC',
-      sortDir: 'desc',
+      sortBy: 'createdAtUTC',
+      sortAscending: false,
     };
 
-    this.api.getList(query).subscribe({
+    const request$ =
+      this.activeView() === 'pendingMyApproval'
+        ? this.api.getPendingApprovals(query)
+        : this.activeView() === 'pendingMyModification'
+          ? this.api.getPendingModifications(query)
+          : this.activeView() === 'assigned'
+            ? this.api.getAssigned(query)
+            : this.api.getList(query);
+
+    request$.subscribe({
       next: (res) => {
         if (!res.isCompletedSuccessfully) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: res.message ?? 'Failed to load requisitions.' });
           this.requisitions.set([]);
           this.totalCount.set(0);
         } else {
@@ -130,7 +170,6 @@ export class JobReqListComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load requisitions.' });
       },
     });
   }
@@ -152,7 +191,7 @@ export class JobReqListComponent implements OnInit {
     this.applyFilters();
   }
 
-  openRequisition(requisition: JobRequisitionSummary): void {
+  openRequisition(requisition: JobRequisitionListItemDto): void {
     this.router.navigate(['/console/job-requisitions', requisition.id]);
   }
 
@@ -162,12 +201,6 @@ export class JobReqListComponent implements OnInit {
 
   statusLabel(status: JobRequisitionStatus): string {
     return humanize(status);
-  }
-
-  approverLabel(requisition: JobRequisitionSummary): string {
-    if (!requisition.currentApproverRole) return '—';
-    const role = humanize(requisition.currentApproverRole);
-    return requisition.currentApproverName ? `${role} · ${requisition.currentApproverName}` : role;
   }
 
   statusSeverity(status: JobRequisitionStatus): string {
@@ -216,9 +249,39 @@ export class JobReqListComponent implements OnInit {
   }
 }
 
+const ENUM_ABBREVIATIONS: Record<string, string> = { JD: 'Job Description' };
+
+/** Maps each queue view to its sidebar-mapped route under /console/job-requisitions. */
+const VIEW_ROUTES: Record<RequisitionView, string> = {
+  all: '/console/job-requisitions',
+  pendingMyApproval: '/console/job-requisitions/pending-approval',
+  pendingMyModification: '/console/job-requisitions/needs-fix',
+  assigned: '/console/job-requisitions/assigned',
+};
+
+/**
+ * Humanizes backend enum wire values for display:
+ *  - PascalCase (e.g. "PendingAttachingJD", "OnHold") → "Pending Attaching JD" …
+ *  - SCREAMING_SNAKE (e.g. "HIRING_MANAGER") → "Hiring Manager"
+ *  - expands common acronyms (JD → Job Description, etc.)
+ * Leaves ordinary words (Backfill, Draft, …) as-is.
+ */
 function humanize(value: string): string {
-  return value
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  if (!value) return value;
+  const words = String(value)
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter((w) => w.length > 0);
+
+  return words
+    .map((word) => {
+      const upper = word.toUpperCase();
+      const abbreviation = ENUM_ABBREVIATIONS[upper];
+      if (abbreviation) return abbreviation;
+      if (word === upper && word.length <= 3) return upper;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
 }

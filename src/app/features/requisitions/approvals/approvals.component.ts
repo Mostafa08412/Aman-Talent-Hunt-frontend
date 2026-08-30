@@ -1,6 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -15,12 +22,20 @@ import { ApprovalService, PendingApproval, ApprovalDecision } from '../../../cor
 
 type ReasonDialogMode = ApprovalDecision.Rejected | ApprovalDecision.ChangesRequested;
 
+function nonBlankValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'string') return null;
+  return value.trim().length > 0 ? null : { blank: true };
+}
+
 @Component({
   selector: 'app-approvals',
   standalone: true,
   imports: [
     DatePipe,
     FormsModule,
+    ReactiveFormsModule,
     CardModule,
     ButtonModule,
     TableModule,
@@ -38,6 +53,7 @@ type ReasonDialogMode = ApprovalDecision.Rejected | ApprovalDecision.ChangesRequ
 export class ApprovalsComponent {
   private approvalService = inject(ApprovalService);
   private confirmationService = inject(ConfirmationService);
+  private readonly fb = inject(FormBuilder);
 
   ApprovalDecision = ApprovalDecision;
 
@@ -53,8 +69,9 @@ export class ApprovalsComponent {
   // Reject / Request Changes both require a note before they can be sent.
   reasonDialogOpen = signal(false);
   reasonDialogMode = signal<ReasonDialogMode | null>(null);
-  reasonText = signal('');
-  reasonError = signal<string | null>(null);
+  readonly reasonForm = this.fb.nonNullable.group({
+    note: ['', [Validators.required, nonBlankValidator]],
+  });
 
   constructor() {
     this.load();
@@ -93,9 +110,8 @@ export class ApprovalsComponent {
 
   openReasonDialog(mode: ReasonDialogMode): void {
     if (!this.selected()) return;
+    this.reasonForm.reset();
     this.reasonDialogMode.set(mode);
-    this.reasonText.set('');
-    this.reasonError.set(null);
     this.reasonDialogOpen.set(true);
   }
 
@@ -104,14 +120,14 @@ export class ApprovalsComponent {
   }
 
   confirmReasonDialog(): void {
-    if (!this.reasonText().trim()) {
-      this.reasonError.set('Add a note for the requester before continuing.');
+    if (this.reasonForm.invalid) {
+      this.reasonForm.controls.note.markAsTouched();
       return;
     }
     const mode = this.reasonDialogMode();
     if (!mode) return;
     this.reasonDialogOpen.set(false);
-    this.decide(mode, this.reasonText().trim());
+    this.decide(mode, this.reasonForm.controls.note.value.trim());
   }
 
   private decide(decision: ApprovalDecision, comment?: string): void {

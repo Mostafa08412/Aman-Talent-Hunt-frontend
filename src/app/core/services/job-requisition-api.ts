@@ -1,63 +1,76 @@
 // ============================================================
-// Job Requisition API contract — method signatures mirror secrets/job-req-module.md 1:1.
-// Screens depend ONLY on this file (abstract class + injection token), never on the
-// concrete implementation, so swapping fake -> real requires zero screen changes.
+// Job Requisition API contract — method signatures mirror the shipped backend
+// (AdminRequisitionsController + LookupsController) 1:1. Screens depend ONLY on
+// this file (abstract class + injection token), never on the concrete
+// implementation, so the provider can be swapped without touching screens.
 // ============================================================
 
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import type {
-  AssignRecruiterPayload,
-  AttachJobDescriptionPayload,
-  CloseRequest,
-  CreateJobRequisitionRequest,
+  AssignRecruiterRequest,
+  AttachJobDescriptionToRequisitionRequest,
+  CreateRequisitionRequest,
   JobRequisitionDetailResult,
   JobRequisitionListQuery,
   JobRequisitionPagedResultResult,
-  PatchDraftRequest,
-  PendingCountResult,
-  ReasonRequest,
-  RequisitionStatsDto,
+  RejectRequisitionRequest,
+  RequestModificationsRequest,
+  RequisitionLifecycleRequest,
+  UpdateRequisitionRequest,
 } from '@core/models/job-requisition-model';
-import type { ResultWithData } from '@core/models/common';
-import type { LookupItemDto } from '@core/models/lookup-model';
+import type { BaseLookupParams, EmployeesLookupParams, JobDescriptionsLookupParams, LookupItemDtoPagedResultResult, ManpowerPlansLookupParams, PositionsLookupParams, SquadsLookupParams } from '@core/models/lookup-model';
+import type { Result, ResultWithData } from '@core/models/common';
 
 export abstract class JobRequisitionApi {
+  // ── Reads ──
   abstract getList(query: JobRequisitionListQuery): Observable<JobRequisitionPagedResultResult>;
+  abstract getPendingApprovals(query: JobRequisitionListQuery): Observable<JobRequisitionPagedResultResult>;
+  abstract getPendingModifications(query: JobRequisitionListQuery): Observable<JobRequisitionPagedResultResult>;
+  abstract getAssigned(query: JobRequisitionListQuery): Observable<JobRequisitionPagedResultResult>;
   abstract getById(id: string): Observable<JobRequisitionDetailResult>;
-  abstract getPendingCount(): Observable<PendingCountResult>;
-  abstract getStats(): Observable<ResultWithData<RequisitionStatsDto>>;
 
-  abstract create(request: CreateJobRequisitionRequest): Observable<JobRequisitionDetailResult>;
-  abstract updateDraft(id: string, request: PatchDraftRequest): Observable<JobRequisitionDetailResult>;
+  // ── Create & edit ──
+  abstract create(request: CreateRequisitionRequest): Observable<ResultWithData<string>>;
+  abstract modify(id: string, request: UpdateRequisitionRequest): Observable<Result>;
 
-  abstract submit(id: string): Observable<JobRequisitionDetailResult>;
-  abstract approveAsDepartmentHead(id: string): Observable<JobRequisitionDetailResult>;
-  abstract approveAsHiringManager(id: string): Observable<JobRequisitionDetailResult>;
-  abstract approveAsHRManager(id: string): Observable<JobRequisitionDetailResult>;
-  abstract reject(id: string, body: ReasonRequest): Observable<JobRequisitionDetailResult>;
-  abstract requestModification(id: string, body: ReasonRequest): Observable<JobRequisitionDetailResult>;
+  // ── Draft lifecycle ──
+  abstract submit(id: string): Observable<Result>;
 
-  abstract assignRecruiter(id: string, body: AssignRecruiterPayload): Observable<JobRequisitionDetailResult>;
-  abstract attachJobDescription(id: string, body: AttachJobDescriptionPayload): Observable<JobRequisitionDetailResult>;
+  // ── Approval chain (per-role) ──
+  abstract approveAsDepartmentHead(id: string): Observable<Result>;
+  abstract approveAsHiringManager(id: string): Observable<Result>;
+  abstract approveAsHRManager(id: string): Observable<Result>;
+  abstract reject(id: string, body: RejectRequisitionRequest): Observable<Result>;
+  abstract requestModification(id: string, body: RequestModificationsRequest): Observable<Result>;
 
-  abstract publish(id: string): Observable<JobRequisitionDetailResult>;
-  abstract hold(id: string, body: ReasonRequest): Observable<JobRequisitionDetailResult>;
-  abstract resume(id: string): Observable<JobRequisitionDetailResult>;
-  abstract fulfill(id: string): Observable<JobRequisitionDetailResult>;
-  abstract close(id: string, body: CloseRequest): Observable<JobRequisitionDetailResult>;
+  // ── Recruiter / squad actions ──
+  abstract assignRecruiter(id: string, body: AssignRecruiterRequest): Observable<Result>;
 
-  // Wizard lookups — belong to their own modules on the real backend
-  // (/api/admin/lookups/*); faked here so the creation screen isn't blocked.
-  abstract getDepartmentOptions(): Observable<ResultWithData<LookupItemDto[]>>;
-  abstract getSquadOptions(departmentId?: string): Observable<ResultWithData<LookupItemDto[]>>;
-  abstract getEmployeeOptions(role: 'HR_MANAGER' | 'DEPARTMENT_HEAD' | 'RECRUITER', departmentId?: string): Observable<ResultWithData<LookupItemDto[]>>;
-  abstract getOpenManPowerPlanOptions(departmentId?: string): Observable<ResultWithData<LookupItemDto[]>>;
-  abstract getActivePositionOptions(departmentId?: string): Observable<ResultWithData<LookupItemDto[]>>;
-  abstract getDepartingEmployeeOptions(): Observable<ResultWithData<LookupItemDto[]>>;
-  abstract getDraftJobDescriptionOptions(squadId?: string): Observable<ResultWithData<LookupItemDto[]>>;
+  // ── JD workflow ──
+  abstract attachJD(id: string, body: AttachJobDescriptionToRequisitionRequest): Observable<Result>;
+
+  // ── Lifecycle actions ──
+  abstract hold(id: string, body: RequisitionLifecycleRequest): Observable<Result>;
+  abstract resume(id: string): Observable<Result>;
+  abstract close(id: string, body: RequisitionLifecycleRequest): Observable<Result>;
+  abstract fulfill(id: string): Observable<Result>;
+
+  // ── Creation wizard lookups (LookupsController, all paged) ──
+  abstract getDepartmentOptions(params?: BaseLookupParams): Observable<LookupItemDtoPagedResultResult>;
+  abstract getSquadOptions(params?: SquadsLookupParams): Observable<LookupItemDtoPagedResultResult>;
+  abstract getEmployeeOptions(params?: EmployeesLookupParams): Observable<LookupItemDtoPagedResultResult>;
+  abstract getOpenManPowerPlanOptions(params?: ManpowerPlansLookupParams): Observable<LookupItemDtoPagedResultResult>;
+  abstract getActivePositionOptions(params?: PositionsLookupParams): Observable<LookupItemDtoPagedResultResult>;
+  abstract getDepartingEmployeeOptions(params?: EmployeeLookupForDepartingParams): Observable<LookupItemDtoPagedResultResult>;
+  abstract getDraftJobDescriptionOptions(params?: JobDescriptionsLookupParams): Observable<LookupItemDtoPagedResultResult>;
 }
 
 /** Screens inject this token; the concrete implementation is chosen in job-req.routes.ts. */
 export const JOB_REQUISITION_API = new InjectionToken<JobRequisitionApi>('JOB_REQUISITION_API');
+
+/** Employees lookup restricted to departing employees (lookups/employees?departing=true). */
+export interface EmployeeLookupForDepartingParams extends BaseLookupParams {
+  departing?: boolean;
+}

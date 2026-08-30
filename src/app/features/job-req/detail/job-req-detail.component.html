@@ -1,202 +1,700 @@
-<p-confirmDialog />
+<p-confirmdialog />
 <div class="page">
   @if (loading()) {
-    <div class="state-center">
-      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4" />
-    </div>
+  <div class="state-center">
+    <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+  </div>
   } @else if (loadError()) {
-    <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
+  <p-message severity="error" [text]="loadError()!" styleClass="w-full" />
   } @else {
-    @if (requisition(); as req) {
-    <!-- Header -->
-    <div class="page-header">
-      <div class="header-titles">
-        <button class="back-link" type="button" (click)="goBackToList()">
-          <i class="pi pi-arrow-left"></i> All requisitions
-        </button>
-        <span class="req-number">{{ req.referenceNumber }} · {{ statusLabel(req.requisitionType) }}</span>
-        <h1>{{ req.proposedJobTitle }}</h1>
-      </div>
-      <div class="header-tags">
-        <p-tag [value]="statusLabel(req.status)" [severity]="statusSeverity(req.status)" />
-        <p-tag [value]="statusLabel(req.hiringType)" severity="info" />
-        @if (req.isAdHocJob) {
-          <p-tag value="Ad-hoc" severity="contrast" />
+  @if (requisition(); as req) {
+  <!-- Header actions -->
+  <div class="header-actions-row">
+    <button class="back-link" type="button" (click)="goBackToList()">
+      <i class="pi pi-arrow-left"></i> All requisitions
+    </button>
+
+    @if (visibleActions().length > 0) {
+    <div class="header-actions">
+      @for (btn of visibleActions(); track btn.action) {
+      <p-button
+        [label]="btn.label"
+        [icon]="btn.icon"
+        [styleClass]="actionStyleClass(btn)"
+        [loading]="actionPending() === btn.action"
+        [disabled]="!!actionPending() && actionPending() !== btn.action"
+        (onClick)="onAction(btn.action)" />
+      }
+    </div>
+    }
+  </div>
+
+  <!-- Status hero card -->
+  <div class="hero-card">
+    <div class="hero-gradient"></div>
+    <div class="hero-body">
+      <div class="hero-main">
+        <p class="hero-label">Requisition</p>
+        <div class="hero-title-row">
+          <h1 class="hero-title">{{ heroTitle() }}</h1>
+          @if (req.referenceNumber) {
+          <span class="ref-chip">{{ req.referenceNumber }}</span>
+          }
+          <span class="status-pill {{ statusPillClass(req.status) }}">
+            <span class="status-dot {{ statusDotClass(req.status) }}"></span>
+            {{ statusLabel(req.status) }}
+          </span>
+        </div>
+        @if (isAdHoc()) {
+        <div class="hero-subtitle">
+          <i class="pi pi-bolt"></i>
+          <span>Proposed role</span>
+          @if (heroSeniorityLabel()) {
+          <span class="hero-subtitle-sep">·</span>
+          <span class="hero-subtitle-strong">{{ heroSeniorityLabel() }}</span>
+          }
+        </div>
         }
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="meta-caption">Department</span>
+          <span class="meta-value">{{ req.departmentName ?? '—' }}</span>
+        </div>
+        <div class="meta-separator"></div>
+        <div class="hero-meta-item">
+          <span class="meta-caption">Squad</span>
+          <span class="meta-value">{{ req.assignedSquadName ?? '—' }}</span>
+        </div>
+        <div class="meta-separator"></div>
+        <div class="hero-meta-item">
+          <span class="meta-caption">Hiring Type</span>
+          <span class="meta-value">{{ statusLabel(req.hiringType) }}</span>
+        </div>
+        <div class="meta-separator"></div>
+        <div class="hero-meta-item">
+          <span class="meta-caption">Location</span>
+          <span class="meta-value">{{ req.location }}</span>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Workflow stepper -->
-    @if (req.status !== Status.Rejected) {
-      <p-card>
-        <div class="stepper">
-          @for (step of steps; track step; let i = $index) {
-            <div class="stepper-node" [class.done]="i < statusStepIndex()" [class.active]="i === statusStepIndex()">
-              <span class="dot"></span>
-              <span class="label">{{ step }}</span>
-            </div>
-            @if (i < steps.length - 1) {
-              <span class="stepper-line" [class.done]="i < statusStepIndex()"></span>
-            }
-          }
-        </div>
-        @if (req.onHoldReason) {
-          <p-message severity="warn" styleClass="w-full"
-            [text]="'On hold: ' + req.onHoldReason" />
-        } @else if (req.cancelReason && req.status === Status.Closed) {
-          <p-message severity="warn" styleClass="w-full"
-            [text]="'Closed: ' + req.cancelReason" />
-        }
-      </p-card>
-    }
-
-    <!-- Modification / rejection banner -->
-    @if (req.rejectionReason) {
-      <div class="modification-banner">
-        <div class="banner-text">
-          <strong>{{ req.status === Status.Rejected ? 'Rejected' : 'Modification requested' }}</strong>
-          <span>{{ req.rejectionReason }}</span>
-          @if (req.pendingModificationOwnerName) {
-            <span class="muted">
-              Waiting on {{ req.pendingModificationOwnerName }}
-              ({{ humanizeRole(req.pendingModificationOwnerRole) }}) to fix and resubmit.
-            </span>
-          }
-        </div>
+  <!-- Key metrics strip -->
+  <div class="stats-strip">
+    <div class="stat-chip">
+      <span class="stat-icon icon-headcount"><i class="pi pi-users"></i></span>
+      <div class="stat-text">
+        <span class="stat-label">Requested Headcount</span>
+        <span class="stat-value">{{ req.requestedHeadcount }}</span>
       </div>
-    }
-
-    <!-- Action bar — rendered straight from permittedActions -->
-    @if (visibleActions().length > 0) {
-      <div class="control-actions">
-        @for (btn of visibleActions(); track btn.action) {
-          <button
-            pButton
-            type="button"
-            [label]="btn.label"
-            [icon]="btn.icon"
-            [severity]="btn.severity"
-            [outlined]="!btn.severity"
-            [loading]="actionPending() === btn.action"
-            [disabled]="!!actionPending() && actionPending() !== btn.action"
-            (click)="onAction(btn.action)"></button>
-        }
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-chip">
+      <span class="stat-icon icon-seniority"><i class="pi pi-id-card"></i></span>
+      <div class="stat-text">
+        <span class="stat-label">Seniority</span>
+        <span class="stat-value">{{ req.proposedJobSeniorityLevel ?? '—' }}</span>
       </div>
-    }
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-chip">
+      <span class="stat-icon icon-creator"><i class="pi pi-user"></i></span>
+      <div class="stat-text">
+        <span class="stat-label">Hiring Manager</span>
+        <span class="stat-value">{{ req.hiringManagerName ?? '—' }}</span>
+      </div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-chip">
+      <span class="stat-icon icon-created"><i class="pi pi-calendar"></i></span>
+      <div class="stat-text">
+        <span class="stat-label">Created</span>
+        <span class="stat-value">{{ req.createdAtUTC | date: 'MMM d, y' }}</span>
+      </div>
+    </div>
+  </div>
 
-    <!-- Details -->
-    <p-card header="Requisition Details">
-      <div class="detail-grid">
-        <div class="detail-item"><span class="detail-label">Department</span><span class="detail-value">{{ req.departmentName }}</span></div>
-        <div class="detail-item"><span class="detail-label">Squad</span><span class="detail-value">{{ req.assignedSquad.name }}</span></div>
-        <div class="detail-item"><span class="detail-label">Hiring Manager</span><span class="detail-value">{{ req.hiringManagerName }}</span></div>
-        <div class="detail-item"><span class="detail-label">Assigned Recruiter</span><span class="detail-value">{{ recruiterLabel(req) }}</span></div>
-        <div class="detail-item"><span class="detail-label">Openings</span><span class="detail-value">{{ req.requestedHeadcount }}</span></div>
-        <div class="detail-item"><span class="detail-label">Location</span><span class="detail-value">{{ req.location }}</span></div>
+  <!-- On-hold / closed notice -->
+  @if (req.onHoldReason) {
+  <p-message severity="warn" styleClass="w-full notice-inline"
+    [text]="'On hold: ' + req.onHoldReason" />
+  } @else if (req.cancelReason && req.status === Status.Closed) {
+  <p-message severity="warn" styleClass="w-full notice-inline"
+    [text]="'Closed: ' + req.cancelReason" />
+  }
 
-        @if (req.manPowerPlan; as plan) {
-          <div class="detail-item"><span class="detail-label">Manpower Plan</span><span class="detail-value mono">{{ plan.referenceNumber }}</span></div>
-        }
-        @if (req.positionRegistry; as position) {
-          <div class="detail-item"><span class="detail-label">Position Registry</span><span class="detail-value">{{ position.title }} · {{ position.referenceNumber }}</span></div>
-        }
-        @if (req.jobDescription; as jd) {
-          <div class="detail-item"><span class="detail-label">Job Description</span><span class="detail-value mono">{{ jd.referenceNumber }} ({{ jd.status }})</span></div>
-        }
-        @if (req.departingEmployeeName) {
-          <div class="detail-item"><span class="detail-label">Departing Employee</span><span class="detail-value">{{ req.departingEmployeeName }}</span></div>
-        }
-        @if (req.currentApproverRole) {
-          <div class="detail-item">
-            <span class="detail-label">Currently With</span>
-            <span class="detail-value">{{ humanizeRole(req.currentApproverRole) }}@if (req.currentApproverName) {<span> · {{ req.currentApproverName }}</span>}</span>
+  <!-- Modification / rejection banner -->
+  @if (req.rejectionReason) {
+  <div class="modification-banner">
+    <div class="banner-text">
+      <strong>{{ req.status === Status.Rejected ? 'Rejected' :
+        'Modification requested' }}</strong>
+      <span>{{ req.rejectionReason }}</span>
+      @if (req.status === Status.RequestedModifications &&
+      req.lastActionByEmployeeName) {
+      <span class="muted">
+        Waiting on {{ req.lastActionByEmployeeName }}
+        ({{ humanizeRole(req.lastActionByRole) }}) to fix and resubmit.
+      </span>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Workflow stepper -->
+  @if (req.status !== Status.Rejected) {
+  <section class="card">
+    <h2><i class="pi pi-sitemap card-icon teal"></i> Workflow</h2>
+    <div class="stepper">
+      @for (step of steps; track step; let i = $index) {
+      <div class="stepper-node" [class.done]="i < statusStepIndex()"
+        [class.active]="i === statusStepIndex()">
+        <span class="dot"></span>
+        <span class="label">{{ step }}</span>
+      </div>
+      @if (i < steps.length - 1) {
+      <span class="stepper-line" [class.done]="i < statusStepIndex()"></span>
+      }
+      }
+    </div>
+  </section>
+  }
+
+  <!-- Bento grid -->
+  <div class="bento-grid">
+    <!-- Left column -->
+    <div class="col-left">
+      <!-- Position Specifications -->
+      <section class="card specs-card">
+        <h2 class="specs-heading">
+          <i class="pi pi-id-card card-icon orange"></i> Position Specifications
+          @if (isAdHoc()) {
+          <span class="role-badge">New Role</span>
+          }
+        </h2>
+        <div class="specs-grid">
+          <div class="spec-block span-2">
+            <p class="field-caption">{{ isAdHoc() ? 'Proposed Title' : 'Position Title' }}</p>
+            <p class="position-title">{{ heroTitle() }}</p>
           </div>
-        }
-        @if (req.growthJustification) {
-          <div class="detail-item span-2"><span class="detail-label">Justification</span><span class="detail-value">{{ req.growthJustification }}</span></div>
-        }
-      </div>
-    </p-card>
+          <div class="spec-block span-2">
+            <p class="field-caption">{{ isAdHoc() ? 'Proposed Seniority' : 'Seniority' }}</p>
+            <p class="field-value">{{ isAdHoc() ? (req.proposedJobSeniorityLevel ?? '—') : humanizeRole(req.positionSeniorityLevel) }}</p>
+          </div>
+          <div>
+            <p class="field-caption">Requested Headcount</p>
+            <p class="field-value">{{ req.requestedHeadcount }}</p>
+          </div>
+          <div>
+            <p class="field-caption">Hiring Type</p>
+            <p class="field-value">{{ statusLabel(req.hiringType) }}</p>
+          </div>
+        </div>
+      </section>
 
-    <!-- Timeline -->
-    <p-card header="Key Dates (UTC)">
-      <div class="detail-grid">
-        <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{{ req.submittedAtUTC | date: 'MMM d, y, HH:mm' : 'UTC' }}</span></div>
-        <div class="detail-item"><span class="detail-label">Approved</span><span class="detail-value">{{ req.approvedAtUTC | date: 'MMM d, y, HH:mm' : 'UTC' }}</span></div>
-        <div class="detail-item"><span class="detail-label">Published</span><span class="detail-value">{{ req.publishedAtUTC | date: 'MMM d, y, HH:mm' : 'UTC' }}</span></div>
-        <div class="detail-item"><span class="detail-label">Fulfilled</span><span class="detail-value">{{ req.fulfilledAtUTC | date: 'MMM d, y, HH:mm' : 'UTC' }}</span></div>
-        <div class="detail-item"><span class="detail-label">Closed</span><span class="detail-value">{{ req.closedAtUTC | date: 'MMM d, y, HH:mm' : 'UTC' }}</span></div>
-        <div class="detail-item"><span class="detail-label">Last Updated</span><span class="detail-value">{{ req.updatedAtUTC | date: 'MMM d, y, HH:mm' : 'UTC' }}</span></div>
-      </div>
-    </p-card>
-    }
+      <!-- Assignment -->
+      <section class="card">
+        <h2><i class="pi pi-users card-icon teal"></i> Assignment</h2>
+        <div class="role-grid">
+          <div class="role-card" [class.active]="isCurrentApprover(approverRoles.DepartmentHead)">
+            @if (isCurrentApprover(approverRoles.DepartmentHead)) {
+              <span class="approver-chip"><i class="pi pi-arrow-right"></i> Current Approver</span>
+            }
+            <div class="role-head">
+              <span class="role-icon"><i class="pi pi-building-columns"></i></span>
+              <div class="role-head-text">
+                <p class="role-title">Department</p>
+                <p class="role-owner">{{ req.departmentName ?? '—' }}</p>
+              </div>
+            </div>
+            <p class="role-sub">Squad · {{ req.assignedSquadName ?? '—' }}</p>
+          </div>
+
+          <div class="role-card" [class.active]="isCurrentApprover(approverRoles.HiringManager)">
+            @if (isCurrentApprover(approverRoles.HiringManager)) {
+              <span class="approver-chip"><i class="pi pi-arrow-right"></i> Current Approver</span>
+            }
+            <div class="role-head">
+              <span class="role-icon"><i class="pi pi-id-card"></i></span>
+              <div class="role-head-text">
+                <p class="role-title">Hiring Manager</p>
+                <p class="role-owner">{{ req.hiringManagerName ?? '—' }}</p>
+              </div>
+            </div>
+            @if (req.hiringManagerReferenceNumber) {
+              <p class="role-sub ref">{{ req.hiringManagerReferenceNumber }}</p>
+            }
+          </div>
+
+          <div class="role-card" [class.active]="isCurrentApprover(approverRoles.HRManager)">
+            @if (isCurrentApprover(approverRoles.HRManager)) {
+              <span class="approver-chip"><i class="pi pi-arrow-right"></i> Current Approver</span>
+            }
+            <div class="role-head">
+              <span class="role-icon"><i class="pi pi-users"></i></span>
+              <div class="role-head-text">
+                <p class="role-title">HR Manager</p>
+                <p class="role-owner">{{ req.selectedHRManagerName ?? '—' }}</p>
+              </div>
+            </div>
+            @if (req.selectedHRManagerReferenceNumber) {
+              <p class="role-sub ref">{{ req.selectedHRManagerReferenceNumber }}</p>
+            }
+          </div>
+
+          <div class="role-card" [class.active]="isCurrentApprover(approverRoles.SquadLeader)">
+            @if (isCurrentApprover(approverRoles.SquadLeader)) {
+              <span class="approver-chip"><i class="pi pi-arrow-right"></i> Current Approver</span>
+            }
+            <div class="role-head">
+              <span class="role-icon"><i class="pi pi-user"></i></span>
+              <div class="role-head-text">
+                <p class="role-title">Squad Leader</p>
+                <p class="role-owner">{{ req.assignedSquadLeaderName ?? '—' }}</p>
+              </div>
+            </div>
+            <p class="role-sub">Squad · {{ req.assignedSquadName ?? '—' }}</p>
+          </div>
+
+          <div class="role-card" [class.active]="isCurrentApprover(approverRoles.Recruiter)">
+            @if (isCurrentApprover(approverRoles.Recruiter)) {
+              <span class="approver-chip"><i class="pi pi-arrow-right"></i> Current Approver</span>
+            }
+            <div class="role-head">
+              <span class="role-icon"><i class="pi pi-user-plus"></i></span>
+              <div class="role-head-text">
+                <p class="role-title">Assigned Recruiter</p>
+                <p class="role-owner">{{ req.assignedRecruiterName ?? '—' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="assignment-footer">
+          <strong>Last Action By:</strong>
+          {{ req.lastActionByEmployeeName || humanizeRole(req.lastActionByRole) }}@if
+          (req.lastActionByEmployeeName && req.lastActionByRole) {<span
+            class="ref"> · {{ humanizeRole(req.lastActionByRole) }}</span>}
+        </p>
+      </section>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-right">
+      <!-- Lifecycle Dates -->
+      <section class="card dates-card">
+        <h3>Lifecycle Dates</h3>
+        <ul class="dates-list">
+          @if (showTimestamp(req.submittedAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-approved"><i
+                class="pi pi-send"></i></div>
+            <div>
+              <p class="date-caption">Submitted</p>
+              <p class="date-value">{{ req.submittedAt | date: 'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          @if (showTimestamp(req.approvedAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-approved"><i
+                class="pi pi-check-circle"></i></div>
+            <div>
+              <p class="date-caption">Approved</p>
+              <p class="date-value">{{ req.approvedAt | date: 'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          @if (showTimestamp(req.rejectedAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-rejected"><i
+                class="pi pi-times-circle"></i></div>
+            <div>
+              <p class="date-caption">Rejected</p>
+              <p class="date-value">{{ req.rejectedAt | date: 'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          @if (showTimestamp(req.requestedModificationsAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-pending"><i
+                class="pi pi-refresh"></i></div>
+            <div>
+              <p class="date-caption">Modifications Requested</p>
+              <p class="date-value">{{ req.requestedModificationsAt | date:
+                'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          @if (showTimestamp(req.publishedAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-published"><i
+                class="pi pi-globe"></i></div>
+            <div>
+              <p class="date-caption">Published</p>
+              <p class="date-value">{{ req.publishedAt | date: 'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          @if (showTimestamp(req.fulfilledAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-fulfilled"><i
+                class="pi pi-box"></i></div>
+            <div>
+              <p class="date-caption">Fulfilled</p>
+              <p class="date-value">{{ req.fulfilledAt | date: 'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          @if (showTimestamp(req.closedAt)) {
+          <li class="date-item">
+            <div class="date-icon icon-closed"><i class="pi pi-ban"></i></div>
+            <div>
+              <p class="date-caption">Closed</p>
+              <p class="date-value">{{ req.closedAt | date: 'MMM d, y' }}</p>
+            </div>
+          </li>
+          }
+          <li class="date-item">
+            <div class="date-icon icon-created"><i class="pi pi-plus"></i></div>
+            <div>
+              <p class="date-caption">Created</p>
+              <p class="date-value">{{ req.createdAtUTC | date: 'MMM d, y'
+                }}</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Linked References -->
+      <section class="card">
+        <h3>Linked References</h3>
+        <div class="kv-grid">
+          <div class="kv-item">
+            <p class="kv-caption">Manpower Plan</p>
+            @if (req.manPowerPlanId) {
+            <a class="kv-value ref-link" [routerLink]="['/console/manpower-plan',
+              req.manPowerPlanId]">
+              {{ req.manPowerPlanReferenceNumber ?? 'View plan' }}
+              <i class="pi pi-external-link"></i>
+            </a>
+            } @else {
+            <p class="kv-value">{{ req.manPowerPlanReferenceNumber ?? '—' }}</p>
+            }
+          </div>
+          <div class="kv-item">
+            <p class="kv-caption">Position Registry</p>
+            @if (req.positionRegistryId) {
+            <a class="kv-value ref-link" [routerLink]="['/console/admin/positions',
+              req.positionRegistryId]">
+              {{ req.positionReferenceNumber ?? 'View position' }}
+              <i class="pi pi-external-link"></i>
+            </a>
+            } @else {
+            <p class="kv-value">{{ req.positionReferenceNumber ?? '—' }}</p>
+            }
+          </div>
+          <div class="kv-item">
+            <p class="kv-caption">Job Description</p>
+            <div class="kv-value-row">
+              @if (req.jobDescriptionId) {
+              <a class="kv-value ref-link"
+                [routerLink]="['/console/admin/job-descriptions', req.jobDescriptionId]">
+                {{ req.jobDescriptionReferenceNumber ?? 'View description' }}
+                <i class="pi pi-external-link"></i>
+              </a>
+              } @else {
+              <p class="kv-value">{{ req.jobDescriptionReferenceNumber ?? '—' }}</p>
+              }
+              @if (req.jobDescriptionId && isHiringManager()) {
+              <button class="jd-preview-btn" type="button"
+                (click)="openJdPreview()">
+                <i class="pi pi-eye"></i> Preview
+              </button>
+              }
+            </div>
+          </div>
+          <div class="kv-item">
+            <p class="kv-caption">Departing Employee</p>
+            <p class="kv-value">{{ req.departingEmployeeName ?? '—' }}@if
+              (req.departingEmployeeReferenceNumber) {<span class="ref"> · {{
+                req.departingEmployeeReferenceNumber }}</span>}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notes & Reasons -->
+      @if (req.growthJustification || req.rejectionReason || req.onHoldReason ||
+      req.cancelReason) {
+      <section class="card">
+        <h3>Notes &amp; Reasons</h3>
+        <div class="notes-stack">
+          @if (req.growthJustification) {
+          <div class="note-box note-info">
+            <p class="note-caption">Growth Justification</p>
+            <p class="note-text">{{ req.growthJustification }}</p>
+          </div>
+          }
+          @if (req.rejectionReason) {
+          <div class="note-box note-error">
+            <p class="note-caption">{{ req.status === Status.Rejected ?
+              'Rejection Reason' : 'Modification Request' }}</p>
+            <p class="note-text">{{ req.rejectionReason }}</p>
+          </div>
+          }
+          @if (req.onHoldReason) {
+          <div class="note-box note-warn">
+            <p class="note-caption">On-Hold Reason</p>
+            <p class="note-text">{{ req.onHoldReason }}</p>
+          </div>
+          }
+          @if (req.cancelReason) {
+          <div class="note-box note-warn">
+            <p class="note-caption">Close Reason</p>
+            <p class="note-text">{{ req.cancelReason }}</p>
+          </div>
+          }
+        </div>
+      </section>
+      }
+    </div>
+  </div>
+  }
   }
 </div>
 
 <!-- Reason dialog -->
-<p-dialog [(visible)]="reasonDialogVisible" [header]="reasonDialogTitle" [modal]="true" [style]="{ width: '26rem' }">
+<p-dialog [(visible)]="reasonDialogVisible" [header]="reasonDialogTitle"
+  [modal]="true" [style]="{ width: '26rem' }">
   <p class="dialog-subtitle">{{ reasonSubtitle }}</p>
-  <label for="reason-input">Reason @if (!reasonDialogRequired) {<span class="muted">(optional)</span>}</label>
-  <textarea id="reason-input" pTextarea rows="4" [ngModel]="reasonText" (ngModelChange)="reasonText = $event"
+  <label for="reason-input">Reason @if (!reasonDialogRequired) {<span
+      class="muted">(optional)</span>}</label>
+  <textarea id="reason-input" pTextarea rows="4" [ngModel]="reasonText"
+    (ngModelChange)="reasonText = $event"
     [placeholder]="reasonDialogRequired ? 'Type the reason...' : ''"></textarea>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" severity="secondary" [text]="true" (click)="reasonDialogVisible = false"></button>
-    <button pButton type="button" [label]="reasonDialogAcceptLabel" [severity]="reasonSeverity"
-      [disabled]="reasonDialogRequired && !reasonText.trim()" (click)="submitReason()"></button>
+    <button pButton type="button" label="Cancel" severity="secondary"
+      [text]="true" (click)="reasonDialogVisible = false"></button>
+    <button pButton type="button" [label]="reasonDialogAcceptLabel"
+      [severity]="reasonSeverity"
+      [disabled]="reasonDialogRequired && !reasonText.trim()"
+      (click)="submitReason()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- Assign recruiter dialog -->
-<p-dialog [(visible)]="assignDialogVisible" header="Assign Recruiter" [modal]="true" [style]="{ width: '24rem' }">
+<p-dialog [(visible)]="assignDialogVisible" header="Assign Recruiter"
+  [modal]="true" [style]="{ width: '34rem', maxWidth: '95vw' }">
   <label for="recruiter-select">Recruiter</label>
-  <p-select inputId="recruiter-select" [options]="recruiters()" optionLabel="viewText" optionValue="id"
-    placeholder="Select recruiter" [ngModel]="selectedRecruiterId" (ngModelChange)="selectedRecruiterId = $event"
-    styleClass="w-full" />
+  <p-select inputId="recruiter-select" [options]="recruiterOptions()"
+    optionLabel="viewText" optionValue="id"
+    placeholder="Select recruiter" [ngModel]="selectedRecruiterId"
+    (ngModelChange)="selectedRecruiterId = $event"
+    styleClass="w-full assign-recruiter-field"
+    panelStyleClass="assign-recruiter-panel" appendTo="body" />
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" severity="secondary" [text]="true" (click)="assignDialogVisible = false"></button>
-    <button pButton type="button" label="Assign" [disabled]="!selectedRecruiterId" (click)="confirmAssignRecruiter()"></button>
+    <button pButton type="button" label="Cancel" severity="secondary"
+      [text]="true" (click)="assignDialogVisible = false"></button>
+    <button pButton type="button" label="Assign"
+      [disabled]="!selectedRecruiterId"
+      (click)="confirmAssignRecruiter()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modify dialog -->
+<p-dialog [(visible)]="modifyDialogVisible" header="Modify Requisition"
+  [modal]="true" [style]="{ width: '28rem' }">
+  <div class="edit-form">
+    @if (requisition(); as req) {
+    @if (req.proposedJobTitle !== undefined || true) {
+    <label for="edit-title">Proposed job title</label>
+    <input id="edit-title" pInputText [ngModel]="editJobTitle"
+      (ngModelChange)="editJobTitle = $event" />
+    <label for="edit-seniority">Seniority</label>
+    <p-select inputId="edit-seniority" [options]="seniorityLevels"
+      placeholder="Select seniority"
+      [ngModel]="editSeniority" (ngModelChange)="editSeniority = $event"
+      styleClass="w-full" />
+    }
+    <label for="edit-headcount">Requested headcount</label>
+    <p-inputnumber inputId="edit-headcount" [min]="1" [max]="50"
+      [ngModel]="editHeadcount"
+      (ngModelChange)="editHeadcount = $event" styleClass="w-full" />
+    <label for="edit-location">Location</label>
+    <p-select inputId="edit-location" [options]="locations"
+      placeholder="Select location"
+      [ngModel]="editLocation" (ngModelChange)="editLocation = $event"
+      styleClass="w-full" />
+    <label for="edit-justification">Justification</label>
+    <textarea id="edit-justification" pTextarea rows="3"
+      [ngModel]="editJustification"
+      (ngModelChange)="editJustification = $event"></textarea>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancel" severity="secondary"
+      [text]="true" (click)="modifyDialogVisible = false"></button>
+    <button pButton type="button" label="Save Changes"
+      [disabled]="!editHeadcount || editHeadcount < 1"
+      (click)="saveModify()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- Attach JD dialog -->
-<p-dialog [(visible)]="attachDialogVisible" header="Attach Job Description" [modal]="true" [style]="{ width: '26rem' }">
-  <p class="dialog-subtitle">Pick one of the squad's draft job descriptions to submit for hiring-manager review.</p>
-  <label for="jd-select">Draft job description</label>
-  <p-select inputId="jd-select" [options]="draftDescriptions()" optionLabel="viewText" optionValue="id"
-    placeholder="Select draft JD" [ngModel]="selectedJobDescriptionId" (ngModelChange)="selectedJobDescriptionId = $event"
-    styleClass="w-full" />
+<p-dialog [(visible)]="attachJdDialogVisible" header="Attach Job Description"
+  [modal]="true" [style]="{ width: '50rem', maxWidth: '95vw' }">
+  <p-tabView [activeIndex]="jdTabIndex" (activeIndexChange)="onJdTabChange($event)">
+    <p-tabPanel header="Existing JD">
+      <div class="jd-pick-body">
+        <label for="jd-pick-select">Select an existing draft job description</label>
+        <p-select inputId="jd-pick-select" [options]="jdOptions()"
+          optionLabel="viewText" optionValue="id"
+          placeholder="Pick a draft JD..." [filter]="true"
+          filterBy="viewText,secondaryText" [loading]="jdLoading()"
+          [ngModel]="selectedJdId"
+          (ngModelChange)="selectedJdId = $event"
+          styleClass="w-full attach-jd-field"
+          panelStyleClass="attach-jd-panel" appendTo="body" />
+        <small class="field-hint">Only draft job descriptions are listed.</small>
+      </div>
+    </p-tabPanel>
+    @if (hasAttachedJd()) {
+    <p-tabPanel header="Edit Attached JD">
+      <div class="jd-create-form" [formGroup]="jdForm">
+        <label for="jd-edit-title">Job title</label>
+        <input id="jd-edit-title" pInputText formControlName="title" />
+        @if (jdForm.controls.title.invalid && jdForm.controls.title.touched) {
+        <small class="field-error">Job title is required</small>
+        }
+        <label for="jd-edit-summary">Summary</label>
+        <textarea id="jd-edit-summary" pTextarea rows="2" formControlName="summary"></textarea>
+        <label for="jd-edit-responsibilities">Responsibilities</label>
+        <p-editor id="jd-edit-responsibilities" formControlName="responsibilities"
+          [style]="{ height: '160px' }" />
+        <label for="jd-edit-requirements">Requirements</label>
+        <p-editor id="jd-edit-requirements" formControlName="requirements"
+          [style]="{ height: '140px' }" />
+      </div>
+    </p-tabPanel>
+    }
+    <p-tabPanel header="Create New JD">
+      <div class="jd-create-form" [formGroup]="jdForm">
+        <label for="jd-title">Job title</label>
+        <input id="jd-title" pInputText formControlName="title"
+          placeholder="e.g. NLP Specialist" />
+        @if (jdForm.controls.title.invalid && jdForm.controls.title.touched) {
+        <small class="field-error">Job title is required</small>
+        }
+        <label for="jd-employment"><span>Employment type</span></label>
+        <p-select inputId="jd-employment" [options]="employmentTypeOptions"
+          formControlName="employmentType"
+          styleClass="w-full" />
+        <label for="jd-summary">Summary</label>
+        <textarea id="jd-summary" pTextarea rows="2" formControlName="summary"
+          placeholder="Short summary of the role"></textarea>
+        <label for="jd-responsibilities">Responsibilities</label>
+        <p-editor id="jd-responsibilities" formControlName="responsibilities"
+          [style]="{ height: '160px' }" />
+        <label for="jd-requirements">Requirements</label>
+        <p-editor id="jd-requirements" formControlName="requirements"
+          [style]="{ height: '140px' }" />
+      </div>
+    </p-tabPanel>
+  </p-tabView>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" severity="secondary" [text]="true" (click)="attachDialogVisible = false"></button>
-    <button pButton type="button" label="Attach & Submit" [disabled]="!selectedJobDescriptionId" (click)="confirmAttachJobDescription()"></button>
+    <button pButton type="button" label="Cancel" severity="secondary"
+      [text]="true" [disabled]="jdSubmitting()"
+      (click)="attachJdDialogVisible = false"></button>
+    @if (jdMode === 'pick') {
+    <button pButton type="button" label="Attach JD" [loading]="jdSubmitting()"
+      [disabled]="!selectedJdId || jdLoading()"
+      (click)="attachSelectedJd()"></button>
+    } @else if (jdMode === 'edit') {
+    <button pButton type="button" label="Save & Re-attach"
+      [loading]="jdSubmitting()" [disabled]="jdSubmitting()"
+      (click)="saveAndReattachJd()"></button>
+    } @else {
+    <button pButton type="button" label="Create & Attach"
+      [loading]="jdSubmitting()" [disabled]="jdSubmitting()"
+      (click)="createAndAttachJd()"></button>
+    }
   </ng-template>
 </p-dialog>
 
-<!-- Edit draft dialog -->
-<p-dialog [(visible)]="editDialogVisible" header="Edit Draft" [modal]="true" [style]="{ width: '28rem' }">
-  <div class="edit-form">
-    @if (requisition(); as req) {
-      @if (req.requisitionType === 'GROWTH_ADHOC' || req.requisitionType === 'GROWTH_EXISTING' || req.requisitionType === 'PLANNED_ADHOC') {
-        <label for="edit-title">Proposed job title</label>
-        <input id="edit-title" pInputText [ngModel]="editJobTitle" (ngModelChange)="editJobTitle = $event" />
-        <label for="edit-seniority">Seniority</label>
-        <p-select inputId="edit-seniority" [options]="seniorityLevels" placeholder="Select seniority"
-          [ngModel]="editSeniority" (ngModelChange)="editSeniority = $event" styleClass="w-full" />
+<!-- JD Preview dialog (Hiring Manager) -->
+<p-dialog [(visible)]="jdPreviewDialogVisible" [modal]="true"
+  [style]="{ width: '52rem', maxWidth: '95vw' }">
+  <ng-template pTemplate="header">
+    <div class="jd-preview-header">
+      <div>
+        <p class="jd-preview-ref">
+          {{ jdPreview()?.referenceNumber ?? 'Job Description' }}
+        </p>
+        <p class="jd-preview-title">{{ jdPreview()?.title ?? 'Preview' }}</p>
+      </div>
+      @if (jdPreview()?.status; as jdStatus) {
+      <span class="status-pill pill-info">{{ statusLabel(jdStatus) }}</span>
       }
-      <label for="edit-headcount">Requested headcount</label>
-      <p-inputnumber inputId="edit-headcount" [min]="1" [max]="50" [ngModel]="editHeadcount"
-        (ngModelChange)="editHeadcount = $event" styleClass="w-full" />
-      <label for="edit-location">Location</label>
-      <p-select inputId="edit-location" [options]="locations" placeholder="Select location"
-        [ngModel]="editLocation" (ngModelChange)="editLocation = $event" styleClass="w-full" />
-      <label for="edit-justification">Justification</label>
-      <textarea id="edit-justification" pTextarea rows="3" [ngModel]="editJustification"
-        (ngModelChange)="editJustification = $event"></textarea>
+    </div>
+  </ng-template>
+  @if (jdPreviewLoading()) {
+  <div class="state-center">
+    <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+  </div>
+  } @else {
+  @let jd = jdPreview();
+  @if (jd) {
+  <div class="jd-preview-body">
+    <div class="kv-grid jd-preview-meta">
+      @if (jd.employmentType) {
+      <div class="kv-item">
+        <p class="kv-caption">Employment Type</p>
+        <p class="kv-value">{{ statusLabel(jd.employmentType) }}</p>
+      </div>
+      }
+      @if (jd.author) {
+      <div class="kv-item">
+        <p class="kv-caption">Author</p>
+        <p class="kv-value">{{ jd.author }}</p>
+      </div>
+      }
+      @if (jd.lastUpdatedAtUTC) {
+      <div class="kv-item">
+        <p class="kv-caption">Last Updated</p>
+        <p class="kv-value">{{ jd.lastUpdatedAtUTC | date: 'MMM d, y' }}</p>
+      </div>
+      }
+    </div>
+
+    @if (jd.summary) {
+    <section class="jd-preview-section">
+      <h4>Summary</h4>
+      <p class="jd-preview-text">{{ jd.summary }}</p>
+    </section>
+    }
+    @if (jd.responsibilities) {
+    <section class="jd-preview-section">
+      <h4>Responsibilities</h4>
+      <div class="jd-preview-html" [innerHTML]="jd.responsibilities"></div>
+    </section>
+    }
+    @if (jd.requirements) {
+    <section class="jd-preview-section">
+      <h4>Requirements</h4>
+      <div class="jd-preview-html" [innerHTML]="jd.requirements"></div>
+    </section>
+    }
+    @if (!jd.responsibilities && !jd.requirements && !jd.summary) {
+    <p class="muted">This job description has no content yet.</p>
     }
   </div>
+  } @else {
+  <p class="muted">Unable to load the job description.</p>
+  }
+  }
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" severity="secondary" [text]="true" (click)="editDialogVisible = false"></button>
-    <button pButton type="button" label="Save Changes" [disabled]="!editHeadcount || editHeadcount < 1" (click)="saveDraftEdits()"></button>
+    <button pButton type="button" label="Close" severity="secondary"
+      [text]="true" (click)="jdPreviewDialogVisible = false"></button>
   </ng-template>
 </p-dialog>
-
-<p-toast />

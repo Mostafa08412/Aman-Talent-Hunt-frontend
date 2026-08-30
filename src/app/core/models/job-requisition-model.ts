@@ -1,250 +1,198 @@
 // ============================================================
-// Job Requisition module — DTOs mirroring secrets/job-req-module.md
-// (one resource, view-scoped lists, server-computed permittedActions)
+// Job Requisition module — DTOs mirroring the shipped backend contract
+// (AdminRequisitionsController + LookupsController). Field names / wire
+// values match AmanTalentHunt.Application DTOs 1:1.
 // ============================================================
 
-import type { PagedResult, ResultWithData } from './common';
-import { HiringType, Location, SeniorityLevel } from './enums';
+import type { PagedResult, Result, ResultWithData } from './common';
 
 // Re-exported so screens can treat this file as the module's single model import.
-export { HiringType, Location, SeniorityLevel };
+export { HiringType, Location, SeniorityLevel } from './enums';
+import { HiringType, Location, SeniorityLevel } from './enums';
 
-// Creation discriminator — derived on the backend into HiringType + IsAdHocJob.
-export enum RequisitionType {
-  PlannedAdHoc = 'PLANNED_ADHOC',
-  PlannedExisting = 'PLANNED_EXISTING',
-  Replacement = 'REPLACEMENT',
-  GrowthAdHoc = 'GROWTH_ADHOC',
-  GrowthExisting = 'GROWTH_EXISTING',
-}
-
+// Wire values for RequisitionStatus (AmanTalentHunt.Domain.Enums.RequisitionStatus).
+// The API serializes enums via JsonStringEnumConverter with default naming, so the wire
+// values are the raw PascalCase member names.
 export enum JobRequisitionStatus {
-  Draft = 'DRAFT',
-  PendingBudgetApproval = 'PENDING_BUDGET_APPROVAL',
-  PendingAttachingJD = 'PENDING_ATTACHING_JD',
-  PendingJDApproval = 'PENDING_JD_APPROVAL',
-  PendingHRManagerApproval = 'PENDING_HR_MANAGER_APPROVAL',
-  Approved = 'APPROVED',
-  Rejected = 'REJECTED',
-  Published = 'PUBLISHED',
-  OnHold = 'ON_HOLD',
-  Fulfilled = 'FULFILLED',
-  Closed = 'CLOSED',
+  Draft = 'Draft',
+  PendingBudgetApproval = 'PendingBudgetApproval',
+  PendingAttachingJD = 'PendingAttachingJD',
+  PendingJDApproval = 'PendingJDApproval',
+  PendingHRManagerApproval = 'PendingHRManagerApproval',
+  Approved = 'Approved',
+  Rejected = 'Rejected',
+  RequestedModifications = 'RequestedModifications',
+  Published = 'Published',
+  Fulfilled = 'Fulfilled',
+  OnHold = 'OnHold',
+  Closed = 'Closed',
 }
 
-export enum ApproverRole {
-  DepartmentHead = 'DEPARTMENT_HEAD',
-  HiringManager = 'HIRING_MANAGER',
-  HRManager = 'HR_MANAGER',
-  Recruiter = 'RECRUITER',
+// Wire values for RequisitionAvailableAction (per-caller affordances returned on
+// every detail response). The UI renders buttons from this list, not from status/role.
+export enum RequisitionAvailableAction {
+  Submit = 'Submit',
+  Modify = 'Modify',
+  AttachJD = 'AttachJD',
+  AssignRecruiter = 'AssignRecruiter',
+  Approve = 'Approve',
+  Reject = 'Reject',
+  RequestModifications = 'RequestModifications',
+  Publish = 'Publish',
+  OnHold = 'OnHold',
+  Resume = 'Resume',
+  Cancel = 'Cancel',
+  Fulfill = 'Fulfill',
 }
 
-// Values that can appear in JobRequisitionDetail.permittedActions.
-export enum PermittedAction {
-  Submit = 'SUBMIT',
-  ApproveDepartmentHead = 'APPROVE_DEPARTMENT_HEAD',
-  ApproveHiringManager = 'APPROVE_HIRING_MANAGER',
-  ApproveHRManager = 'APPROVE_HR_MANAGER',
-  Reject = 'REJECT',
-  RequestModification = 'REQUEST_MODIFICATION',
-  AssignRecruiter = 'ASSIGN_RECRUITER',
-  AttachJobDescription = 'ATTACH_JOB_DESCRIPTION',
-  Publish = 'PUBLISH',
-  Hold = 'HOLD',
-  Resume = 'RESUME',
-  Fulfill = 'FULFILL',
-  Close = 'CLOSE',
-  EditDraft = 'EDIT_DRAFT',
+// Creation discriminator used by the New Requisition wizard. The backend models this
+// via HiringType + optional ids; the wizard maps it into a CreateRequisitionRequest.
+export enum RequisitionType {
+  PlannedExisting = 'PLANNED_EXISTING',
+  PlannedAdHoc = 'PLANNED_ADHOC',
+  Replacement = 'REPLACEMENT',
+  GrowthExisting = 'GROWTH_EXISTING',
+  GrowthAdHoc = 'GROWTH_ADHOC',
 }
 
-export type RequisitionView =
-  | 'mine'
-  | 'pendingMyApproval'
-  | 'pendingMyModification'
-  | 'assignedToMySquad'
-  | 'ownedByMySquad'
-  | 'departmentAll'
-  | 'all';
-
-export interface ManPowerPlanRef {
+// JobRequisitionListItemDto — rows for the list / queue screens.
+export interface JobRequisitionListItemDto {
   id: string;
-  referenceNumber: string;
-  isNewPositionTitle: boolean;
-}
-
-export interface PositionRegistryRef {
-  id: string | null;
-  referenceNumber: string;
-  title: string | null;
-  isActive: boolean;
-}
-
-export interface JobDescriptionRef {
-  id: string | null;
-  referenceNumber: string;
-  status: 'Draft' | 'Approved' | null;
-}
-
-export interface AssignedSquadRef {
-  id: string;
-  name: string;
-  leaderId: string;
-}
-
-export interface JobRequisitionSummary {
-  id: string;
-  referenceNumber: string;
-  requisitionType: RequisitionType;
-  status: JobRequisitionStatus;
-  departmentId: string;
-  departmentName: string;
-  requestedHeadcount: number;
-  location: Location;
-  hiringManagerId: string;
-  hiringManagerName: string;
-  currentApproverRole: ApproverRole | null;
-  currentApproverId: string | null;
-  currentApproverName: string | null;
-  proposedJobTitle: string;
-  submittedAtUTC: string | null;
-  updatedAtUTC: string | null;
-}
-
-export interface JobRequisitionDetail extends JobRequisitionSummary {
-  isAdHocJob: boolean;
+  referenceNumber: string | null;
+  positionTitle: string | null;
   hiringType: HiringType;
-  manPowerPlan: ManPowerPlanRef | null;
-  positionRegistry: PositionRegistryRef | null;
-  jobDescription: JobDescriptionRef | null;
-  assignedSquad: AssignedSquadRef;
+  status: JobRequisitionStatus;
+  requestedHeadcount: number;
+  departmentName: string | null;
+  assignedSquadName: string | null;
+  assignedSquadLeaderId: string | null;
+  assignedSquadLeaderName: string | null;
   assignedRecruiterId: string | null;
+  assignedRecruiterName: string | null;
+  hiringManagerId: string;
+  hiringManagerReferenceNumber: string | null;
+  hiringManagerName: string | null;
+  // Who performed the action that produced the current status. Populated for the
+  // "needs my fix" (pending-modifications) queue so the screen can show who must act.
+  lastActionByEmployeeId: string | null;
+  lastActionByEmployeeName: string | null;
+  lastActionByRole: string | null;
+  rejectionReason: string | null;
+  requestedModificationsAt: string | null;
+  createdAtUTC: string;
+}
+
+// JobRequisitionDetailDto — single-resource read, extends the list row fields.
+export interface JobRequisitionDetailDto extends JobRequisitionListItemDto {
+  location: Location;
+  manPowerPlanId: string | null;
+  manPowerPlanReferenceNumber: string | null;
+  positionRegistryId: string | null;
+  positionReferenceNumber: string | null;
+  positionSeniorityLevel: string | null;
+  jobDescriptionId: string | null;
+  jobDescriptionReferenceNumber: string | null;
+  jobPostId: string | null;
+  proposedJobTitle: string | null;
+  proposedJobSeniorityLevel: SeniorityLevel | null;
   departingEmployeeName: string | null;
   departingEmployeeId: string | null;
+  departingEmployeeReferenceNumber: string | null;
   growthJustification: string | null;
+  selectedHRManagerId: string;
+  selectedHRManagerReferenceNumber: string | null;
+  selectedHRManagerName: string | null;
+  currentApproverId: string | null;
+  currentApproverReferenceNumber: string | null;
+  currentApproverRole: string | null;
+  // Distinct from lastActionBy*: lastActionBy is who produced the current status
+  // (the one responsible for fixing a REQUESTED_MODIFICATIONS).
+  submittedAt: string | null;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  requestedModificationsAt: string | null;
+  publishedAt: string | null;
+  closedAt: string | null;
+  fulfilledAt: string | null;
   rejectionReason: string | null;
   onHoldReason: string | null;
   cancelReason: string | null;
-  approvedAtUTC: string | null;
-  publishedAtUTC: string | null;
-  rejectedAtUTC: string | null;
-  fulfilledAtUTC: string | null;
-  closedAtUTC: string | null;
-  isLockedForModification: boolean;
-  isReassignmentLocked: boolean;
-  // Populated while rejectionReason != null — the actor responsible for fixing the
-  // requisition (the one whose action produced the current status), not the approver.
-  pendingModificationOwnerId: string | null;
-  pendingModificationOwnerName: string | null;
-  pendingModificationOwnerRole: ApproverRole | null;
-  // Computed server-side per caller — the UI never derives actions from status/role.
-  permittedActions: PermittedAction[];
+  createdAtUTC: string;
+  availableActions: RequisitionAvailableAction[];
 }
 
+// JobRequisitionFilter — query params for the list / pending-approvals /
+// pending-modifications endpoints (BaseFilter paging + scoped filters).
 export interface JobRequisitionListQuery {
-  view: RequisitionView;
-  status?: JobRequisitionStatus[];
-  departmentId?: string;
-  squadId?: string;
   hiringType?: HiringType;
-  isAdHocJob?: boolean;
+  status?: JobRequisitionStatus;
+  departmentId?: string;
+  recruiterId?: string;
+  squadId?: string;
+  createdBy?: string;
+  year?: number;
   search?: string;
+  sortBy?: string;
+  sortAscending?: boolean;
   page?: number;
   pageSize?: number;
-  sortBy?: string;
-  sortDir?: 'asc' | 'desc';
 }
 
-export type JobRequisitionPagedResult = PagedResult<JobRequisitionSummary>;
+export type JobRequisitionPagedResult = PagedResult<JobRequisitionListItemDto>;
 export type JobRequisitionPagedResultResult = ResultWithData<JobRequisitionPagedResult>;
-export type JobRequisitionDetailResult = ResultWithData<JobRequisitionDetail>;
+export type JobRequisitionDetailResult = ResultWithData<JobRequisitionDetailDto>;
 
-// ── Create payloads, discriminated by requisitionType ──
+// ── Request payloads ──
 
-export interface CreateGrowthRequestBase {
-  requisitionType: RequisitionType.GrowthAdHoc | RequisitionType.GrowthExisting;
-  departmentId: string;
-  departmentHeadId?: string | null;
+// Matches backend CreateRequisitionRequest (discriminated by hiringType + which
+// optional id is present).
+export interface CreateRequisitionRequest {
+  hiringType: HiringType;
   assignedSquadId: string;
-  location: Location;
+  departmentId: string;
   requestedHeadcount: number;
-  growthJustification?: string | null;
-  proposedJobTitle: string;
-  proposedJobSeniorityLevel: SeniorityLevel;
-  hrManagerId: string;
+  location: Location;
+  selectedHRManagerId: string;
+
+  manPowerPlanId?: string | null; // Planned (Backfill) paths
+  positionRegistryId?: string | null; // Existing-job paths
+  proposedJobTitle?: string | null; // Ad-hoc / proposed paths
+  proposedJobSeniorityLevel?: SeniorityLevel | null;
+  departingEmployeeName?: string | null; // Replacement only
+  departingEmployeeId?: string | null; // Replacement only
+  growthJustification?: string | null; // Growth only
 }
 
-export interface CreatePlannedExistingRequest {
-  requisitionType: RequisitionType.PlannedExisting;
-  manPowerPlanId: string;
-  departmentId: string;
-  assignedSquadId: string;
-  location: Location;
-  requestedHeadcount: number;
-  hrManagerId: string;
-}
-
-export interface CreatePlannedAdHocRequest {
-  requisitionType: RequisitionType.PlannedAdHoc;
-  manPowerPlanId?: string | null;
-  departmentId: string;
-  assignedSquadId: string;
-  location: Location;
-  requestedHeadcount: number;
-  proposedJobTitle: string;
-  proposedJobSeniorityLevel: SeniorityLevel;
-  growthJustification?: string | null;
-  hrManagerId: string;
-}
-
-export interface CreateReplacementRequest {
-  requisitionType: RequisitionType.Replacement;
-  departmentId: string;
-  assignedSquadId: string;
-  location: Location;
-  departingEmployeeName: string;
-  departingEmployeeId: string;
-  positionRegistryId: string;
-  requestedHeadcount: number;
-  hrManagerId: string;
-}
-
-export type CreateJobRequisitionRequest =
-  | CreateGrowthRequestBase
-  | CreatePlannedExistingRequest
-  | CreatePlannedAdHocRequest
-  | CreateReplacementRequest;
-
-// PATCH /job-requisitions/{id} — mutable Draft fields only.
-export interface PatchDraftRequest {
+// Matches backend UpdateRequisitionRequest (mutable Draft / REQUESTED_MODIFICATIONS fields).
+export interface UpdateRequisitionRequest {
   requestedHeadcount: number;
   location: Location;
+  departingEmployeeName?: string | null;
+  departingEmployeeId?: string | null;
   growthJustification?: string | null;
   proposedJobTitle?: string | null;
   proposedJobSeniorityLevel?: SeniorityLevel | null;
 }
 
-export interface ReasonRequest {
-  reason: string;
-}
-
-export interface AssignRecruiterPayload {
+export interface AssignRecruiterRequest {
   recruiterId: string;
 }
 
-export interface AttachJobDescriptionPayload {
-  jobDescriptionId: string;
+export interface RejectRequisitionRequest {
+  reason: string;
 }
 
-export interface CloseRequest {
+export interface RequestModificationsRequest {
+  comment: string;
+}
+
+export interface RequisitionLifecycleRequest {
   reason: string | null;
 }
 
-export interface PendingCountResult extends ResultWithData<{ count: number }> {}
-
-// HR oversight aggregate — Time-to-Fill and Time-to-Hire for now.
-export interface RequisitionStatsDto {
-  totalRequisitions: number;
-  byStatus: Record<string, number>;
-  averageTimeToFillDays: number | null;
-  averageTimeToHireDays: number | null;
+// POST /api/admin/requisitions/{id}/attach-jd — links a Job Description to the requisition.
+export interface AttachJobDescriptionToRequisitionRequest {
+  jobDescriptionId: string;
 }
+
+export type { Result };

@@ -2,18 +2,21 @@
   <div class="page-header">
     <div class="page-header-text">
       <h1>New Requisition</h1>
-      <p>Pick the hiring scenario, fill the details, review, then create a draft</p>
+      <p>Pick the hiring scenario, fill the details, review, then create a
+        draft</p>
     </div>
   </div>
 
   <!-- Step indicator -->
   <div class="wizard-steps">
-    <button class="wizard-step" type="button" [class.active]="step() === 1" [class.done]="step() > 1"
+    <button class="wizard-step" type="button" [class.active]="step() === 1"
+      [class.done]="step() > 1"
       (click)="backToType()">
       <span class="index">1</span> Type
     </button>
     <span class="wizard-line" [class.done]="step() > 1"></span>
-    <button class="wizard-step" type="button" [class.active]="step() === 2" [class.done]="step() > 2"
+    <button class="wizard-step" type="button" [class.active]="step() === 2"
+      [class.done]="step() > 2"
       [disabled]="!selectedType()" (click)="selectedType() && backToDetails()">
       <span class="index">2</span> Details
     </button>
@@ -25,148 +28,251 @@
 
   <!-- Step 1: requisition type -->
   @if (step() === 1) {
-    <div class="type-grid">
-      @for (card of typeCards; track card.value) {
-        <button class="type-card" type="button" [class.selected]="selectedType() === card.value"
-          (click)="pickType(card.value)">
-          <i class="pi card-icon" [class]="'pi ' + card.icon"></i>
-          <span class="card-label">{{ card.label }}</span>
-          <span class="card-description">{{ card.description }}</span>
-        </button>
-      }
-    </div>
-    <div class="form-actions">
-      <button pButton type="button" label="Continue" icon="pi pi-arrow-right" iconPos="right"
-        [disabled]="!selectedType()" (click)="goToDetails()"></button>
-    </div>
+  <div class="type-grid">
+    @for (card of typeCards; track card.value) {
+    <button class="type-card" type="button"
+      [class.selected]="selectedType() === card.value"
+      (click)="pickType(card.value)">
+      <span class="card-icon-wrap"><i class="pi card-icon"
+        [class]="'pi ' + card.icon"></i></span>
+      <span class="card-label">{{ card.label }}</span>
+      <span class="card-description">{{ card.description }}</span>
+      <span class="check-badge"><i class="pi pi-check"></i></span>
+    </button>
+    }
+  </div>
+  <div class="form-actions">
+    <button pButton type="button" label="Continue" icon="pi pi-arrow-right"
+      iconPos="right"
+      [disabled]="!selectedType()" (click)="goToDetails()"></button>
+  </div>
   }
 
   <!-- Step 2: details form -->
   @if (step() === 2) {
-    <form [formGroup]="form" (ngSubmit)="goToReview()">
-      <p-card header="Assignment">
-        <div class="form-grid">
-          <div class="field">
-            <label for="department">Department *</label>
-            <p-select inputId="department" formControlName="departmentId" [options]="departments()"
-              optionLabel="viewText" optionValue="id" placeholder="Select department" styleClass="w-full"
-              (onChange)="onDepartmentChanged()" />
+  <form [formGroup]="form" (ngSubmit)="goToReview()">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="card-head">
+          <span class="card-head-icon"><i class="pi pi-id-card"></i></span>
+          <div class="card-head-text">
+            <h2>Assignment</h2>
+            <p>Where the new headcount is placed in the organization</p>
           </div>
-          <div class="field">
-            <label for="squad">Assigned Squad *</label>
-            <p-select inputId="squad" formControlName="assignedSquadId" [options]="squads()"
-              optionLabel="viewText" optionValue="id" placeholder="Select squad" styleClass="w-full" />
-          </div>
-          <div class="field">
-            <label for="hr-manager">HR Manager *</label>
-            <p-select inputId="hr-manager" formControlName="hrManagerId" [options]="hrManagers()"
-              optionLabel="viewText" optionValue="id" placeholder="Select HR manager" styleClass="w-full" />
-          </div>
-          @if (isGrowth()) {
-            <div class="field">
-              <label for="dept-head">Department Head</label>
-              <p-select inputId="dept-head" formControlName="departmentHeadId" [options]="departmentHeads()"
-                optionLabel="viewText" optionValue="id" placeholder="Select department head" [showClear]="true"
-                styleClass="w-full" />
-            </div>
+        </div>
+      </ng-template>
+      <div class="form-grid">
+        <div class="field" [class.has-error]="hasError(form.controls.departmentId)">
+          <label for="department">Department *</label>
+          <p-select inputId="department" formControlName="departmentId"
+            [options]="departments()"
+            optionLabel="viewText" optionValue="id"
+            placeholder="Select department" styleClass="w-full"
+            (onChange)="onDepartmentChanged()" />
+          @if (form.controls.departmentId.invalid && form.controls.departmentId.touched) {
+            <small class="field-error">Department is required</small>
           }
         </div>
-      </p-card>
-
-      <p-card header="Position & Openings">
-        <div class="form-grid">
-          @if (isGrowth() || selectedType() === RequisitionType.PlannedAdHoc) {
-            <div class="field">
-              <label for="job-title">Proposed Job Title *</label>
-              <input id="job-title" pInputText formControlName="proposedJobTitle"
-                placeholder="e.g. Senior Platform Engineer" />
-            </div>
-            <div class="field">
-              <label for="seniority">Seniority *</label>
-              <p-select inputId="seniority" formControlName="proposedJobSeniorityLevel" [options]="seniorityLevels"
-                placeholder="Select seniority" styleClass="w-full" />
-            </div>
-          }
-
-          @if (selectedType() === RequisitionType.PlannedExisting) {
-            <div class="field span-2">
-              <label for="mpp">Manpower Plan *</label>
-              <p-select inputId="mpp" formControlName="manPowerPlanId" [options]="manpowerPlans()"
-                optionLabel="viewText" optionValue="id" placeholder="Select open manpower plan line"
-                styleClass="w-full" />
-            </div>
-          }
-
-          @if (selectedType() === RequisitionType.PlannedAdHoc) {
-            <div class="field span-2">
-              <label for="mpp-adhoc">Manpower Plan</label>
-              <p-select inputId="mpp-adhoc" formControlName="manPowerPlanId" [options]="manpowerPlans()"
-                optionLabel="viewText" optionValue="id" placeholder="Link an open plan line (optional)"
-                [showClear]="true" styleClass="w-full" />
-            </div>
-          }
-
-          @if (selectedType() === RequisitionType.Replacement) {
-            <div class="field">
-              <label for="departing">Departing Employee *</label>
-              <p-select inputId="departing" formControlName="departingEmployeeId" [options]="departingEmployees()"
-                optionLabel="viewText" optionValue="id" placeholder="Select departing employee" styleClass="w-full" />
-            </div>
-            <div class="field">
-              <label for="position">Position Registry *</label>
-              <p-select inputId="position" formControlName="positionRegistryId" [options]="positions()"
-                optionLabel="viewText" optionValue="id" placeholder="Select position" styleClass="w-full" />
-            </div>
-          }
-
-          <div class="field">
-            <label for="headcount">Requested Headcount *</label>
-            <p-inputnumber inputId="headcount" formControlName="requestedHeadcount" [min]="1" [max]="50"
-              styleClass="w-full" />
-          </div>
-          <div class="field">
-            <label for="location">Location *</label>
-            <p-select inputId="location" formControlName="location" [options]="locations"
-              placeholder="Select location" styleClass="w-full" />
-          </div>
-
-          @if (isGrowth()) {
-            <div class="field span-2">
-              <label for="justification">Growth Justification @if (selectedType() === RequisitionType.GrowthAdHoc) {*}</label>
-              <textarea id="justification" pTextarea rows="3" formControlName="growthJustification"
-                placeholder="Why does this growth require the new headcount?"></textarea>
-            </div>
+        <div class="field" [class.has-error]="hasError(form.controls.assignedSquadId)">
+          <label for="squad">Assigned Squad *</label>
+          <p-select inputId="squad" formControlName="assignedSquadId"
+            [options]="squads()"
+            optionLabel="viewText" optionValue="id" placeholder="Select squad"
+            styleClass="w-full" />
+          @if (form.controls.assignedSquadId.invalid && form.controls.assignedSquadId.touched) {
+            <small class="field-error">Assigned squad is required</small>
           }
         </div>
-      </p-card>
-
-      <div class="form-actions">
-        <button pButton type="button" label="Back" severity="secondary" [text]="true" (click)="backToType()"></button>
-        <button pButton type="submit" label="Review" icon="pi pi-arrow-right" iconPos="right"></button>
+        <div class="field" [class.has-error]="hasError(form.controls.hrManagerId)">
+          <label for="hr-manager">HR Manager *</label>
+          <p-select inputId="hr-manager" formControlName="hrManagerId"
+            [options]="hrManagers()"
+            optionLabel="viewText" optionValue="id"
+            placeholder="Select HR manager" styleClass="w-full" />
+          @if (form.controls.hrManagerId.invalid && form.controls.hrManagerId.touched) {
+            <small class="field-error">HR manager is required</small>
+          }
+        </div>
       </div>
-    </form>
+    </p-card>
+
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="card-head">
+          <span class="card-head-icon"><i class="pi pi-briefcase"></i></span>
+          <div class="card-head-text">
+            <h2>Position &amp; Openings</h2>
+            <p>The role being hired and how many openings</p>
+          </div>
+        </div>
+      </ng-template>
+      <div class="form-grid">
+        @if (isGrowth() || selectedType() === RequisitionType.PlannedAdHoc) {
+        <div class="field" [class.has-error]="hasError(form.controls.proposedJobTitle)">
+          <label for="job-title">Proposed Job Title *</label>
+          <input id="job-title" pInputText formControlName="proposedJobTitle"
+            placeholder="e.g. Senior Platform Engineer" />
+          @if (form.controls.proposedJobTitle.touched && form.controls.proposedJobTitle.hasError('maxlength')) {
+            <small class="field-error">Proposed job title must be 200 characters or fewer</small>
+          } @else if (form.controls.proposedJobTitle.invalid && form.controls.proposedJobTitle.touched) {
+            <small class="field-error">Proposed job title is required</small>
+          }
+        </div>
+        <div class="field" [class.has-error]="hasError(form.controls.proposedJobSeniorityLevel)">
+          <label for="seniority">Seniority *</label>
+          <p-select inputId="seniority"
+            formControlName="proposedJobSeniorityLevel"
+            [options]="seniorityLevels"
+            placeholder="Select seniority" styleClass="w-full" />
+          @if (form.controls.proposedJobSeniorityLevel.invalid && form.controls.proposedJobSeniorityLevel.touched) {
+            <small class="field-error">Seniority is required</small>
+          }
+        </div>
+        }
+
+        @if (selectedType() === RequisitionType.PlannedExisting) {
+        <div class="field span-2" [class.has-error]="hasError(form.controls.manPowerPlanId)">
+          <label for="mpp">Manpower Plan *</label>
+          <p-select inputId="mpp" formControlName="manPowerPlanId"
+            [options]="manpowerPlans()"
+            optionLabel="viewText" optionValue="id"
+            placeholder="Select open manpower plan line"
+            styleClass="w-full mpp-select">
+            <ng-template pTemplate="option" let-option>
+              <div class="mpp-option">
+                <span class="mpp-option-title">{{ option.viewText }}</span>
+                @if (option.secondaryText) {
+                  <span class="mpp-option-sub">{{ option.secondaryText }}</span>
+                }
+              </div>
+            </ng-template>
+          </p-select>
+          @if (form.controls.manPowerPlanId.invalid && form.controls.manPowerPlanId.touched) {
+            <small class="field-error">A manpower plan line is required</small>
+          }
+        </div>
+        }
+
+        @if (selectedType() === RequisitionType.PlannedAdHoc) {
+        <div class="field span-2" [class.has-error]="hasError(form.controls.manPowerPlanId)">
+          <label for="mpp-adhoc">Manpower Plan *</label>
+          <p-select inputId="mpp-adhoc" formControlName="manPowerPlanId"
+            [options]="manpowerPlans()"
+            optionLabel="viewText" optionValue="id"
+            placeholder="Select open manpower plan line"
+            styleClass="w-full mpp-select">
+            <ng-template pTemplate="option" let-option>
+              <div class="mpp-option">
+                <span class="mpp-option-title">{{ option.viewText }}</span>
+                @if (option.secondaryText) {
+                  <span class="mpp-option-sub">{{ option.secondaryText }}</span>
+                }
+              </div>
+            </ng-template>
+          </p-select>
+          @if (form.controls.manPowerPlanId.invalid && form.controls.manPowerPlanId.touched) {
+            <small class="field-error">A manpower plan line is required</small>
+          }
+        </div>
+        }
+
+        @if (selectedType() === RequisitionType.Replacement) {
+        <div class="field" [class.has-error]="hasError(form.controls.departingEmployeeId)">
+          <label for="departing">Departing Employee *</label>
+          <p-select inputId="departing" formControlName="departingEmployeeId"
+            [options]="departingEmployees()"
+            optionLabel="viewText" optionValue="id"
+            placeholder="Select departing employee" styleClass="w-full" />
+          @if (form.controls.departingEmployeeId.invalid && form.controls.departingEmployeeId.touched) {
+            <small class="field-error">Departing employee is required</small>
+          }
+        </div>
+        <div class="field" [class.has-error]="hasError(form.controls.positionRegistryId)">
+          <label for="position">Position Registry *</label>
+          <p-select inputId="position" formControlName="positionRegistryId"
+            [options]="positions()"
+            optionLabel="viewText" optionValue="id"
+            placeholder="Select position" styleClass="w-full" />
+          @if (form.controls.positionRegistryId.invalid && form.controls.positionRegistryId.touched) {
+            <small class="field-error">A position is required</small>
+          }
+        </div>
+        }
+
+        <div class="field" [class.has-error]="hasError(form.controls.requestedHeadcount)">
+          <label for="headcount">Requested Headcount *</label>
+          <p-inputnumber inputId="headcount"
+            formControlName="requestedHeadcount" [min]="1" [max]="50"
+            styleClass="w-full" />
+          @if (form.controls.requestedHeadcount.invalid && form.controls.requestedHeadcount.touched) {
+            <small class="field-error">Headcount must be at least 1</small>
+          }
+        </div>
+        <div class="field" [class.has-error]="hasError(form.controls.location)">
+          <label for="location">Location *</label>
+          <p-select inputId="location" formControlName="location"
+            [options]="locations"
+            placeholder="Select location" styleClass="w-full" />
+          @if (form.controls.location.invalid && form.controls.location.touched) {
+            <small class="field-error">Location is required</small>
+          }
+        </div>
+
+        @if (isGrowth()) {
+        <div class="field span-2" [class.has-error]="hasError(form.controls.growthJustification)">
+          <label for="justification">Growth Justification @if (selectedType()
+            === RequisitionType.GrowthAdHoc) {*}</label>
+          <textarea id="justification" pTextarea rows="3"
+            formControlName="growthJustification"
+            placeholder="Why does this growth require the new headcount?"></textarea>
+          @if (form.controls.growthJustification.touched && form.controls.growthJustification.hasError('maxlength')) {
+            <small class="field-error">Growth justification must be 2000 characters or fewer</small>
+          } @else if (form.controls.growthJustification.invalid && form.controls.growthJustification.touched) {
+            <small class="field-error">A growth justification is required</small>
+          }
+        </div>
+        }
+      </div>
+    </p-card>
+
+    <div class="form-actions">
+      <button pButton type="button" label="Back" severity="secondary"
+        [text]="true" (click)="backToType()"></button>
+      <button pButton type="submit" label="Review" icon="pi pi-arrow-right"
+        iconPos="right"></button>
+    </div>
+  </form>
   }
 
   <!-- Step 3: review -->
   @if (step() === 3) {
-    <p-card header="Review">
-      <div class="review-grid">
-        @for (row of reviewRows(); track row.label) {
-          <div class="detail-item">
-            <span class="detail-label">{{ row.label }}</span>
-            <span class="detail-value">{{ row.value }}</span>
-          </div>
-        }
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="card-head">
+        <span class="card-head-icon"><i class="pi pi-file-check"></i></span>
+        <div class="card-head-text">
+          <h2>Review</h2>
+          <p>Confirm the details before creating the draft</p>
+        </div>
       </div>
-      <p-message severity="info" styleClass="w-full review-note"
-        text="The requisition is created as a Draft. Submit it for budget approval when you are ready." />
-      <div class="form-actions">
-        <button pButton type="button" label="Back" severity="secondary" [text]="true" (click)="backToDetails()"></button>
-        <button pButton type="button" label="Create Draft" icon="pi pi-check" [loading]="isSubmitting()"
-          (click)="submit()"></button>
+    </ng-template>
+    <div class="review-grid">
+      @for (row of reviewRows(); track row.label) {
+      <div class="detail-item">
+        <span class="detail-label">{{ row.label }}</span>
+        <span class="detail-value">{{ row.value }}</span>
       </div>
-    </p-card>
+      }
+    </div>
+    <p-message severity="info" styleClass="w-full review-note"
+      text="The requisition is created as a Draft. Submit it for budget approval when you are ready." />
+    <div class="form-actions">
+      <button pButton type="button" label="Back" severity="secondary"
+        [text]="true" (click)="backToDetails()"></button>
+      <button pButton type="button" label="Create Draft" icon="pi pi-check"
+        [loading]="isSubmitting()"
+        (click)="submit()"></button>
+    </div>
+  </p-card>
   }
 </div>
-
-<p-toast />

@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import {
@@ -13,9 +12,11 @@ import {
 } from '../../../core/services/admin-requisitions.service';
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { AdminSquadsService } from '../../../core/services/admin-squads.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { JobRequisitionListItemDto } from '../../../core/models/admin-requisition-model';
 import { LookupItemDto } from '../../../core/models/lookup-model';
 import { HiringType, RequisitionStatus } from '../../../core/models/enums';
+import { Role } from '../../../core/models/role.model';
 
 interface FilterOption<T> {
   label: string;
@@ -25,8 +26,7 @@ interface FilterOption<T> {
 @Component({
   selector: 'app-requisition-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, SelectModule, ToastModule],
-  providers: [MessageService],
+  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, SelectModule],
   templateUrl: './requisition-list.component.html',
   styleUrl: './requisition-list.component.scss',
 })
@@ -36,6 +36,10 @@ export class RequisitionListComponent implements OnInit {
   private squadsService = inject(AdminSquadsService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+
+  /** Only the Hiring Manager can create requisitions (route guard enforces too). */
+  readonly canCreateRequisition = this.auth.hasRole(Role.HiringManager);
 
   requisitions = signal<JobRequisitionListItemDto[]>([]);
   departments = signal<LookupItemDto[]>([]);
@@ -98,11 +102,6 @@ export class RequisitionListComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load requisitions.',
-        });
       },
     });
   }
