@@ -1,7 +1,9 @@
 <div class="page">
   <div class="page-header">
-    <h1>HM Workstation</h1>
+    <h1>Dashboard</h1>
+    @if (canCreateRequisition) {
     <button pButton type="button" label="+ Create New Requisition" icon="pi pi-plus" routerLink="/console/requisitions/new"></button>
+    }
   </div>
 
   <div class="stat-grid">
@@ -51,7 +53,11 @@
         <ng-template pTemplate="emptymessage">
           <tr>
             <td colspan="4" class="empty-state">
+              @if (canCreateRequisition) {
               You don't have any requisitions yet. <a routerLink="/console/requisitions/new">Create one</a>.
+              } @else {
+              There are no requisitions to show.
+              }
             </td>
           </tr>
         </ng-template>

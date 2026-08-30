@@ -1,9 +1,6 @@
 <div class="jobs-page">
   <!-- Hero -->
-  <app-jobs-hero
-    [openRoles]="totalCount()"
-    [businessUnits]="businessUnits"
-    [teamMembers]="teamMembers" />
+  <app-jobs-hero />
 
   <!-- Search (overlaps hero) -->
   <app-jobs-search (search)="onSearchInput($event)" (apply)="onApplyFilters()" />

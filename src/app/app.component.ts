@@ -6,7 +6,7 @@ import { Toast } from 'primeng/toast';
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, Toast],
-  template: `<p-toast /><router-outlet />`,
+  template: `<router-outlet />`,
 })
 export class AppComponent {
 

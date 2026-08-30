@@ -29,10 +29,6 @@ const EMPTY_FILTERS: JobsFiltersPayload = {
 export class JobsPageComponent {
   private jobPostService = inject(JobPostService);
 
-  // Static marketing stats (no API yet)
-  businessUnits = 12;
-  teamMembers = '1.2K+';
-
   isLoading = signal(false);
   jobs = signal<PublicJobPostListItemDto[]>([]);
   totalCount = signal(0);

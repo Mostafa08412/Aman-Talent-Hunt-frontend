@@ -11,6 +11,8 @@ import {
   RequisitionStage,
   RequisitionHoldState,
 } from '../../core/services/requisition.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/models/role.model';
 
 @Component({
   selector: 'app-hm-dashboard',
@@ -21,6 +23,10 @@ import {
 })
 export class HmDashboardComponent {
   private requisitionService = inject(RequisitionService);
+  private auth = inject(AuthService);
+
+  /** Only the Hiring Manager can create requisitions. */
+  readonly canCreateRequisition = this.auth.hasRole(Role.HiringManager);
 
   loading = signal(true);
   requisitions = signal<RequisitionSummary[]>([]);
