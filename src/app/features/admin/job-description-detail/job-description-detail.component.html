@@ -1,0 +1,239 @@
+<div class="page">
+  <!-- Header actions -->
+  <div class="header-actions-row">
+    <a routerLink="/console/admin/job-descriptions" class="back-link">
+      <i class="pi pi-arrow-left"></i> Back to Job Descriptions
+    </a>
+
+    @if (detail(); as d) {
+    <div class="header-actions">
+      @if (!editing()) {
+      @if (canEdit()) {
+      <p-button label="Edit" icon="pi pi-pencil" styleClass="btn-outline-teal"
+        [disabled]="!!operation()" (onClick)="startEdit()" />
+      }
+      @if (canDelete()) {
+      <p-button label="Delete" icon="pi pi-trash" styleClass="btn-reject"
+        [outlined]="true" [disabled]="!!operation()" (onClick)="delete()" />
+      }
+      @if (canSubmit()) {
+      <p-button label="Submit for Approval" icon="pi pi-send"
+        styleClass="btn-teal" [loading]="operation() === 'submit'"
+        (onClick)="submitForApproval()" />
+      }
+      @if (canReview()) {
+      <p-button label="Approve" icon="pi pi-check"
+        styleClass="btn-approve" [loading]="operation() === 'approve'"
+        (onClick)="approve()" />
+      <p-button label="Reject" icon="pi pi-times" styleClass="btn-reject"
+        [outlined]="true" [disabled]="!!operation()" (onClick)="openReject()" />
+      }
+      @if (canAttach()) {
+      <p-button label="Attach to Requisition" icon="pi pi-link"
+        styleClass="btn-outline-success" [disabled]="!!operation()"
+        (onClick)="openAttach()" />
+      }
+      }
+    </div>
+    }
+  </div>
+
+  @if (loading()) {
+  <div class="state-center"><p-progressspinner styleClass="w-3rem h-3rem"
+      strokeWidth="4" /></div>
+  } @else if (error() || !detail()) {
+  <div class="state error-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <strong>Unable to load job description.</strong>
+    <a routerLink="/console/admin/job-descriptions">Back to Job Descriptions</a>
+  </div>
+  } @else {
+  @let d = detail()!;
+  <!-- Hero card -->
+  <div class="hero-card">
+    <div class="hero-gradient"></div>
+    <div class="hero-body">
+      <div class="hero-main">
+        <p class="hero-label">Job Description</p>
+        <div class="hero-title-row">
+          <h1 class="hero-title">{{ d.title || 'Untitled' }}</h1>
+          @if (d.referenceNumber) {
+          <span class="ref-code">{{ d.referenceNumber }}</span>
+          }
+          @if (status()) {
+          <span class="status-pill {{ statusStyle().pillClass }}">
+            <span class="status-dot {{ statusStyle().dotClass }}"></span>
+            {{ statusLabel() }}
+          </span>
+          }
+        </div>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="meta-caption">Employment Type</span>
+          <span class="meta-value">{{ d.employmentType || '—' }}</span>
+        </div>
+        <div class="meta-separator"></div>
+        <div class="hero-meta-item">
+          <span class="meta-caption">Author</span>
+          <span class="meta-value">{{ d.author || '—' }}</span>
+        </div>
+        <div class="meta-separator"></div>
+        <div class="hero-meta-item">
+          <span class="meta-caption">Last Updated</span>
+          <span class="meta-value">{{ d.lastUpdatedAtUTC ? (d.lastUpdatedAtUTC |
+            date: 'MMM d, y') : '—' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bento grid -->
+  <div class="bento-grid">
+    <!-- Left column -->
+    <div class="col-left">
+      @if (!editing()) {
+      <!-- Summary -->
+      <section class="card">
+        <h2><i class="pi pi-align-left card-icon teal"></i> Summary</h2>
+        <p class="body-text">{{ d.summary || '—' }}</p>
+      </section>
+
+      <!-- Responsibilities -->
+      <section class="card">
+        <h2><i class="pi pi-list-check card-icon teal"></i>
+          Responsibilities</h2>
+        @if (hasRichContent(d.responsibilities)) {
+        <div class="rich-text" [innerHTML]="d.responsibilities"></div>
+        } @else {
+        <p class="body-text">—</p>
+        }
+      </section>
+
+      <!-- Requirements -->
+      <section class="card">
+        <h2><i class="pi pi-check-square card-icon teal"></i> Requirements</h2>
+        @if (hasRichContent(d.requirements)) {
+        <div class="rich-text" [innerHTML]="d.requirements"></div>
+        } @else {
+        <p class="body-text">—</p>
+        }
+      </section>
+      } @else {
+      <section class="card">
+        <h2><i class="pi pi-pencil card-icon teal"></i> Edit Job
+          Description</h2>
+        <form class="dialog-form" [formGroup]="editForm" (ngSubmit)="update()"
+          id="jd-edit-form">
+          <p class="dialog-hint">Responsibilities and requirements support rich
+            formatting for marketing-style content.</p>
+          <div class="field"><label for="edit-title">Title *</label><input
+              id="edit-title" pInputText formControlName="title" /></div>
+          <div class="field"><label for="edit-summary">Summary
+              *</label><textarea
+              id="edit-summary" pTextarea rows="3"
+              formControlName="summary"></textarea></div>
+          <div class="field"><label for="edit-responsibilities">Responsibilities
+              *</label><p-editor id="edit-responsibilities"
+              formControlName="responsibilities" class="jd-editor"
+              [style]="{ height: '200px' }"></p-editor>@if
+            (editForm.controls.responsibilities.invalid &&
+            editForm.controls.responsibilities.touched) {<small>Responsibilities
+              are required.</small>}</div>
+          <div class="field"><label for="edit-requirements">Requirements
+              *</label><p-editor id="edit-requirements"
+              formControlName="requirements" class="jd-editor"
+              [style]="{ height: '180px' }"></p-editor>@if
+            (editForm.controls.requirements.invalid &&
+            editForm.controls.requirements.touched) {<small>Requirements are
+              required.</small>}</div>
+          <div class="field"><label for="edit-employment">Employment Type
+              *</label><p-select inputId="edit-employment"
+              [options]="employmentTypes" optionLabel="label"
+              optionValue="value"
+              formControlName="employmentType" appendTo="body"></p-select>@if
+            (editForm.controls.employmentType.invalid &&
+            editForm.controls.employmentType.touched) {<small>Employment type is
+              required.</small>}</div>
+          <div class="dialog-actions"><button pButton type="button"
+              severity="secondary" label="Cancel" (click)="cancelEdit()"
+              [disabled]="!!operation()"></button><button pButton type="submit"
+              label="Save Changes"
+              [loading]="operation() === 'update'"></button></div>
+        </form>
+      </section>
+      }
+    </div>
+
+    <!-- Right column -->
+    <div class="col-right">
+      <!-- Linked Position Registry -->
+      <section class="card">
+        <h3>Linked Position Registry</h3>
+        <div class="link-registry">
+          @if (d.positionRegistryTitle) {
+          <div class="registry-item">
+            <i class="pi pi-briefcase registry-icon"></i>
+            <div>
+              <p class="date-caption">Position</p>
+              <p class="date-value">{{ d.positionRegistryTitle }}</p>
+            </div>
+          </div>
+          } @else {
+          <p class="muted-text">Not attached to a position registry entry
+            yet.</p>
+          }
+        </div>
+      </section>
+
+      <!-- Rejection Reason -->
+      @if (d.rejectionReason) {
+      <section class="card rejection-card">
+        <h3>Rejection Reason</h3>
+        <div class="rejection-box">
+          <p class="rejection-text">{{ d.rejectionReason }}</p>
+        </div>
+      </section>
+      }
+    </div>
+  </div>
+  }
+</div>
+
+<p-dialog header="Reject Job Description" [visible]="rejectVisible()"
+  (visibleChange)="rejectVisible.set($event)"
+  (onHide)="rejectVisible.set(false)" [modal]="true"
+  [style]="{ width: 'min(34rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="rejectForm" (ngSubmit)="reject()">
+    <div class="field"><label for="reject-reason">Rejection Reason
+        *</label><textarea id="reject-reason" pTextarea rows="4"
+        formControlName="reason"></textarea>@if
+      (rejectForm.controls.reason.invalid && rejectForm.controls.reason.touched)
+      {<small class="field-error">Reason is required.</small>}</div>
+    <div class="dialog-actions"><button pButton type="button"
+        severity="secondary"
+        label="Cancel" (click)="rejectVisible.set(false)"></button><button
+        pButton type="submit" severity="danger" label="Reject"
+        [loading]="operation() === 'reject'"></button></div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Attach to Requisition" [visible]="attachVisible()"
+  (visibleChange)="attachVisible.set($event)"
+  (onHide)="attachVisible.set(false)" [modal]="true"
+  [style]="{ width: 'min(34rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="attachForm" (ngSubmit)="attach()">
+    <div class="field"><label for="attach-requisition">Requisition
+        *</label><p-select inputId="attach-requisition"
+        [options]="requisitions()" optionLabel="positionTitle" optionValue="id"
+        formControlName="requisitionId" placeholder="Select requisition"
+        appendTo="body"></p-select></div>
+    <div class="dialog-actions"><button pButton type="button"
+        severity="secondary"
+        label="Cancel" (click)="attachVisible.set(false)"></button><button
+        pButton type="submit" label="Attach"
+        [loading]="operation() === 'attach'"></button></div>
+  </form>
+</p-dialog>
+
+<p-confirmdialog></p-confirmdialog>

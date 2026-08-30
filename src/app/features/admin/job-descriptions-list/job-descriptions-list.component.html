@@ -1,0 +1,162 @@
+<div class="page">
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Job Descriptions</h1>
+      <p>Manage job descriptions and approval status.</p>
+    </div>
+    <p-button
+      label="Create Job Description"
+      icon="pi pi-plus"
+      styleClass="btn-create-jd"
+      (click)="openCreate()" />
+  </div>
+
+  <!-- Data directory -->
+  <div class="directory">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <button class="search-btn" type="button" aria-label="Search" (click)="onSearch(searchValue)">
+          <i class="pi pi-search"></i>
+        </button>
+        <input
+          #searchInput
+          type="text"
+          placeholder="Search by title..."
+          [ngModel]="search()"
+          (ngModelChange)="searchValue = $event"
+          (keyup.enter)="onSearch(searchInput.value)" />
+      </div>
+
+      <div class="filter-actions">
+        <p-select
+          [options]="statuses"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All statuses"
+          [showClear]="true"
+          styleClass="filter-select"
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="onStatusChange($event)" />
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" [class.loading]="loading()">
+      <div class="table-head grid-row">
+        <span class="col-ref">Ref #</span>
+        <span class="col-title">Title</span>
+        <span class="col-summary">Summary</span>
+        <span class="col-author">Author</span>
+        <span class="col-type">Employment Type</span>
+        <span class="col-status">Status</span>
+        <span class="col-updated">Last Updated</span>
+      </div>
+
+      @for (item of items(); track item.id) {
+        <div class="grid-row table-row" (click)="openItem(item)">
+          <span class="cell-ref ref-code">{{ item.referenceNumber ?? '—' }}</span>
+
+          <div class="cell-title">
+            <span class="jd-name">{{ item.title || 'Untitled' }}</span>
+          </div>
+
+          <div class="cell-summary muted">{{ truncate(item.summary) }}</div>
+
+          <div class="cell-author muted">
+            {{ item.author || '—' }}
+          </div>
+
+          <div class="cell-type">{{ item.employmentType }}</div>
+
+          <div class="cell-status">
+            <span class="status-pill" [class]="'status-' + statusKey(item.status)">
+              {{ item.status }}
+            </span>
+          </div>
+
+          <div class="cell-updated muted">
+            {{ item.lastUpdatedAtUTC ? (item.lastUpdatedAtUTC | date: 'MMM d, y') : '—' }}
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          @if (loading()) {
+            Loading job descriptions…
+          } @else {
+            No job descriptions found
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    <div class="table-foot">
+      <span class="foot-info">
+        Showing <strong>{{ pageRangeStart }}</strong> to <strong>{{ pageRangeEnd }}</strong>
+        of <strong>{{ totalRecords() | number }}</strong> entries
+      </span>
+      <div class="pager">
+        <button class="page-btn" type="button" [disabled]="page() <= 1" (click)="previousPage()"
+          aria-label="Previous page">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        @for (p of visiblePages; track p) {
+          <button class="page-btn" type="button" [class.current]="p === page()"
+            (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="page-btn" type="button" [disabled]="page() >= totalPages" (click)="nextPage()"
+          aria-label="Next page">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-dialog header="Create Job Description" [visible]="createVisible()"
+  (visibleChange)="createVisible.set($event)"
+  (onHide)="createVisible.set(false)" [modal]="true"
+  [style]="{ width: 'min(54rem, 94vw)' }">
+  <form class="dialog-form" [formGroup]="createForm" (ngSubmit)="create()">
+    <p class="dialog-hint">Responsibilities and requirements support rich
+      formatting for marketing-style content.</p>
+    <div class="field"><label for="jd-title">Title *</label><input id="jd-title"
+        pInputText formControlName="title" />@if
+      (createForm.controls.title.invalid && createForm.controls.title.touched)
+      {<small>Title is required.</small>}</div>
+    <div class="field"><label for="jd-summary">Summary *</label><textarea
+        id="jd-summary" pTextarea rows="3"
+        formControlName="summary"></textarea>@if
+      (createForm.controls.summary.invalid &&
+      createForm.controls.summary.touched) {<small>Summary is
+        required.</small>}</div>
+    @if (createVisible()) {
+    <div class="field"><label for="jd-responsibilities">Responsibilities
+        *</label><p-editor id="jd-responsibilities"
+        formControlName="responsibilities" class="jd-editor"
+        [style]="{ height: '180px' }"></p-editor>@if
+      (createForm.controls.responsibilities.invalid &&
+      createForm.controls.responsibilities.touched) {<small>Responsibilities are
+        required.</small>}</div>
+    <div class="field"><label for="jd-requirements">Requirements
+        *</label><p-editor id="jd-requirements" formControlName="requirements"
+        class="jd-editor" [style]="{ height: '160px' }"></p-editor>@if
+      (createForm.controls.requirements.invalid &&
+      createForm.controls.requirements.touched) {<small>Requirements are
+        required.</small>}</div>
+    }
+    <div class="field"><label for="jd-employment">Employment Type
+        *</label><p-select inputId="jd-employment" [options]="employmentTypes"
+        optionLabel="label" optionValue="value" formControlName="employmentType"
+        placeholder="Select employment type" appendTo="body"></p-select>@if
+      (createForm.controls.employmentType.invalid &&
+      createForm.controls.employmentType.touched) {<small>Employment type is
+        required.</small>}</div>
+    <div class="dialog-actions"><button pButton type="button"
+        severity="secondary" label="Cancel"
+        (click)="createVisible.set(false)"></button><button pButton
+        type="submit" label="Create" [loading]="saving()"></button></div>
+  </form>
+</p-dialog>
