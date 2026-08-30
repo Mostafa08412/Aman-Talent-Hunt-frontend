@@ -170,7 +170,7 @@
       } @else {
       <p-card header="Submit Scorecard" styleClass="scorecard-card">
         <div class="decision-options">
-          @for (option of [ScorecardDecision.Pass, ScorecardDecision.Reject, ScorecardDecision.Pending]; track option) {
+          @for (option of [ScorecardDecision.Pass, ScorecardDecision.Reject]; track option) {
             <label class="decision-option">
               <p-radioButton name="decision" [value]="option" [ngModel]="decision()" (ngModelChange)="decision.set($event)" />
               <span>{{ option }}</span>

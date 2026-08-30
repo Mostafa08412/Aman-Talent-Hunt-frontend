@@ -10,7 +10,6 @@ import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AdminEmployeesService } from '../../../core/services/admin-employees.service';
@@ -31,9 +30,7 @@ import { toApiError, EmployeeErrors } from '@core/errors';
     ButtonModule,
     SelectModule,
     InputTextModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './employee-edit.component.html',
   styleUrl: './employee-edit.component.scss',
 })
@@ -52,6 +49,8 @@ export class EmployeeEditComponent implements OnInit {
   readonly isLoading = signal(true);
   readonly isEditing = signal(false);
   readonly isSaving = signal(false);
+  readonly isMarkingDeparting = signal(false);
+  readonly isUndoingDeparting = signal(false);
 
   readonly departments = signal<LookupItemDto[]>([]);
   readonly squads = signal<LookupItemDto[]>([]);
@@ -112,17 +111,6 @@ export class EmployeeEditComponent implements OnInit {
         const { title } = toApiError(err);
         if (title === EmployeeErrors.NotFound) {
           this.router.navigate(['/console/admin/employees']);
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Not found',
-            detail: 'This employee no longer exists.',
-          });
-        } else {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to load employee.',
-          });
         }
       },
     });
@@ -205,16 +193,11 @@ export class EmployeeEditComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           this.isSaving.set(false);
-          const { title, detail } = toApiError(err);
+          const { title } = toApiError(err);
 
           switch (title) {
             case EmployeeErrors.NotFound:
               this.router.navigate(['/console/admin/employees']);
-              this.messageService.add({
-                severity: 'warn',
-                summary: 'Not found',
-                detail: 'This employee no longer exists.',
-              });
               break;
 
             case EmployeeErrors.PositionNotFound:
@@ -222,7 +205,7 @@ export class EmployeeEditComponent implements OnInit {
               break;
 
             default:
-              this.messageService.add({ severity: 'error', summary: 'Error', detail });
+              break;
           }
         },
       });
@@ -230,5 +213,63 @@ export class EmployeeEditComponent implements OnInit {
 
   back(): void {
     this.router.navigate(['/console/admin/employees']);
+  }
+
+  markDeparting(): void {
+    if (this.isMarkingDeparting() || this.employee()?.isDeparting) return;
+    this.isMarkingDeparting.set(true);
+    this.employeesService.markDeparting(this.id()).subscribe({
+      next: () => {
+        this.isMarkingDeparting.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Marked as departing',
+          detail: 'Employee marked as departing successfully.',
+        });
+        this.loadEmployee(this.id());
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isMarkingDeparting.set(false);
+        const { title } = toApiError(err);
+        if (title === EmployeeErrors.NotFound) {
+          this.router.navigate(['/console/admin/employees']);
+          return;
+        }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Action failed',
+          detail: 'Unable to mark the employee as departing. Please try again.',
+        });
+      },
+    });
+  }
+
+  undoDeparting(): void {
+    if (this.isUndoingDeparting() || !this.employee()?.isDeparting) return;
+    this.isUndoingDeparting.set(true);
+    this.employeesService.undoDeparting(this.id()).subscribe({
+      next: () => {
+        this.isUndoingDeparting.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Departing undone',
+          detail: 'Employee is no longer marked as departing.',
+        });
+        this.loadEmployee(this.id());
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isUndoingDeparting.set(false);
+        const { title } = toApiError(err);
+        if (title === EmployeeErrors.NotFound) {
+          this.router.navigate(['/console/admin/employees']);
+          return;
+        }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Action failed',
+          detail: 'Unable to undo the departing status. Please try again.',
+        });
+      },
+    });
   }
 }

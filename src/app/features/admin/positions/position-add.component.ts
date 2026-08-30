@@ -8,7 +8,6 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AdminPositionsService } from '../../../core/services/admin-positions.service';
@@ -31,9 +30,7 @@ interface SeniorityOption {
     RouterLink,
     ButtonModule,
     SelectModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './position-add.component.html',
   styleUrl: './position-add.component.scss',
 })
@@ -111,11 +108,6 @@ export class PositionAddComponent implements OnInit {
         next: (res) => {
           this.isSubmitting = false;
           if (!res.isCompletedSuccessfully) {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: res.message || 'Failed to create position.',
-            });
             return;
           }
           this.messageService.add({
@@ -125,13 +117,8 @@ export class PositionAddComponent implements OnInit {
           });
           this.router.navigate(['/console/admin/positions']);
         },
-        error: (err) => {
+        error: () => {
           this.isSubmitting = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: err?.error?.message || 'Failed to create position.',
-          });
         },
       });
   }

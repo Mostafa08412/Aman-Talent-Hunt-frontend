@@ -9,7 +9,6 @@ import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
@@ -35,10 +34,9 @@ interface SeniorityOption {
     ButtonModule,
     SelectModule,
     InputTextModule,
-    ToastModule,
     ConfirmDialogModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [ConfirmationService],
   templateUrl: './position-edit.component.html',
   styleUrl: './position-edit.component.scss',
 })
@@ -109,25 +107,15 @@ export class PositionEditComponent implements OnInit {
         this.isLoading.set(false);
         if (!res.isCompletedSuccessfully || !res.data) {
           this.loadFailed.set(true);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Not Found',
-            detail: res.message || 'Position not found.',
-          });
           return;
         }
         const position = res.data;
         this.position.set(position);
         this.patchForm(position);
       },
-      error: (err) => {
+      error: () => {
         this.isLoading.set(false);
         this.loadFailed.set(true);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'Failed to load position.',
-        });
       },
     });
   }
@@ -188,11 +176,6 @@ export class PositionEditComponent implements OnInit {
         next: (res) => {
           this.isSaving.set(false);
           if (!res.isCompletedSuccessfully) {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: res.message || 'Failed to update position.',
-            });
             return;
           }
           this.isEditing.set(false);
@@ -204,13 +187,8 @@ export class PositionEditComponent implements OnInit {
           });
           this.loadPosition(this.id());
         },
-        error: (err) => {
+        error: () => {
           this.isSaving.set(false);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: err?.error?.message || 'Failed to update position.',
-          });
         },
       });
   }
@@ -240,11 +218,6 @@ export class PositionEditComponent implements OnInit {
       next: (res) => {
         this.isStatusPending.set(false);
         if (!res.isCompletedSuccessfully) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: res.message || 'Failed to update position status.',
-          });
           return;
         }
         this.messageService.add({
@@ -254,13 +227,8 @@ export class PositionEditComponent implements OnInit {
         });
         this.loadPosition(this.id());
       },
-      error: (err) => {
+      error: () => {
         this.isStatusPending.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'Failed to update position status.',
-        });
       },
     });
   }
@@ -287,27 +255,12 @@ export class PositionEditComponent implements OnInit {
       next: (res) => {
         this.isDeleting.set(false);
         if (!res.isCompletedSuccessfully) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: res.message || 'Failed to delete position.',
-          });
           return;
         }
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Deleted',
-          detail: 'Position removed.',
-        });
         this.router.navigate(['/console/admin/positions']);
       },
-      error: (err) => {
+      error: () => {
         this.isDeleting.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'Failed to delete position.',
-        });
       },
     });
   }

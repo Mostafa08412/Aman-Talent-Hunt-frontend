@@ -4,8 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 
 import {
   AdminEmployeesQueryParams,
@@ -24,8 +22,7 @@ interface StatusOption {
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, SelectModule, ToastModule],
-  providers: [MessageService],
+  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, SelectModule],
   templateUrl: './employees.component.html',
   styleUrl: './employees.component.scss',
 })
@@ -33,7 +30,6 @@ export class EmployeesComponent implements OnInit {
   private employeesService = inject(AdminEmployeesService);
   private squadsService = inject(AdminSquadsService);
   private positionsService = inject(AdminPositionsService);
-  private messageService = inject(MessageService);
   private router = inject(Router);
 
   /* Data — rows holds the current page for all/active modes and the full
@@ -126,11 +122,6 @@ export class EmployeesComponent implements OnInit {
 
   private onLoadFailed(): void {
     this.isLoading.set(false);
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to load employees.',
-    });
   }
 
   private loadDeparting(): void {

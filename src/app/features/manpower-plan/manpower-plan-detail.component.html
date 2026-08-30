@@ -6,6 +6,7 @@
     </a>
 
     @if (plan(); as p) {
+    @if (canManage()) {
     <div class="header-actions">
       @if (canSubmit()) {
       <p-button
@@ -37,14 +38,6 @@
         [loading]="pendingAction() === 'activate'"
         (onClick)="activate()" />
       }
-      @if (canPromote()) {
-      <p-button
-        label="Promote to Job Position"
-        icon="pi pi-arrow-up-right"
-        styleClass="btn-neutral text-white"
-        [loading]="pendingAction() === 'promote'"
-        (onClick)="openPromoteDialog()" />
-      }
       @if (canClose()) {
       <p-button
         label="Close Plan"
@@ -54,6 +47,7 @@
         (onClick)="close()" />
       }
     </div>
+    }
     }
   </div>
 
@@ -73,19 +67,22 @@
           <span class="status-pill {{ statusStyles[p.status].pillClass }}">
             <span
               class="status-dot {{ statusStyles[p.status].dotClass }}"></span>
-            {{ p.status }}
+            {{ p.status | humanize }}
           </span>
         </div>
       </div>
       <div class="hero-meta">
         <div class="hero-meta-item">
           <span class="meta-caption">Fiscal Year</span>
-          <span class="meta-value">{{ p.fiscalYear }} ({{ p.quarter }})</span>
+          <span class="meta-value">{{ p.fiscalYear }} ({{ p.quarter | humanize }})</span>
         </div>
         <div class="meta-separator"></div>
         <div class="hero-meta-item">
           <span class="meta-caption">Department</span>
           <span class="meta-value">{{ p.departmentName || '—' }}</span>
+          @if (p.departmentReferenceNumber) {
+          <span class="meta-sub">{{ p.departmentReferenceNumber }}</span>
+          }
         </div>
       </div>
     </div>
@@ -106,6 +103,19 @@
             @if (p.isNewPositionTitle) {
             <span class="new-role-badge">New Role</span>
             }
+          </div>
+          <div>
+            <p class="field-caption">Seniority Level</p>
+            <p class="position-seniority">{{ ((p.positionSeniorityLevel ?? p.proposedJobSeniorityLevel) | humanize) || '—' }}</p>
+          </div>
+          <div>
+            <p class="field-caption">Position Type</p>
+            <p class="position-seniority">{{ p.isNewPositionTitle ?
+              'Ad-Hoc Position' : 'Existing Position' }}</p>
+          </div>
+          <div>
+            <p class="field-caption">Approved Headcount Target</p>
+            <p class="position-seniority">{{ p.targetHeadcount }}</p>
           </div>
         </div>
       </section>
@@ -252,76 +262,22 @@
   (visibleChange)="rejectDialogVisible.set($event)"
   [modal]="true"
   [style]="{ width: '26rem' }">
-  <div class="dialog-form">
+  <form [formGroup]="rejectForm" class="dialog-form">
     <label for="mp-detail-rejectReason">Reason</label>
     <textarea
       id="mp-detail-rejectReason"
       pTextarea
       rows="4"
-      placeholder="Explain why this plan is being rejected..."
-      [(ngModel)]="rejectReason"></textarea>
-  </div>
+      formControlName="reason"
+      placeholder="Explain why this plan is being rejected..."></textarea>
+    @if (rejectForm.controls.reason.invalid && rejectForm.controls.reason.touched) {
+    <small class="field-error">Reason is required</small>
+    }
+  </form>
   <ng-template pTemplate="footer">
     <button pButton type="button" severity="secondary" label="Cancel"
       (click)="rejectDialogVisible.set(false)"></button>
     <button pButton type="button" severity="danger" label="Reject"
-      [disabled]="!rejectReason.trim()" (click)="confirmReject()"></button>
+      [disabled]="rejectForm.invalid" (click)="confirmReject()"></button>
   </ng-template>
 </p-dialog>
-
-<!-- Promotion dialog -->
-<p-dialog
-  header="Promote Plan to Job Position"
-  [visible]="promoteDialogVisible()"
-  (visibleChange)="promoteDialogVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '32rem' }">
-  <div class="dialog-form">
-    <p class="dialog-lead">Search the position registry to link this plan to an
-      active registry item.</p>
-    <div class="search-row">
-      <input
-        pInputText
-        placeholder="e.g. Senior Frontend Engineer"
-        [(ngModel)]="positionSearch"
-        (keyup.enter)="searchPositions()" />
-      <button pButton type="button" class="btn-search" label="Search"
-        [loading]="isSearching()" (click)="searchPositions()"></button>
-    </div>
-
-    @if (searchResults().length > 0) {
-    <ul class="search-results">
-      @for (item of searchResults(); track item.id) {
-      <li
-        class="result-item"
-        [class.selected]="selectedPosition()?.id === item.id"
-        (click)="selectPosition(item)">
-        <div class="result-avatar"><i class="pi pi-briefcase"></i></div>
-        <div class="result-meta">
-          <p class="result-title">{{ item.title }}</p>
-          <p class="result-sub">{{ item.departmentName }} &bull; {{
-            item.seniorityLevel }}</p>
-        </div>
-      </li>
-      }
-    </ul>
-    } @else if (!isSearching()) {
-    <div class="results-empty">No results yet. Search by position title.</div>
-    }
-
-    @if (selectedPosition(); as selected) {
-    <div class="selection-summary">
-      Linked registry position: <strong>{{ selected.title }}</strong>
-    </div>
-    }
-  </div>
-  <ng-template pTemplate="footer">
-    <button pButton type="button" severity="secondary" label="Cancel"
-      (click)="promoteDialogVisible.set(false)"></button>
-    <button pButton type="button" class="btn-confirm-promote"
-      label="Confirm Promotion" [disabled]="!selectedPosition()"
-      (click)="confirmPromotion()"></button>
-  </ng-template>
-</p-dialog>
-
-<p-toast />

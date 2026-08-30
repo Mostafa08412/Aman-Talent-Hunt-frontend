@@ -7,7 +7,11 @@
         <span class="divider">/</span>
         <span class="current">Edit Employee</span>
       </nav>
-      <h1>Employee Details: {{ employee()?.fullName }}</h1>
+      <h1>Employee Details: {{ employee()?.fullName }}
+        @if (employee()?.isDeparting) {
+        <span class="departing-tag"><i class="pi pi-user-minus"></i> Departing</span>
+        }
+      </h1>
     </div>
     <div class="header-actions">
       <p-button
@@ -16,6 +20,27 @@
         [text]="true"
         severity="secondary"
         (onClick)="back()" />
+      @if (employee()?.isDeparting) {
+      <p-button
+        label="Undo Departing"
+        icon="pi pi-user-plus"
+        styleClass="btn-undo-departing"
+        severity="success"
+        [outlined]="true"
+        [loading]="isUndoingDeparting()"
+        [disabled]="isEditing()"
+        (onClick)="undoDeparting()" />
+      } @else {
+      <p-button
+        label="Mark as Departing"
+        icon="pi pi-user-minus"
+        styleClass="btn-departing"
+        severity="danger"
+        [outlined]="true"
+        [loading]="isMarkingDeparting()"
+        [disabled]="isEditing()"
+        (onClick)="markDeparting()" />
+      }
       @if (isEditing()) {
       <p-button
         label="Cancel"
@@ -144,5 +169,3 @@
   </form>
   }
 </div>
-
-<p-toast />

@@ -13,7 +13,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 
 import {
   AdminDepartmentsQueryParams,
@@ -24,6 +23,7 @@ import { AdminSquadsService } from '../../../core/services/admin-squads.service'
 
 import { DepartmentListItemDto } from '../../../core/models/admin-department-model';
 import { LookupItemDto } from '../../../core/models/lookup-model';
+import { Roles } from '../../../core/models/enums';
 
 @Component({
   selector: 'app-departments',
@@ -36,9 +36,7 @@ import { LookupItemDto } from '../../../core/models/lookup-model';
     SelectModule,
     DialogModule,
     InputTextModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './departments.component.html',
   styleUrl: './departments.component.scss',
 })
@@ -89,14 +87,16 @@ export class DepartmentsComponent implements OnInit {
       error: () => this.squads.set([]),
     });
 
-    this.employeesService.getLookup().subscribe({
-      next: (res) => {
-        this.employees.set(
-          res.isCompletedSuccessfully ? (res.data?.items ?? []) : [],
-        );
-      },
-      error: () => this.employees.set([]),
-    });
+    this.employeesService
+      .getLookup({ role: Roles.DepartmentHead, PageSize: 100 })
+      .subscribe({
+        next: (res) => {
+          this.employees.set(
+            res.isCompletedSuccessfully ? (res.data?.items ?? []) : [],
+          );
+        },
+        error: () => this.employees.set([]),
+      });
   }
 
   loadDepartments(): void {
@@ -116,7 +116,6 @@ export class DepartmentsComponent implements OnInit {
           this.totalCount.set(0);
           this.isLoading.set(false);
 
-          this.showError(res.message || 'Failed to load departments.');
           return;
         }
 
@@ -128,7 +127,6 @@ export class DepartmentsComponent implements OnInit {
         this.departments.set([]);
         this.totalCount.set(0);
         this.isLoading.set(false);
-        this.showError('Failed to load departments.');
       },
     });
   }
@@ -268,9 +266,6 @@ export class DepartmentsComponent implements OnInit {
           this.isCreating.set(false);
 
           if (!res.isCompletedSuccessfully) {
-            this.showError(
-              res.message || 'Failed to create department.',
-            );
             return;
           }
 
@@ -287,7 +282,6 @@ export class DepartmentsComponent implements OnInit {
         },
         error: () => {
           this.isCreating.set(false);
-          this.showError('Failed to create department.');
         },
       });
   }
@@ -311,9 +305,6 @@ export class DepartmentsComponent implements OnInit {
       .subscribe({
         next: (res) => {
           if (!res.isCompletedSuccessfully) {
-            this.showError(
-              res.message || 'Failed to delete department.',
-            );
             return;
           }
 
@@ -332,8 +323,6 @@ export class DepartmentsComponent implements OnInit {
 
           this.loadDepartments();
         },
-        error: () =>
-          this.showError('Failed to delete department.'),
       });
   }
 
@@ -364,13 +353,5 @@ export class DepartmentsComponent implements OnInit {
     }
 
     return `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
-  }
-
-  private showError(detail: string): void {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail,
-    });
   }
 }

@@ -32,6 +32,8 @@ export interface ManPowerPlanResponse {
   status: PlanStatus;
   isNewPositionTitle: boolean;
   positionTitle: string | null;
+  positionSeniorityLevel: string | null;
+  proposedJobSeniorityLevel: SeniorityLevel | null;
   approvedAt: string | null;
   fulfilledAt: string | null;
   rejectionReason: string | null;

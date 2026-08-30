@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { Result } from '@core/models/common';
@@ -8,20 +8,19 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { AdminManpowerPlansService } from '../../core/services/admin-manpower-plans.service';
-import { AdminPositionsService } from '../../core/services/admin-positions.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/models/role.model';
 import {
   ManPowerPlanResponse,
-  PromotePositionRequest,
   RejectManPowerPlanRequest,
 } from '../../core/models/admin-manpower-plan-model';
-import { PositionRegistryListItemDto } from '../../core/models/admin-position-model';
 import { PlanStatus } from '../../core/models/enums';
 import { BadgeModule } from 'primeng/badge';
+import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
 
 interface StatusStyle {
   pillClass: string;
@@ -33,31 +32,40 @@ interface TimelineStep {
   state: 'completed' | 'current' | 'upcoming' | 'error';
 }
 
+function nonBlankValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'string') return null;
+  return value.trim().length > 0 ? null : { blank: true };
+}
+
 @Component({
   selector: 'app-manpower-plan-detail',
   standalone: true,
   imports: [
     CommonModule,
     BadgeModule,
-    FormsModule,
+    ReactiveFormsModule,
     RouterLink,
     ButtonModule,
     InputTextModule,
     TextareaModule,
     DialogModule,
-    ToastModule,
     ProgressSpinnerModule,
     MessageModule,
+    HumanizePipe,
   ],
-  providers: [MessageService],
   templateUrl: './manpower-plan-detail.component.html',
   styleUrl: './manpower-plan-detail.component.scss',
 })
 export class ManpowerPlanDetailComponent implements OnInit {
   private readonly plansService = inject(AdminManpowerPlansService);
-  private readonly positionsService = inject(AdminPositionsService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+
+  readonly canManage = computed(() => this.auth.role() !== Role.DepartmentHead);
 
   /** Route param bound via withComponentInputBinding (must match the :id param name). */
   readonly id = input.required<string>();
@@ -67,14 +75,9 @@ export class ManpowerPlanDetailComponent implements OnInit {
 
   /* Reject dialog */
   readonly rejectDialogVisible = signal(false);
-  rejectReason = '';
-
-  /* Promotion dialog */
-  readonly promoteDialogVisible = signal(false);
-  positionSearch = '';
-  readonly searchResults = signal<PositionRegistryListItemDto[]>([]);
-  readonly isSearching = signal(false);
-  readonly selectedPosition = signal<PositionRegistryListItemDto | null>(null);
+  readonly rejectForm = this.fb.nonNullable.group({
+    reason: ['', [Validators.required, nonBlankValidator]],
+  });
 
   statusStyles: Record<PlanStatus, StatusStyle> = {
     [PlanStatus.Draft]: { pillClass: 'pill-draft', dotClass: '' },
@@ -104,11 +107,6 @@ export class ManpowerPlanDetailComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load the manpower plan.',
-        });
       },
     });
   }
@@ -120,9 +118,6 @@ export class ManpowerPlanDetailComponent implements OnInit {
   readonly canSubmit = computed(() => this.status() === PlanStatus.Draft);
   readonly canReview = computed(() => this.status() === PlanStatus.PendingApproval);
   readonly canActivateAction = computed(() => this.status() === PlanStatus.Approved);
-  readonly canPromote = computed(
-    () => this.status() === PlanStatus.Approved || this.status() === PlanStatus.Active,
-  );
   readonly canClose = computed(
     () => this.status() === PlanStatus.Active || this.status() === PlanStatus.Fulfilled,
   );
@@ -197,68 +192,20 @@ export class ManpowerPlanDetailComponent implements OnInit {
   }
 
   openRejectDialog(): void {
-    this.rejectReason = '';
+    this.rejectForm.reset();
     this.rejectDialogVisible.set(true);
   }
 
   confirmReject(): void {
-    const reason = this.rejectReason.trim();
-    if (!reason) return;
+    if (this.rejectForm.invalid) return;
 
+    const reason = this.rejectForm.controls.reason.value.trim();
     const request: RejectManPowerPlanRequest = { reason };
     this.rejectDialogVisible.set(false);
     this.runAction(
       'reject',
       () => this.plansService.reject(this.id(), request),
       'Manpower plan rejected.',
-    );
-  }
-
-  /* ── Promotion dialog ── */
-
-  openPromoteDialog(): void {
-    this.positionSearch = '';
-    this.searchResults.set([]);
-    this.selectedPosition.set(null);
-    this.promoteDialogVisible.set(true);
-  }
-
-  searchPositions(): void {
-    const term = this.positionSearch.trim();
-    if (!term || this.isSearching()) return;
-
-    this.isSearching.set(true);
-    this.positionsService.getRegistry(undefined, term).subscribe({
-      next: (res) => {
-        this.searchResults.set(res.data ?? []);
-        this.isSearching.set(false);
-      },
-      error: () => {
-        this.searchResults.set([]);
-        this.isSearching.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Position search failed.',
-        });
-      },
-    });
-  }
-
-  selectPosition(position: PositionRegistryListItemDto): void {
-    this.selectedPosition.set(position);
-  }
-
-  confirmPromotion(): void {
-    const selected = this.selectedPosition();
-    if (!selected) return;
-
-    const request: PromotePositionRequest = { positionRegistryId: selected.id };
-    this.promoteDialogVisible.set(false);
-    this.runAction(
-      'promote',
-      () => this.plansService.promote(this.id(), request),
-      'Plan promoted to a job position.',
     );
   }
 
@@ -275,11 +222,6 @@ export class ManpowerPlanDetailComponent implements OnInit {
       },
       error: () => {
         this.pendingAction.set(null);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'The action could not be completed.',
-        });
       },
     });
   }

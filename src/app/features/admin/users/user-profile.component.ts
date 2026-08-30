@@ -4,7 +4,6 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -20,9 +19,7 @@ import { EmployeeProfileDto } from '@core/models/employee-profile-model';
     ButtonModule,
     InputTextModule,
     PasswordModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -144,7 +141,6 @@ export class UserProfileComponent implements OnInit {
       next: (res) => {
         this.isSavingPassword.set(false);
         if (!res.isCompletedSuccessfully) {
-          this.message.add({ severity: 'error', summary: 'Error', detail: res.message || 'Failed to change password.' });
           return;
         }
         this.message.add({ severity: 'success', summary: 'Saved', detail: 'Password changed successfully.' });

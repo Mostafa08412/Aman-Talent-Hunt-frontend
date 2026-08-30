@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,9 +16,12 @@ import {
   AdminManpowerPlansService,
 } from '../../core/services/admin-manpower-plans.service';
 import { AdminDepartmentsService } from '../../core/services/admin-departments.service';
+import { AuthService } from '../../core/services/auth.service';
 import { LookupItemDto } from '../../core/models/lookup-model';
 import { ManPowerPlanListItemDto } from '../../core/models/admin-manpower-plan-model';
 import { PlanQuarter, PlanStatus } from '../../core/models/enums';
+import { Role } from '../../core/models/role.model';
+import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
 
 interface FilterOption<T> {
   label: string;
@@ -40,6 +43,7 @@ interface FilterOption<T> {
     TagModule,
     MessageModule,
     ProgressSpinnerModule,
+    HumanizePipe,
   ],
   templateUrl: './manpower-plan.component.html',
   styleUrl: './manpower-plan.component.scss',
@@ -48,6 +52,9 @@ export class ManpowerPlanComponent {
   private plansService = inject(AdminManpowerPlansService);
   private departmentsService = inject(AdminDepartmentsService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+
+  readonly canManage = computed(() => this.auth.role() !== Role.DepartmentHead);
 
   entries = signal<ManPowerPlanListItemDto[]>([]);
   departments = signal<LookupItemDto[]>([]);

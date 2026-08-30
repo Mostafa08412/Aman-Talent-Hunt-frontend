@@ -12,7 +12,6 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AdminManpowerPlansService } from '../../core/services/admin-manpower-plans.service';
@@ -21,7 +20,6 @@ import { AdminPositionsService } from '../../core/services/admin-positions.servi
 import { LookupItemDto } from '../../core/models/lookup-model';
 import { CreateManPowerPlanRequest } from '../../core/models/admin-manpower-plan-model';
 import { PlanQuarter, SeniorityLevel } from '../../core/models/enums';
-import { firstValueFrom } from 'rxjs';
 
 type PositionMode = 'existing' | 'adhoc';
 
@@ -37,6 +35,13 @@ function headcountValidator(control: AbstractControl): ValidationErrors | null {
   return Number(value) >= 1 ? null : { min: true };
 }
 
+function nonBlankValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'string') return null;
+  return value.trim().length > 0 ? null : { blank: true };
+}
+
 @Component({
   selector: 'app-manpower-plan-add',
   standalone: true,
@@ -48,9 +53,7 @@ function headcountValidator(control: AbstractControl): ValidationErrors | null {
     SelectModule,
     InputTextModule,
     InputNumberModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './manpower-plan-add.component.html',
   styleUrl: './manpower-plan-add.component.scss',
 })
@@ -81,7 +84,7 @@ export class ManpowerPlanAddComponent {
     departmentId: ['', Validators.required],
     targetHeadcount: [1 as number | null, [Validators.required, headcountValidator]],
     positionRegistryId: ['', Validators.required],
-    proposedJobTitle: [''],
+    proposedJobTitle: ['', [Validators.maxLength(120)]],
     proposedJobSeniorityLevel: [null as SeniorityLevel | null],
   });
 
@@ -101,17 +104,19 @@ export class ManpowerPlanAddComponent {
     const seniority = this.form.controls.proposedJobSeniorityLevel;
 
     if (mode === 'existing') {
-      registry.addValidators(Validators.required);
-      title.clearValidators();
+      registry.setValidators(Validators.required);
+      title.setValidators([Validators.maxLength(120)]);
+      seniority.setValidators(null);
       title.reset();
-      seniority.clearValidators();
       seniority.reset();
     } else {
-      registry.clearValidators();
+      registry.setValidators(null);
+      title.setValidators([Validators.required, nonBlankValidator, Validators.maxLength(120)]);
+      seniority.setValidators(Validators.required);
       registry.reset();
-      title.addValidators(Validators.required);
-      seniority.addValidators(Validators.required);
+      seniority.reset();
     }
+    this.form.updateValueAndValidity();
   }
 
   onDepartmentChanged(): void {
@@ -175,8 +180,11 @@ export class ManpowerPlanAddComponent {
           detail: 'Manpower plan submitted for approval.',
         });
         this.navigateAfterCreate(planId);
-      }
-
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+        this.navigateAfterCreate(planId);
+      },
     });
   }
 

@@ -10,7 +10,6 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AdminEmployeesService } from '../../../core/services/admin-employees.service';
@@ -31,9 +30,7 @@ import { ROLE_DEFINITIONS } from '../../../core/roles/roles';
     RouterLink,
     ButtonModule,
     SelectModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './employee-add.component.html',
   styleUrl: './employee-add.component.scss',
 })
@@ -136,7 +133,7 @@ export class EmployeeAddComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting = false;
-        const { title, detail } = toApiError(err);
+        const { title } = toApiError(err);
 
         switch (title) {
           case EmployeeErrors.DuplicateEmail:
@@ -154,7 +151,7 @@ export class EmployeeAddComponent implements OnInit {
             break;
 
           default:
-            this.messageService.add({ severity: 'error', summary: 'Error', detail });
+            break;
         }
       },
     });

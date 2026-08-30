@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
@@ -31,10 +30,9 @@ interface StatusOption {
     RouterLink,
     ButtonModule,
     SelectModule,
-    ToastModule,
     ConfirmDialogModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [ConfirmationService],
   templateUrl: './positions.component.html',
   styleUrl: './positions.component.scss',
 })
@@ -104,11 +102,6 @@ export class PositionsComponent implements OnInit {
 
   private onLoadFailed(): void {
     this.isLoading.set(false);
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to load positions.',
-    });
   }
 
   private loadDepartments(): void {
@@ -235,11 +228,6 @@ export class PositionsComponent implements OnInit {
       next: (res) => {
         this.setPending(position.id, false);
         if (!res.isCompletedSuccessfully) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: res.message || 'Failed to update position status.',
-          });
           return;
         }
         this.messageService.add({
@@ -251,11 +239,6 @@ export class PositionsComponent implements OnInit {
       },
       error: (err) => {
         this.setPending(position.id, false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'Failed to update position status.',
-        });
       },
     });
   }
@@ -278,18 +261,8 @@ export class PositionsComponent implements OnInit {
       next: (res) => {
         this.setPending(position.id, false);
         if (!res.isCompletedSuccessfully) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: res.message || 'Failed to delete position.',
-          });
           return;
         }
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Deleted',
-          detail: `Position "${position.title}" removed.`,
-        });
         // Step back a page if this was the last row on the current page.
         if (this.positions().length === 1 && this.page() > 1) {
           this.page.update((p) => p - 1);
@@ -298,11 +271,6 @@ export class PositionsComponent implements OnInit {
       },
       error: (err) => {
         this.setPending(position.id, false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'Failed to delete position.',
-        });
       },
     });
   }

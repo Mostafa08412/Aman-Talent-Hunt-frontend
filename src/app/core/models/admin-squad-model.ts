@@ -21,6 +21,9 @@ export interface SquadSummaryDto {
   id: string;
   referenceNumber: string | null;
   name: string | null;
+  leaderId?: string | null;
+  leaderReferenceNumber?: string | null;
+  leaderName?: string | null;
 }
 
 export interface SquadMemberDto {

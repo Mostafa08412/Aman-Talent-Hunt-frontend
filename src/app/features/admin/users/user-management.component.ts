@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import {
@@ -29,9 +28,7 @@ interface FilterOption<T> {
     RouterLink,
     ButtonModule,
     SelectModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
@@ -86,7 +83,6 @@ export class UserManagementComponent implements OnInit {
           this.users.set([]);
           this.totalCount.set(0);
           this.isLoading.set(false);
-          this.showError(res.message || 'Failed to load users.');
           return;
         }
         this.users.set(res.data?.items ?? []);
@@ -97,7 +93,6 @@ export class UserManagementComponent implements OnInit {
         this.users.set([]);
         this.totalCount.set(0);
         this.isLoading.set(false);
-        this.showError('Failed to load users.');
       },
     });
   }
@@ -180,7 +175,6 @@ export class UserManagementComponent implements OnInit {
     this.usersService.resetPassword(user.id).subscribe({
       next: (res) => {
         if (!res.isCompletedSuccessfully) {
-          this.showError(res.message || 'Failed to reset password.');
           return;
         }
         this.messageService.add({
@@ -189,7 +183,6 @@ export class UserManagementComponent implements OnInit {
           detail: 'Password reset email has been sent.',
         });
       },
-      error: () => this.showError('Failed to reset password.'),
     });
   }
 
@@ -203,7 +196,6 @@ export class UserManagementComponent implements OnInit {
     action$.subscribe({
       next: (res) => {
         if (!res.isCompletedSuccessfully) {
-          this.showError(res.message || 'Failed to update account status.');
           return;
         }
         this.messageService.add({
@@ -215,7 +207,6 @@ export class UserManagementComponent implements OnInit {
         });
         this.loadUsers();
       },
-      error: () => this.showError('Failed to update account status.'),
     });
   }
 
@@ -281,9 +272,5 @@ export class UserManagementComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit',
     });
-  }
-
-  private showError(detail: string): void {
-    this.messageService.add({ severity: 'error', summary: 'Error', detail });
   }
 }

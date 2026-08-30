@@ -8,7 +8,6 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AdminUsersService } from '../../../core/services/admin-users.service';
@@ -25,9 +24,7 @@ import { ROLE_DEFINITIONS } from '../../../core/roles/roles';
     RouterLink,
     ButtonModule,
     InputTextModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './user-edit.component.html',
   styleUrl: './user-edit.component.scss',
 })
@@ -74,7 +71,6 @@ export class UserEditComponent implements OnInit {
     this.usersService.getById(this.userId).subscribe({
       next: (res) => {
         if (!res.isCompletedSuccessfully || !res.data) {
-          this.showError('Failed to load user.');
           this.router.navigate(['/console/admin/users']);
           return;
         }
@@ -85,7 +81,6 @@ export class UserEditComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.showError('Failed to load user.');
         this.router.navigate(['/console/admin/users']);
       },
     });
@@ -147,7 +142,6 @@ export class UserEditComponent implements OnInit {
         next: (res) => {
           this.isSaving.set(false);
           if (!res.isCompletedSuccessfully) {
-            this.showError(res.message || 'Failed to update user.');
             return;
           }
           this.messageService.add({
@@ -160,7 +154,6 @@ export class UserEditComponent implements OnInit {
         },
         error: () => {
           this.isSaving.set(false);
-          this.showError('Failed to update user.');
         },
       });
   }
@@ -191,7 +184,6 @@ export class UserEditComponent implements OnInit {
         next: (res) => {
           this.isSavingRoles.set(false);
           if (!res.isCompletedSuccessfully) {
-            this.showError(res.message || 'Failed to update roles.');
             return;
           }
           this.messageService.add({
@@ -203,7 +195,6 @@ export class UserEditComponent implements OnInit {
         },
         error: () => {
           this.isSavingRoles.set(false);
-          this.showError('Failed to update roles.');
         },
       });
   }
@@ -219,24 +210,22 @@ export class UserEditComponent implements OnInit {
 
     request$.subscribe({
       next: (res) => {
-        this.isLocking.set(false);
-        if (!res.isCompletedSuccessfully) {
-          this.showError(res.message || 'Failed to update account status.');
-          return;
-        }
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Updated',
-          detail: user.isLocked
-            ? 'Account unlocked successfully.'
-            : 'Account locked successfully.',
-        });
-        this.loadUser();
-      },
-      error: () => {
-        this.isLocking.set(false);
-        this.showError('Failed to update account status.');
-      },
+          this.isLocking.set(false);
+          if (!res.isCompletedSuccessfully) {
+            return;
+          }
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Updated',
+            detail: user.isLocked
+              ? 'Account unlocked successfully.'
+              : 'Account locked successfully.',
+          });
+          this.loadUser();
+        },
+        error: () => {
+          this.isLocking.set(false);
+        },
     });
   }
 
@@ -246,22 +235,20 @@ export class UserEditComponent implements OnInit {
     this.isResetting.set(true);
     this.usersService.resetPassword(this.userId).subscribe({
       next: (res) => {
-        this.isResetting.set(false);
-        if (!res.isCompletedSuccessfully) {
-          this.showError(res.message || 'Failed to reset password.');
-          return;
-        }
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Sent',
-          detail: 'Password reset email has been sent.',
-        });
-        this.loadUser();
-      },
-      error: () => {
-        this.isResetting.set(false);
-        this.showError('Failed to reset password.');
-      },
+          this.isResetting.set(false);
+          if (!res.isCompletedSuccessfully) {
+            return;
+          }
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sent',
+            detail: 'Password reset email has been sent.',
+          });
+          this.loadUser();
+        },
+        error: () => {
+          this.isResetting.set(false);
+        },
     });
   }
 
@@ -270,9 +257,5 @@ export class UserEditComponent implements OnInit {
     const d = new Date(utc);
     if (Number.isNaN(d.getTime())) return utc;
     return d.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
-  }
-
-  private showError(detail: string): void {
-    this.messageService.add({ severity: 'error', summary: 'Error', detail });
   }
 }

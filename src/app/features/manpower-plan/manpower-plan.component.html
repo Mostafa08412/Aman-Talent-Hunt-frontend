@@ -4,11 +4,13 @@
       <h1>Manpower Plan Manager</h1>
       <p>Plan and track department headcount per fiscal year and quarter</p>
     </div>
+    @if (canManage()) {
     <p-button
       label="Create Plan"
       icon="pi pi-plus"
       styleClass="btn-create-plan"
       routerLink="/console/manpower-plan/new" />
+    }
   </div>
 
   <div class="directory">
@@ -93,13 +95,13 @@
       <ng-template pTemplate="body" let-entry>
         <tr class="row-click" (click)="openPlan(entry)">
           <td>{{ entry.fiscalYear }}</td>
-          <td>{{ entry.quarter }}</td>
+          <td>{{ entry.quarter | humanize }}</td>
           <td>{{ entry.departmentName || '—' }}</td>
           <td>{{ entry.positionTitle || '—' }}</td>
           <td class="num">{{ entry.targetHeadcount }}</td>
           <td class="num">{{ entry.vacant }}</td>
           <td>
-            <p-tag [value]="entry.status"
+            <p-tag [value]="entry.status | humanize"
               [severity]="statusSeverity(entry.status)" [rounded]="false" />
           </td>
         </tr>

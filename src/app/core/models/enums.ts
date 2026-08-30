@@ -75,6 +75,7 @@ export enum MilitaryStatus {
 export enum SeniorityLevel {
   Intern = 'Intern',
   Fresh = 'Fresh',
+  MidLevel = 'MidLevel',
   Junior = 'Junior',
   Senior = 'Senior'
 }

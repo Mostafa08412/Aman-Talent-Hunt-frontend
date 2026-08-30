@@ -58,4 +58,12 @@ export class AdminEmployeesService {
   update(id: string, request: UpdateEmployeeRequest): Observable<Result> {
     return this.http.put<Result>(`${this.base}/api/admin/employees/${id}`, request);
   }
+
+  markDeparting(id: string): Observable<Result> {
+    return this.http.post<Result>(`${this.base}/api/admin/employees/${id}/mark-departing`, {});
+  }
+
+  undoDeparting(id: string): Observable<Result> {
+    return this.http.post<Result>(`${this.base}/api/admin/employees/${id}/undo-departing`, {});
+  }
 }

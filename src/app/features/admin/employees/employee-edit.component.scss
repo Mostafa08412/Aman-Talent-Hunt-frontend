@@ -35,12 +35,36 @@ h1 {
   font-weight: 700;
   color: #002a47;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.departing-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  i {
+    font-size: 0.8rem;
+  }
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 :host ::ng-deep .btn-back.p-button {
@@ -74,6 +98,30 @@ h1 {
   &:hover {
     background: var(--p-primary-600);
     border-color: var(--p-primary-600);
+  }
+}
+
+:host ::ng-deep .btn-departing.p-button {
+  border-color: #dc2626;
+  color: #dc2626;
+  font-weight: 600;
+
+  &:hover:not(.p-disabled) {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #b91c1c;
+    color: #b91c1c;
+  }
+}
+
+:host ::ng-deep .btn-undo-departing.p-button {
+  border-color: #16a34a;
+  color: #16a34a;
+  font-weight: 600;
+
+  &:hover:not(.p-disabled) {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #15803d;
+    color: #15803d;
   }
 }
 

@@ -120,6 +120,7 @@
 .hero-meta-item { display: flex; flex-direction: column; align-items: flex-end; }
 .meta-caption { font-size: 0.6875rem; color: var(--p-surface-400); }
 .meta-value { font-size: 0.875rem; font-weight: 600; color: var(--p-surface-900); }
+.meta-sub { font-size: 0.6875rem; font-weight: 600; color: var(--ath-teal); letter-spacing: 0.05em; text-transform: uppercase; }
 .meta-separator { width: 1px; height: 2rem; background: var(--p-surface-200); }
 
 /* Bento grid */
@@ -177,6 +178,24 @@
 
 .field-caption { font-size: 0.6875rem; color: var(--p-surface-400); margin: 0 0 0.25rem; }
 .position-title { font-size: 1.15rem; font-weight: 600; color: var(--p-surface-900); margin: 0; }
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+
+  @media (min-width: 640px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  > div:first-child { grid-column: span 1; @media (min-width: 640px) { grid-column: span 2; } }
+}
+
+.position-seniority {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--p-surface-900);
+  text-transform: capitalize;
+}
 
 .new-role-badge {
   display: inline-block;
@@ -322,6 +341,8 @@
   label { font-size: 0.875rem; font-weight: 600; color: var(--p-surface-900); }
   textarea { width: 100%; resize: vertical; }
 }
+
+.field-error { font-size: 0.75rem; color: #ef4444; }
 
 .dialog-lead { margin: 0; font-size: 0.875rem; color: var(--p-surface-500); }
 .search-row { display: flex; gap: 0.5rem; input { flex: 1; } }

@@ -17,13 +17,13 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
 
 import { AdminDepartmentsService } from '../../../core/services/admin-departments.service';
 import { AdminEmployeesService } from '../../../core/services/admin-employees.service';
 
 import { DepartmentResponse } from '../../../core/models/admin-department-model';
 import { LookupItemDto } from '../../../core/models/lookup-model';
+import { Roles } from '../../../core/models/enums';
 
 @Component({
   selector: 'app-department-detail',
@@ -35,9 +35,7 @@ import { LookupItemDto } from '../../../core/models/lookup-model';
     ButtonModule,
     InputTextModule,
     SelectModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './department-detail.component.html',
   styleUrl: './department-detail.component.scss',
 })
@@ -83,17 +81,19 @@ export class DepartmentDetailComponent implements OnInit {
   }
 
   private loadEmployees(): void {
-    this.employeesService.getLookup().subscribe({
-      next: (res) => {
-        this.employees.set(
-          res.isCompletedSuccessfully
-            ? (res.data?.items ?? [])
-            : [],
-        );
-      },
+    this.employeesService
+      .getLookup({ role: Roles.DepartmentHead, PageSize: 100 })
+      .subscribe({
+        next: (res) => {
+          this.employees.set(
+            res.isCompletedSuccessfully
+              ? (res.data?.items ?? [])
+              : [],
+          );
+        },
 
-      error: () => this.employees.set([]),
-    });
+        error: () => this.employees.set([]),
+      });
   }
 
   private loadDepartment(): void {
@@ -109,10 +109,6 @@ export class DepartmentDetailComponent implements OnInit {
           ) {
             this.isLoading.set(false);
 
-            this.showError(
-              res.message || 'Failed to load department.',
-            );
-
             return;
           }
 
@@ -127,7 +123,6 @@ export class DepartmentDetailComponent implements OnInit {
 
         error: () => {
           this.isLoading.set(false);
-          this.showError('Failed to load department.');
         },
       });
   }
@@ -189,9 +184,6 @@ export class DepartmentDetailComponent implements OnInit {
           this.isSaving.set(false);
 
           if (!res.isCompletedSuccessfully) {
-            this.showError(
-              res.message || 'Failed to update department.',
-            );
             return;
           }
 
@@ -209,9 +201,6 @@ export class DepartmentDetailComponent implements OnInit {
 
         error: () => {
           this.isSaving.set(false);
-          this.showError(
-            'Failed to update department.',
-          );
         },
       });
   }
@@ -241,9 +230,6 @@ export class DepartmentDetailComponent implements OnInit {
           this.isDeleting.set(false);
 
           if (!res.isCompletedSuccessfully) {
-            this.showError(
-              res.message || 'Failed to delete department.',
-            );
             return;
           }
 
@@ -260,9 +246,6 @@ export class DepartmentDetailComponent implements OnInit {
 
         error: () => {
           this.isDeleting.set(false);
-          this.showError(
-            'Failed to delete department.',
-          );
         },
       });
   }
@@ -271,13 +254,5 @@ export class DepartmentDetailComponent implements OnInit {
     this.router.navigate([
       '/console/admin/departments',
     ]);
-  }
-
-  private showError(detail: string): void {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail,
-    });
   }
 }

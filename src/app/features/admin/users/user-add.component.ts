@@ -8,7 +8,6 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AdminUsersService } from '../../../core/services/admin-users.service';
@@ -24,9 +23,7 @@ import { ROLE_DEFINITIONS } from '../../../core/roles/roles';
     RouterLink,
     ButtonModule,
     InputTextModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './user-add.component.html',
   styleUrl: './user-add.component.scss',
 })
@@ -82,11 +79,6 @@ export class UserAddComponent {
         },
         error: () => {
           this.isSubmitting.set(false);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to create user.',
-          });
         },
       });
   }
