@@ -1,0 +1,106 @@
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>My Department</h1>
+      <p>Your department overview, squads and registered positions</p>
+    </div>
+    <p-button
+      label="Refresh"
+      icon="pi pi-refresh"
+      [text]="true"
+      (onClick)="load()" />
+  </div>
+
+  @if (isLoading()) {
+  <div class="state-center">
+    <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="4" />
+  </div>
+  } @else {
+
+  @if (department(); as dept) {
+  <!-- Department details -->
+  <section class="card">
+    <div class="card-heading">
+      <h2><i class="pi pi-building section-icon"></i> Department Details</h2>
+    </div>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Department</span>
+        <span class="info-value">{{ dept.name || '—' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Reference</span>
+        <span class="info-value">{{ dept.referenceNumber || '—' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Department Head</span>
+        <span class="info-value">{{ dept.headEmployeeName || '—' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Total Employees</span>
+        <span class="info-value">{{ dept.totalEmployees }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Created</span>
+        <span class="info-value">{{ dept.createdAtUTC | date: 'MMM d, y' }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Department squads -->
+  <section class="card">
+    <div class="card-heading">
+      <h2><i class="pi pi-sitemap section-icon"></i> Department Squads</h2>
+    </div>
+    <div class="item-list">
+      @for (squad of dept.squads ?? []; track squad.id) {
+      <a class="item-row" [routerLink]="['/console/admin/squads', squad.id]">
+        <div>
+          <span class="item-title">{{ squad.name || 'Unnamed Squad' }}</span>
+          <span class="item-meta">
+            {{ squad.referenceNumber || 'No reference' }}
+            @if (squad.leaderName) { · Leader: {{ squad.leaderName }} }
+          </span>
+        </div>
+        <i class="pi pi-chevron-right item-icon"></i>
+      </a>
+      } @empty {
+      <div class="empty-list">No squads mapped to this department.</div>
+      }
+    </div>
+  </section>
+
+  <!-- Registered positions -->
+  <section class="card">
+    <div class="card-heading">
+      <h2><i class="pi pi-id-card section-icon"></i> Registered Positions</h2>
+    </div>
+    <div class="item-list">
+      @for (position of dept.positions ?? []; track position.id) {
+      <div class="item-row">
+        <div>
+          <span class="item-title">{{ position.title || 'Unnamed Position' }}</span>
+          <span class="item-meta">{{ position.referenceNumber || 'No reference' }}</span>
+        </div>
+      </div>
+      } @empty {
+      <div class="empty-list">No positions registered for this department.</div>
+      }
+    </div>
+  </section>
+
+  } @else {
+  <!-- No department assigned -->
+  <div class="empty-state">
+    <div class="empty-icon"><i class="pi pi-building"></i></div>
+    <h2>No department assigned</h2>
+    <p>
+      A department has not been assigned to you yet. Please contact your HR Manager or an
+      administrator to get your department set up.
+    </p>
+    <p-button label="Refresh" icon="pi pi-refresh" (onClick)="load()" />
+  </div>
+  }
+
+  }
+</div>

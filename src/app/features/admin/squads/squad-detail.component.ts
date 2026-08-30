@@ -11,12 +11,13 @@ import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AdminSquadsService } from '@core/services/admin-squads.service';
 import { AdminDepartmentsService } from '@core/services/admin-departments.service';
 import { AdminEmployeesService } from '@core/services/admin-employees.service';
+import { AuthService } from '@core/services/auth.service';
+import { Role } from '@core/models/role.model';
 import { SquadMemberDto, SquadResponse } from '@core/models/admin-squad-model';
 import { LookupItemDto } from '@core/models/lookup-model';
 
@@ -36,10 +37,9 @@ import { LookupItemDto } from '@core/models/lookup-model';
     MultiSelectModule,
     CheckboxModule,
     TagModule,
-    ToastModule,
     ConfirmDialogModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [ConfirmationService],
   templateUrl: './squad-detail.component.html',
   styleUrl: './squad-detail.component.scss',
 })
@@ -49,6 +49,9 @@ export class SquadDetailComponent implements OnInit {
   private employeesService = inject(AdminEmployeesService);
   private message = inject(MessageService);
   private confirmation = inject(ConfirmationService);
+  private auth = inject(AuthService);
+
+  readonly canManage = computed(() => this.auth.role() !== Role.DepartmentHead);
 
   // Bound automatically from the `:id` route param via withComponentInputBinding().
   id = input<string>('');
@@ -108,11 +111,6 @@ export class SquadDetailComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.message.add({
-          severity: 'error',
-          summary: 'Could not load squad',
-          detail: 'Please try again in a moment.',
-        });
       },
     });
   }
@@ -140,7 +138,6 @@ export class SquadDetailComponent implements OnInit {
     const squad = this.squad();
     const name = this.editName().trim();
     if (!squad || !name) {
-      this.message.add({ severity: 'warn', summary: 'Name required', detail: 'Please enter a squad name.' });
       return;
     }
     this.isSavingEdit.set(true);
@@ -155,7 +152,6 @@ export class SquadDetailComponent implements OnInit {
         },
         error: () => {
           this.isSavingEdit.set(false);
-          this.message.add({ severity: 'error', summary: 'Could not save', detail: 'Please try again.' });
         },
       });
   }
@@ -171,7 +167,6 @@ export class SquadDetailComponent implements OnInit {
     const squad = this.squad();
     const employeeId = this.selectedEmployeeId();
     if (!squad || !employeeId) {
-      this.message.add({ severity: 'warn', summary: 'Select an employee', detail: 'Please choose someone to add.' });
       return;
     }
     this.isAddingMember.set(true);
@@ -184,7 +179,6 @@ export class SquadDetailComponent implements OnInit {
       },
       error: () => {
         this.isAddingMember.set(false);
-        this.message.add({ severity: 'error', summary: 'Could not add member', detail: 'Please try again.' });
       },
     });
   }
@@ -205,15 +199,7 @@ export class SquadDetailComponent implements OnInit {
   private removeMember(squadId: string, member: SquadMemberDto): void {
     this.squadsService.removeMember(squadId, member.employeeId).subscribe({
       next: () => {
-        this.message.add({
-          severity: 'warn',
-          summary: 'Member removed',
-          detail: `${member.employeeName ?? 'Employee'} was removed from the squad.`,
-        });
         this.load();
-      },
-      error: () => {
-        this.message.add({ severity: 'error', summary: 'Could not remove member', detail: 'Please try again.' });
       },
     });
   }
@@ -228,7 +214,6 @@ export class SquadDetailComponent implements OnInit {
     const squad = this.squad();
     const employeeId = this.selectedLeaderId();
     if (!squad || !employeeId) {
-      this.message.add({ severity: 'warn', summary: 'Select a member', detail: 'Please choose a leader.' });
       return;
     }
     this.isAssigningLeader.set(true);
@@ -241,7 +226,6 @@ export class SquadDetailComponent implements OnInit {
       },
       error: () => {
         this.isAssigningLeader.set(false);
-        this.message.add({ severity: 'error', summary: 'Could not assign leader', detail: 'Please try again.' });
       },
     });
   }
@@ -266,7 +250,6 @@ export class SquadDetailComponent implements OnInit {
       },
       error: () => {
         this.isSavingDepartments.set(false);
-        this.message.add({ severity: 'error', summary: 'Could not save departments', detail: 'Please try again.' });
       },
     });
   }

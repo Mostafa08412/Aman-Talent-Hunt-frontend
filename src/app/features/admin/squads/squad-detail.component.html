@@ -1,10 +1,10 @@
 <div class="page">
-  <p-toast />
   <p-confirmdialog />
 
-  <a routerLink="/console/admin/squads" class="back-link">
+  <a [routerLink]="canManage() ? ['/console/admin/squads'] : ['/console/my-department']"
+    class="back-link">
     <i class="pi pi-arrow-left"></i>
-    Back to Squads
+    {{ canManage() ? 'Back to Squads' : 'Back to My Department' }}
   </a>
 
   @if (squad(); as sq) {
@@ -19,8 +19,10 @@
         }}</p>
       <p class="created-at">Created {{ formatDate(sq.createdAtUTC) }}</p>
     </div>
+    @if (canManage()) {
     <p-button label="Edit Details" icon="pi pi-pencil" [outlined]="true"
       (onClick)="openEditDialog()" />
+    }
   </div>
 
   <div class="detail-grid">
@@ -28,11 +30,13 @@
     <section class="panel leader-panel">
       <div class="panel-heading">
         <h2>Squad Leader</h2>
+        @if (canManage()) {
         <p-button
           [label]="sq.leader ? 'Change Leader' : 'Assign Leader'"
           icon="pi pi-user-edit"
           [text]="true"
           (onClick)="openLeaderDialog()" />
+        }
       </div>
       @if (sq.leader; as leader) {
       <div class="leader-card">
@@ -55,8 +59,10 @@
     <section class="panel">
       <div class="panel-heading">
         <h2>Covered Departments</h2>
+        @if (canManage()) {
         <p-button label="Map Departments" icon="pi pi-sitemap" [text]="true"
           (onClick)="openDepartmentsDialog()" />
+        }
       </div>
       @if (sq.departments && sq.departments.length > 0) {
       <div class="chip-list">
@@ -77,8 +83,10 @@
   <section class="panel members-panel">
     <div class="panel-heading">
       <h2>Members ({{ sq.members?.length || 0 }})</h2>
+      @if (canManage()) {
       <p-button label="Add Member" icon="pi pi-user-plus"
         (onClick)="openAddMemberDialog()" />
+      }
     </div>
 
     <p-table [value]="sq.members || []" dataKey="employeeId"
@@ -105,11 +113,13 @@
             }
           </td>
           <td class="actions-cell">
+            @if (canManage()) {
             <p-button
               icon="pi pi-trash"
               [text]="true"
               severity="danger"
               (onClick)="confirmRemoveMember(member)" />
+            }
           </td>
         </tr>
       </ng-template>

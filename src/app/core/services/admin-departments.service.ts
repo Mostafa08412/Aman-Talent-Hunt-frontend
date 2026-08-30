@@ -42,6 +42,11 @@ export class AdminDepartmentsService {
     return this.http.get<DepartmentResponseResult>(`${this.base}/api/admin/departments/${id}`);
   }
 
+  /** Returns the department headed by the current user (Department Head). */
+  getHeadDepartment(): Observable<DepartmentResponseResult> {
+    return this.http.get<DepartmentResponseResult>(`${this.base}/api/admin/departments/head`);
+  }
+
   create(request: CreateDepartmentRequest): Observable<GuidResult> {
     return this.http.post<GuidResult>(`${this.base}/api/admin/departments`, request);
   }
