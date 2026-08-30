@@ -39,7 +39,6 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
       // ── Business / validation errors ──────────────────────────────────
       switch (apiError.status) {
         case 403:
-          console.log("here")
           messageService.add({
             severity: 'warn',
             summary: 'Access Denied',

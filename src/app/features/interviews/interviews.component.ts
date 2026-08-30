@@ -6,7 +6,6 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MenuModule } from 'primeng/menu';
-import { ToastModule } from 'primeng/toast';
 
 import { InterviewService } from '@core/services/interview.service';
 import { InterviewListItemDto } from '@core/models/interview-model';
@@ -30,7 +29,6 @@ interface EnumOption {
     InputTextModule,
     SelectModule,
     MenuModule,
-    ToastModule,
     StatusBadgeComponent,
   ],
   templateUrl: './interviews.component.html',

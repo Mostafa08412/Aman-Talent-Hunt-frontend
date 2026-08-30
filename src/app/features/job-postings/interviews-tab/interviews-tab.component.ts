@@ -8,7 +8,6 @@ import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextarea } from 'primeng/inputtextarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { InterviewService } from '@core/services/interview.service';
@@ -50,7 +49,6 @@ interface EnumOption {
     DatePickerModule,
     InputTextarea,
     StatusBadgeComponent,
-    ToastModule,
     TooltipModule,
   ],
   templateUrl: './interviews-tab.component.html',

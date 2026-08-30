@@ -10,6 +10,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { AmanPreset } from '../theme/aman-preset';
 import { apiErrorInterceptor } from '@core/interceptors/api-error.interceptor';
+import { DedupMessageService } from '@core/services/dedup-message.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor, apiErrorInterceptor])),
-    MessageService,
+    { provide: MessageService, useClass: DedupMessageService },
     providePrimeNG({
       theme: {
         preset: AmanPreset,

@@ -7,7 +7,6 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
-import { ToastModule } from 'primeng/toast';
 
 import {
   AdminJobPostsService,
@@ -41,9 +40,7 @@ interface EnumOption {
     InputTextModule,
     SelectModule,
     DatePickerModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './create-job-post-dialog.component.html',
   styleUrl: './create-job-post-dialog.component.scss',
 })

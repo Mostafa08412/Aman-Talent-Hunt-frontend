@@ -6,7 +6,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AdminSquadsService } from '@core/services/admin-squads.service';
 import { SquadListItemDto } from '@core/models/admin-squad-model';
@@ -21,9 +20,7 @@ import { SquadListItemDto } from '@core/models/admin-squad-model';
     DialogModule,
     InputTextModule,
     TextareaModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './squads.component.html',
   styleUrl: './squads.component.scss',
 })
@@ -98,11 +95,6 @@ export class SquadsComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.message.add({
-          severity: 'error',
-          summary: 'Could not load squads',
-          detail: 'Please try again in a moment.',
-        });
       },
     });
   }
@@ -141,7 +133,6 @@ export class SquadsComponent implements OnInit {
   createSquad(): void {
     const name = this.newName().trim();
     if (!name) {
-      this.message.add({ severity: 'warn', summary: 'Name required', detail: 'Please enter a squad name.' });
       return;
     }
     this.isCreating.set(true);
@@ -154,11 +145,6 @@ export class SquadsComponent implements OnInit {
       },
       error: () => {
         this.isCreating.set(false);
-        this.message.add({
-          severity: 'error',
-          summary: 'Could not create squad',
-          detail: 'Please try again.',
-        });
       },
     });
   }
@@ -169,9 +155,5 @@ export class SquadsComponent implements OnInit {
 
   referenceCode(squad: SquadListItemDto): string {
     return squad.referenceNumber || squad.id.slice(0, 8).toUpperCase();
-  }
-
-  private showError(detail: string): void {
-    this.message.add({ severity: 'error', summary: 'Error', detail });
   }
 }
